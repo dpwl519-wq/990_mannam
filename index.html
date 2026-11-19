@@ -1,0 +1,3796 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FAF6F0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>990 인연 · 직장인 소개팅 (UX 개선 데모 v0.5)</title>
+<style>
+/* ==========================================================================
+   0. 디자인 토큰 — 조용한 파스텔 에디토리얼 (calm editorial pastel)
+   ========================================================================== */
+:root{
+  --paper:#FAF6F0;
+  --paper-2:#F4EDE4;
+  --card:#FFFCF8;
+  --ink:#2E2825;
+  --ink-2:#6A615A;
+  --ink-3:#9A8F86;
+  --line:rgba(46,40,37,.08);
+  --line-2:rgba(46,40,37,.14);
+  --apricot:#EABFA8;
+  --apricot-soft:#F6E8DD;
+  --apricot-deep:#D99B84;
+  --apricot-ink:#8C5B4A;
+  --sage:#C9D6C9;
+  --sage-soft:#E8EFE7;
+  --sage-ink:#5A6E58;
+  --sand:#E6D9C8;
+  --sand-soft:#F3EBE0;
+  --sand-ink:#7A6A56;
+  --butter:#F2E7D2;
+  --butter-soft:#FAF3E6;
+  --butter-ink:#8A7452;
+  --shadow-1:0 1px 1px rgba(46,40,37,.02),0 8px 20px -18px rgba(46,40,37,.35);
+  --shadow-2:0 1px 1px rgba(46,40,37,.02),0 18px 40px -32px rgba(46,40,37,.45);
+  --shadow-3:0 2px 2px rgba(46,40,37,.02),0 30px 60px -46px rgba(46,40,37,.55);
+  --font-body:'Pretendard','Noto Sans KR',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+  --font-title:'Gowun Batang','Noto Serif KR','AppleMyeongjo',Georgia,serif;
+  --nav-h:74px;
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --spring:cubic-bezier(.34,1.32,.64,1);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:var(--font-body);
+  font-weight:400;
+  color:var(--ink);
+  background:var(--paper);
+  -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+  letter-spacing:-.01em;
+  font-size:14px;
+}
+button,input,textarea{font:inherit;color:inherit;letter-spacing:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+input,textarea{background:none;border:0;outline:none;width:100%}
+h1,h2,h3,p{margin:0}
+ul{margin:0;padding:0;list-style:none}
+img{display:block;max-width:100%}
+[hidden]{display:none !important}
+::selection{background:var(--apricot-soft)}
+:focus-visible{outline:1.5px solid rgba(46,40,37,.45);outline-offset:3px;border-radius:8px}
+
+/* ==========================================================================
+   1. 무대 · 상단 모드 전환
+   ========================================================================== */
+.stage{
+  display:flex;flex-direction:column;height:100dvh;overflow:hidden;
+  background-color:var(--paper);
+  background-image:
+    radial-gradient(80% 50% at 0% -10%, rgba(217,155,132,.16) 0%, rgba(217,155,132,0) 60%),
+    radial-gradient(70% 46% at 102% 0%, rgba(230,217,200,.18) 0%, rgba(230,217,200,0) 64%),
+    radial-gradient(90% 54% at 50% 110%, rgba(201,214,201,.2) 0%, rgba(201,214,201,0) 70%);
+}
+.mode-bar{
+  flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 20px;background:rgba(250,247,242,.82);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line);z-index:120;
+}
+.mode-bar__brand{
+  display:flex;align-items:baseline;gap:9px;font-family:var(--font-title);
+  font-size:15px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;color:var(--ink);
+}
+.mode-bar__brand span{font-family:var(--font-body);font-size:9.5px;font-weight:300;color:var(--ink-3);letter-spacing:.04em}
+.seg{display:flex;gap:1px;padding:3px;background:rgba(46,40,37,.04);border-radius:999px}
+.seg__btn{
+  display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:999px;
+  font-size:10.5px;font-weight:400;letter-spacing:.01em;color:var(--ink-3);
+  transition:background .24s var(--ease),color .24s,box-shadow .24s;
+}
+.seg__btn.is-on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(46,40,37,.08)}
+.seg__count{
+  display:inline-grid;place-items:center;min-width:15px;height:15px;padding:0 4px;border-radius:8px;
+  background:var(--apricot-deep);color:#fff;font-size:8.5px;font-weight:500;letter-spacing:0;
+}
+.workspace{flex:1 1 auto;min-height:0;display:flex;justify-content:center;overflow:hidden}
+
+/* ==========================================================================
+   2. 휴대폰 프레임
+   ========================================================================== */
+.phone{
+  position:relative;display:flex;flex-direction:column;width:100%;height:100%;overflow:hidden;
+  background:linear-gradient(180deg,#FCF9F4 0%,#FAF6F0 60%,#F8F3EC 100%);
+}
+@media (min-width:620px){
+  .workspace{align-items:center;padding:20px}
+  .phone{
+    width:412px;height:min(864px,100%);border-radius:34px;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.85),
+      0 0 0 1px rgba(46,40,37,.07),
+      0 44px 80px -56px rgba(46,40,37,.55);
+  }
+}
+.statusbar{
+  flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;
+  height:40px;padding:0 26px 4px;padding-top:max(env(safe-area-inset-top),0px);
+  font-size:11px;font-weight:500;color:var(--ink-2);letter-spacing:.02em;
+}
+.statusbar__icons{display:flex;align-items:center;gap:5px;opacity:.5}
+.statusbar__icons svg{display:block}
+
+/* ==========================================================================
+   3. 공통 요소
+   ========================================================================== */
+.icon{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.icon--sm{width:16px;height:16px}
+.eyebrow{font-size:10.5px;font-weight:400;color:var(--ink-3);letter-spacing:.07em}
+.view-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:10px 2px 12px;position:relative}
+.view-head__text{min-width:0}
+.view-title{
+  font-family:var(--font-title);font-size:23px;font-weight:700;letter-spacing:-.02em;
+  line-height:1.3;margin-top:6px;color:var(--ink);
+}
+.view-head__art{flex:0 0 auto;width:64px;height:64px;margin:0 -2px -10px 0;opacity:.9}
+.view-head__art svg{width:100%;height:100%;display:block}
+.wave{display:block;width:100%;height:8px;color:rgba(46,40,37,.1);margin:0 0 16px}
+.wave--apricot{color:rgba(207,142,153,.34)}
+
+.text-btn{
+  font-size:11px;font-weight:400;color:var(--ink);letter-spacing:.04em;
+  padding:8px 16px;border-radius:999px;background:#fff;
+  box-shadow:0 0 0 1px var(--line-2),0 6px 14px -14px rgba(46,40,37,.6);
+  transition:box-shadow .24s,transform .16s var(--spring);
+}
+.text-btn:active{transform:translateY(1px)}
+.icon-btn{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;color:var(--ink-3);transition:background .22s,color .22s}
+.icon-btn:active{background:rgba(46,40,37,.05);color:var(--ink)}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  height:48px;padding:0 22px;border-radius:999px;
+  font-size:13px;font-weight:400;letter-spacing:.01em;
+  transition:transform .18s var(--spring),box-shadow .24s,background .24s,opacity .2s;
+}
+.btn:active{transform:translateY(1px)}
+.btn--primary{background:var(--apricot);color:#332B26;box-shadow:0 10px 22px -18px rgba(140,91,74,.9)}
+.btn--primary:active{background:var(--apricot-deep);color:#fff}
+.btn--ghost{background:rgba(255,255,255,.9);color:var(--ink-2);box-shadow:0 0 0 1px var(--line-2)}
+.btn--ghost:active{background:#fff;color:var(--ink)}
+.btn--mint{background:var(--sage);color:#37473E;box-shadow:0 10px 22px -18px rgba(90,110,88,.9)}
+.btn--white{
+  background:#fff;color:var(--ink);height:38px;font-size:11px;padding:0 16px;letter-spacing:.03em;
+  box-shadow:0 0 0 1px var(--line-2);
+}
+.btn--sm{height:32px;font-size:10.5px;padding:0 14px}
+.btn--block{width:100%}
+.btn[disabled]{opacity:.38;pointer-events:none;box-shadow:none}
+
+.pill{
+  display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;
+  font-size:9px;font-weight:400;letter-spacing:.04em;
+}
+.pill--pink{background:var(--apricot-soft);color:var(--apricot-ink)}
+.pill--mint{background:var(--sage-soft);color:var(--sage-ink)}
+.pill--yellow{background:var(--butter-soft);color:var(--butter-ink)}
+.pill--gray{background:rgba(46,40,37,.05);color:var(--ink-3)}
+
+.avatar{
+  width:52px;height:52px;border-radius:50%;flex:0 0 auto;overflow:hidden;display:grid;place-items:center;
+  box-shadow:0 0 0 1px var(--line);
+}
+.avatar svg{width:100%;height:100%;display:block}
+.avatar--sm{width:40px;height:40px}
+.avatar--lg{width:68px;height:68px}
+
+.screen{position:relative;flex:1 1 auto;min-height:0}
+.view{position:absolute;inset:0;opacity:0;pointer-events:none;transform:translateY(6px);transition:opacity .26s ease,transform .34s var(--ease)}
+.view.is-active{opacity:1;pointer-events:auto;transform:none}
+.view--scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 20px calc(var(--nav-h) + env(safe-area-inset-bottom) + 30px);scrollbar-width:none}
+.view--scroll::-webkit-scrollbar{display:none}
+.view--today{display:flex;flex-direction:column;padding:0 20px calc(var(--nav-h) + env(safe-area-inset-bottom) + 10px)}
+.view--chat{display:flex;flex-direction:column;padding-bottom:var(--nav-h)}
+
+/* ==========================================================================
+   4. 오늘의 매칭
+   ========================================================================== */
+.head-actions{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.ticket-chip,.points-chip{
+  display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 13px;border-radius:999px;
+  background:rgba(255,255,255,.85);font-size:11px;font-weight:400;color:var(--ink-2);white-space:nowrap;
+  letter-spacing:.02em;box-shadow:0 0 0 1px var(--line);
+  transition:box-shadow .24s,transform .16s var(--spring);
+}
+.ticket-chip:active,.points-chip:active{transform:translateY(1px)}
+.ticket-chip b,.points-chip b{font-family:var(--font-title);font-size:12.5px;font-weight:700;color:var(--ink);letter-spacing:0}
+.ticket-chip__emoji{display:none}
+
+.promo{
+  display:flex;align-items:center;gap:10px;width:100%;margin-bottom:14px;padding:10px 14px;border-radius:12px;
+  background:rgba(230,217,200,.35);
+  font-size:10.5px;font-weight:400;color:var(--butter-ink);letter-spacing:.01em;
+  transition:background .24s;
+}
+.promo:active{background:rgba(230,217,200,.55)}
+.promo__badge{
+  padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.8);
+  font-size:9px;font-weight:500;letter-spacing:.06em;color:var(--butter-ink);white-space:nowrap;
+}
+.promo__arrow{margin-left:auto;font-size:13px;color:rgba(138,116,82,.7)}
+
+.deck{position:relative;flex:1 1 auto;min-height:0;touch-action:pan-y}
+.card{
+  position:absolute;inset:0;display:flex;flex-direction:column;background:var(--card);
+  border-radius:20px;
+  box-shadow:0 0 0 1px var(--line),var(--shadow-3);
+  overflow:hidden;
+  transform:translate3d(var(--dx,0px),calc(var(--depth,0) * 8px),0) rotate(var(--rot,0deg)) scale(calc(1 - var(--depth,0) * .025));
+  opacity:calc(1 - var(--depth,0) * .22);
+  transition:transform .46s var(--ease),opacity .46s var(--ease);
+  z-index:calc(10 - var(--depth,0));will-change:transform;animation:cardIn .55s var(--ease);
+}
+.card.is-dragging{transition:none}
+@keyframes cardIn{from{opacity:0;transform:translate3d(0,22px,0) scale(.97)}}
+.card.fly-like{transform:translate3d(132%,-3%,0) rotate(11deg);opacity:0;transition:transform .52s cubic-bezier(.34,.04,.3,1),opacity .48s ease-in}
+.card.fly-pass{transform:translate3d(-132%,-3%,0) rotate(-11deg);opacity:0;transition:transform .52s cubic-bezier(.34,.04,.3,1),opacity .48s ease-in}
+
+.card-photo{position:relative;flex:0 0 auto;height:clamp(158px,23vh,198px);overflow:hidden;background:var(--paper-2)}
+.card-art{position:absolute;inset:0;overflow:hidden;animation:artIn .9s var(--ease) both}
+.card-art svg{width:100%;height:100%;display:block;transform:scale(1.16);transform-origin:50% 44%}
+@keyframes artIn{from{opacity:0}}
+.card-photo__edge{display:none}
+
+.card-sticker{
+  position:absolute;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;
+  background:rgba(255,253,251,.82);backdrop-filter:blur(8px);
+  font-size:9px;font-weight:400;color:var(--ink-2);letter-spacing:.05em;
+  box-shadow:0 0 0 1px rgba(255,255,255,.7);
+}
+.card-sticker--score{top:14px;right:14px;color:var(--ink)}
+.card-sticker--score b{font-family:var(--font-title);font-size:11.5px;font-weight:700;letter-spacing:0}
+.card-sticker--verified{top:14px;left:14px;color:var(--sage-ink);background:rgba(233,240,235,.8);box-shadow:0 0 0 1px rgba(255,255,255,.6)}
+
+.photo-dots{position:absolute;bottom:11px;left:50%;transform:translateX(-50%);display:flex;gap:4px;z-index:4;padding:4px 7px;border-radius:999px;background:rgba(255,253,251,.5);backdrop-filter:blur(4px)}
+.photo-dot{width:4px;height:4px;border-radius:2px;background:rgba(46,40,37,.22);border:0;padding:0;transition:width .3s var(--ease),background .3s}
+.photo-dot.is-on{width:13px;background:rgba(46,40,37,.5)}
+.photo-caption{
+  position:absolute;left:16px;bottom:11px;padding:0;
+  font-size:9.5px;font-weight:400;color:#8C8279;letter-spacing:.05em;background:none;
+}
+
+.card-head{padding:12px 21px 0;flex:0 0 auto}
+.card-badge{
+  display:inline-block;margin-bottom:7px;padding:3px 9px;border-radius:999px;
+  background:rgba(230,217,200,.5);color:var(--butter-ink);
+  font-size:9px;font-weight:400;letter-spacing:.05em;color:#7A6640;
+}
+.card-badge--hit{background:rgba(201,214,201,.45);color:var(--sage-ink)}
+.card-name{
+  font-family:var(--font-title);font-size:20px;font-weight:700;letter-spacing:-.02em;
+  display:flex;align-items:baseline;gap:7px;line-height:1.3;
+}
+.card-name span{font-size:12px;font-weight:400;color:var(--ink-3);letter-spacing:.02em}
+.card-meta{margin-top:4px;font-size:11px;font-weight:400;color:var(--ink-2);letter-spacing:.02em}
+
+.swipe-label{
+  position:absolute;top:52px;padding:5px 13px;border-radius:999px;
+  font-size:11px;font-weight:400;letter-spacing:.08em;
+  background:rgba(255,253,251,.92);opacity:0;pointer-events:none;
+  box-shadow:0 0 0 1px rgba(255,255,255,.8);
+}
+.swipe-label--like{right:16px;color:var(--apricot-ink);opacity:var(--like,0)}
+.swipe-label--pass{left:16px;color:var(--ink-3);opacity:var(--pass,0)}
+
+.card-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:8px 21px 13px;scrollbar-width:none;display:flex;flex-direction:column}
+.card-body::-webkit-scrollbar{display:none}
+.card-bio{font-size:12.5px;line-height:1.8;color:var(--ink-2);letter-spacing:0}
+.tag-row{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:9px}
+.tag-label{font-size:9px;font-weight:400;color:#A79C92;letter-spacing:.08em;margin-right:2px}
+.tag{
+  padding:3px 8px;border-radius:999px;background:rgba(46,40,37,.035);color:var(--ink-2);
+  font-size:10px;letter-spacing:.01em;
+}
+.tag--value{background:rgba(230,217,200,.28);color:var(--sand-ink)}
+.match-reason{
+  display:flex;align-items:flex-start;gap:7px;margin-top:11px;padding:9px 12px;border-radius:10px;
+  background:rgba(230,217,200,.28);color:var(--butter-ink);
+  font-size:9.5px;line-height:1.7;letter-spacing:.01em;
+}
+.report-link{
+  display:inline-flex;align-self:flex-start;align-items:center;gap:4px;margin-top:auto;padding-top:14px;font-size:9px;color:var(--ink-3);
+  padding:2px 0;text-decoration:none;letter-spacing:.03em;transition:color .22s;
+}
+.report-link:active{color:var(--apricot-ink)}
+
+.deck-actions{display:flex;gap:8px;padding-top:14px}
+.deck-actions .btn--ghost{width:36%}
+.deck-actions .btn--primary{flex:1}
+.deck-note{margin:10px 0 0;text-align:center;font-size:10px;color:var(--ink-3);line-height:1.75;letter-spacing:.01em}
+.deck-note b{color:var(--ink-2);font-weight:400}
+.safety-note{margin:4px 0 0;text-align:center;font-size:9px;color:var(--ink-3);letter-spacing:.02em}
+
+/* 빈 덱 */
+.empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:14px 22px 6px}
+.empty__art{width:196px;height:118px;border-radius:10px;overflow:hidden;margin-bottom:20px;box-shadow:0 0 0 1px var(--line);animation:bob 6s ease-in-out infinite}
+.empty__art svg{width:100%;height:100%;display:block}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.empty h3{font-family:var(--font-title);font-size:17px;font-weight:700;letter-spacing:-.02em}
+.empty p{margin-top:10px;font-size:11.5px;line-height:1.9;color:var(--ink-3);letter-spacing:.01em}
+.empty .btn{margin-top:22px;height:42px;font-size:11.5px;padding:0 22px}
+
+/* ==========================================================================
+   5. 매칭 현황
+   ========================================================================== */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-bottom:22px;background:var(--line);border-radius:14px;overflow:hidden}
+.stat{background:var(--card);padding:16px 8px 14px;text-align:center}
+.stat__emoji{display:none}
+.stat__value{margin-top:0;font-family:var(--font-title);font-size:19px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
+.stat__value em{font-style:normal;font-family:var(--font-body);font-size:9px;font-weight:400;color:var(--ink-3);margin-left:2px;letter-spacing:.04em}
+.stat__label{margin-top:5px;font-size:9px;color:var(--ink-3);letter-spacing:.08em}
+.stat.is-hot .stat__value{color:var(--apricot-ink)}
+
+.refund-banner{
+  display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:11px 13px;border-radius:10px;
+  background:rgba(201,214,201,.22);color:var(--sage-ink);
+  font-size:9.5px;line-height:1.7;letter-spacing:.01em;
+}
+.refund-banner span{flex:1 1 auto}
+.refund-banner b{color:var(--sage-ink);font-weight:500}
+.refund-banner button{
+  flex:0 0 auto;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.8);
+  font-size:8.5px;font-weight:400;color:var(--sage-ink);white-space:nowrap;letter-spacing:.04em;
+}
+
+.section{margin-bottom:26px}
+.section__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 2px 9px;border-bottom:1px solid var(--line)}
+.section__title{font-family:var(--font-title);font-size:13px;font-weight:700;letter-spacing:.01em;color:var(--ink)}
+.section__count{font-size:9.5px;font-weight:400;color:var(--ink-3);letter-spacing:.05em}
+.section__hint{font-size:8.5px;color:var(--ink-3);letter-spacing:.04em}
+
+.list{display:flex;flex-direction:column;gap:6px}
+.row{
+  display:flex;align-items:center;gap:12px;background:var(--card);border-radius:14px;padding:12px 14px;
+  box-shadow:0 0 0 1px var(--line);
+  transition:box-shadow .24s;
+}
+.row:active{box-shadow:0 0 0 1px var(--line-2)}
+.row__main{flex:1 1 auto;min-width:0}
+.row__name{font-family:var(--font-title);font-size:13px;font-weight:700;letter-spacing:.01em;display:flex;align-items:center;gap:5px}
+.row__name span{font-family:var(--font-body);font-size:9.5px;font-weight:400;color:var(--ink-3)}
+.row__sub{margin-top:4px;font-size:10.5px;color:var(--ink-3);letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row__actions{display:flex;gap:5px;flex:0 0 auto}
+.status-pill{
+  flex:0 0 auto;padding:4px 9px;border-radius:999px;
+  font-size:9px;font-weight:400;background:rgba(46,40,37,.045);color:var(--ink-3);letter-spacing:.03em;white-space:nowrap;
+}
+.status-pill--wait{background:rgba(230,217,200,.45);color:var(--butter-ink)}
+.status-pill--done{background:rgba(201,214,201,.4);color:var(--sage-ink)}
+.status-pill--refund{background:rgba(230,217,200,.3);color:var(--sand-ink)}
+.list-empty{
+  padding:20px;border-radius:14px;background:rgba(255,253,251,.6);font-size:10px;line-height:1.9;
+  color:var(--ink-3);text-align:center;letter-spacing:.02em;box-shadow:inset 0 0 0 1px var(--line);
+}
+
+/* ==========================================================================
+   6. 대화
+   ========================================================================== */
+.chat-list{padding:0 20px calc(var(--nav-h) + env(safe-area-inset-bottom) + 26px);overflow-y:auto;height:100%;scrollbar-width:none}
+.chat-list::-webkit-scrollbar{display:none}
+.thread{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--paper);animation:threadIn .3s var(--ease)}
+@keyframes threadIn{from{transform:translateX(12px);opacity:0}}
+.thread-head{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:8px 18px 12px 8px;background:rgba(250,247,242,.9);box-shadow:0 1px 0 var(--line)}
+.thread-head__text{flex:1 1 auto;min-width:0}
+.thread-head__name{font-family:var(--font-title);font-size:14px;font-weight:700;letter-spacing:.01em}
+.thread-head__sub{margin-top:3px;font-size:9px;color:var(--ink-3);letter-spacing:.04em}
+.thread-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:18px 20px 4px;display:flex;flex-direction:column;gap:7px;scrollbar-width:none}
+.thread-body::-webkit-scrollbar{display:none}
+.day-divider{
+  align-self:center;margin:2px 0 12px;padding:0;color:var(--ink-3);font-size:8.5px;letter-spacing:.1em;
+  background:none;
+}
+.bubble{
+  max-width:78%;padding:11px 15px;border-radius:16px;font-size:12px;line-height:1.75;
+  letter-spacing:.005em;animation:bubbleIn .28s var(--spring);
+}
+@keyframes bubbleIn{from{transform:translateY(7px);opacity:0}}
+.bubble--them{align-self:flex-start;background:var(--card);border-bottom-left-radius:4px;color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.bubble--me{
+  align-self:flex-end;border-bottom-right-radius:4px;color:#332B26;
+  background:linear-gradient(150deg,#F5E3D6 0%,#EFD2BF 100%);
+}
+.bubble__time{align-self:flex-start;font-size:8px;color:#B4A9A1;margin:-4px 5px 6px;letter-spacing:.04em}
+.bubble--me + .bubble__time{align-self:flex-end}
+.typing{
+  align-self:flex-start;display:flex;gap:4px;padding:14px 16px;background:var(--card);border-radius:16px;
+  border-bottom-left-radius:4px;box-shadow:0 0 0 1px var(--line);
+}
+.typing i{width:4px;height:4px;border-radius:50%;background:#CFC4C0;animation:blink 1.4s infinite}
+.typing i:nth-child(2){animation-delay:.18s}
+.typing i:nth-child(3){animation-delay:.36s}
+@keyframes blink{0%,60%,100%{opacity:.35;transform:translateY(0)}30%{opacity:1;transform:translateY(-1px)}}
+
+.chips{flex:0 0 auto;padding:10px 0 2px;background:linear-gradient(to top,rgba(250,247,242,.98) 70%,rgba(250,247,242,0))}
+.chips__label{padding:0 20px 8px;font-size:8.5px;color:var(--ink-3);letter-spacing:.08em}
+.chips__row{display:flex;gap:6px;overflow-x:auto;padding:0 18px 5px;scrollbar-width:none}
+.chips__row::-webkit-scrollbar{display:none}
+.chip{
+  flex:0 0 auto;padding:7px 13px;border-radius:999px;background:rgba(255,253,251,.9);
+  font-size:10.5px;color:var(--ink-2);letter-spacing:.01em;
+  box-shadow:0 0 0 1px var(--line-2);
+  transition:background .24s,box-shadow .2s;
+}
+.chip:active{background:var(--apricot-soft)}
+.composer{
+  flex:0 0 auto;display:flex;align-items:center;gap:8px;
+  padding:9px 16px calc(11px + env(safe-area-inset-bottom));
+  background:rgba(250,247,242,.96);box-shadow:0 -1px 0 var(--line);
+}
+.composer__field{
+  flex:1 1 auto;height:42px;border-radius:999px;padding:0 18px;background:#fff;
+  font-size:12px;box-shadow:0 0 0 1px var(--line-2);
+}
+.composer__field::placeholder{color:#C5BAB1}
+.send{
+  width:42px;height:42px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;
+  background:var(--ink);color:var(--paper);
+  transition:opacity .2s,transform .16s var(--spring);
+}
+.send[disabled]{opacity:.25}
+.send:active:not([disabled]){transform:scale(.94)}
+.send svg{width:17px;height:17px;stroke-width:1.6}
+
+/* ==========================================================================
+   7. 내 프로필 + 직장인 인증 + 안전 설정
+   ========================================================================== */
+.profile-card{
+  display:flex;align-items:center;gap:16px;margin-bottom:18px;padding:18px;border-radius:16px;
+  background:linear-gradient(140deg,#FBF6F1 0%,#F8F2EC 60%,#F6F1E9 100%);
+  box-shadow:0 0 0 1px var(--line);
+}
+.profile-card__text{flex:1 1 auto;min-width:0}
+.profile-card__name{
+  font-family:var(--font-title);font-size:17px;font-weight:700;letter-spacing:-.01em;
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+}
+.profile-card__name span{font-family:var(--font-body);font-size:11px;font-weight:400;color:var(--ink-3)}
+.profile-card__meta{margin-top:5px;font-size:10px;color:var(--ink-3);letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.verify-card{
+  padding:18px;border-radius:16px;background:var(--card);margin-bottom:18px;
+  box-shadow:0 0 0 1px var(--line);
+}
+.verify-card.is-pending{background:rgba(230,217,200,.18);box-shadow:0 0 0 1px rgba(138,116,82,.16)}
+.verify-card.is-verified{background:rgba(201,214,201,.18);box-shadow:0 0 0 1px rgba(90,110,88,.16)}
+.verify-card.is-rejected{background:rgba(217,155,132,.14);box-shadow:0 0 0 1px rgba(140,91,74,.16)}
+.verify-card__head{display:flex;align-items:center;gap:13px}
+.verify-card__emoji{
+  width:42px;height:42px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;
+  background:rgba(255,255,255,.7);box-shadow:0 0 0 1px var(--line);
+}
+.verify-card__emoji svg{width:24px;height:24px;display:block}
+.verify-card__title{font-family:var(--font-title);font-size:13px;font-weight:700;letter-spacing:.01em}
+.verify-card__sub{margin-top:4px;font-size:9.5px;color:var(--ink-3);line-height:1.6;letter-spacing:.02em}
+.verify-status{margin-left:auto;flex:0 0 auto}
+.verify-body{margin-top:15px}
+.verify-body p{font-size:10.5px;color:var(--ink-2);line-height:1.85}
+.verify-body p b{font-weight:500;color:var(--ink)}
+.verify-actions{display:flex;flex-direction:column;gap:6px;margin-top:13px}
+.verify-actions .btn{height:42px;font-size:11px}
+.verify-meta{
+  margin-top:12px;padding:11px 13px;border-radius:10px;background:rgba(255,255,255,.6);
+  font-size:9.5px;color:var(--ink-2);line-height:1.8;letter-spacing:.01em;
+  box-shadow:inset 0 0 0 1px var(--line);
+}
+.verify-meta b{font-weight:500;color:var(--ink)}
+.reject-reason{
+  margin-top:12px;padding:11px 13px;border-radius:10px;background:rgba(255,255,255,.6);
+  font-size:9.5px;color:var(--apricot-ink);line-height:1.7;box-shadow:inset 0 0 0 1px rgba(140,91,74,.14);
+}
+.steps{display:flex;align-items:center;gap:6px;margin-top:11px;font-size:8.5px;color:var(--ink-3);letter-spacing:.04em}
+.steps .on{color:var(--ink-2)}
+.steps .dot{
+  width:15px;height:15px;border-radius:50%;display:inline-grid;place-items:center;
+  background:rgba(46,40,37,.04);font-size:7.5px;letter-spacing:0;
+}
+.steps .on .dot{background:rgba(46,40,37,.09);color:var(--ink)}
+
+.form-card{background:var(--card);border-radius:16px;padding:2px 16px;box-shadow:0 0 0 1px var(--line)}
+.field{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.field:last-child{border-bottom:0}
+.field > span{font-size:10.5px;font-weight:400;color:var(--ink-2);flex:0 0 auto;letter-spacing:.05em}
+.field input{text-align:right;font-size:12px;letter-spacing:.01em}
+.field input::placeholder{color:#C5BAB1}
+.field--col{display:block;padding:15px 0}
+.field--col > span{display:block;margin-bottom:10px}
+.field--col textarea{font-size:12px;line-height:1.85;resize:none;letter-spacing:.005em}
+.field--col textarea::placeholder{color:#C5BAB1}
+.range-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-3)}
+.range-row input{
+  width:56px;height:36px;border-radius:9px;text-align:center;background:rgba(46,40,37,.025);
+  font-size:12px;letter-spacing:.02em;
+}
+.range-row .dash{color:#CFC3B8}
+.chips-select{display:flex;flex-wrap:wrap;gap:5px}
+.chip-select{
+  padding:7px 11px;border-radius:999px;font-size:10px;letter-spacing:.02em;
+  background:rgba(46,40,37,.028);color:var(--ink-3);
+  transition:background .24s,color .24s;
+}
+.chip-select:active{background:rgba(46,40,37,.06)}
+.chip-select[aria-pressed="true"]{
+  background:rgba(217,155,132,.34);color:#4A362C;
+}
+
+/* 토글 & 지인 차단 */
+.toggle-row{display:flex;align-items:center;gap:12px;padding:15px 0;border-bottom:1px solid var(--line)}
+.toggle-row__text{flex:1 1 auto;min-width:0}
+.toggle-title{font-size:11px;font-weight:400;letter-spacing:.03em;color:var(--ink)}
+.toggle-desc{margin-top:4px;font-size:9px;color:var(--ink-3);line-height:1.65;letter-spacing:.02em}
+.switch{
+  width:42px;height:24px;border-radius:999px;background:rgba(46,40,37,.12);position:relative;flex:0 0 auto;
+  transition:background .28s var(--ease);
+}
+.switch span{
+  position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 3px rgba(46,40,37,.2);transition:transform .28s var(--spring);
+}
+.switch[aria-pressed="true"]{background:var(--sage-ink)}
+.switch[aria-pressed="true"] span{transform:translateX(18px)}
+.phone-add{display:flex;gap:6px}
+.phone-add input{
+  flex:1 1 auto;height:40px;border-radius:9px;padding:0 13px;background:rgba(46,40,37,.025);
+  font-size:11.5px;letter-spacing:.02em;
+}
+.phone-add .btn{flex:0 0 auto}
+.blocked-item{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px;padding:9px 12px;
+  border-radius:9px;background:rgba(46,40,37,.025);font-size:10px;color:var(--ink-2);letter-spacing:.02em;
+}
+.blocked-item button{font-size:9px;color:var(--ink-3);letter-spacing:.04em}
+.safety-note-inline{margin-top:9px;font-size:9px;color:var(--ink-3);line-height:1.75;letter-spacing:.01em}
+
+/* 매칭 우선순위 */
+.chips-select--dense{gap:4px}
+.chips-select--dense .chip-select{padding:6px 9px;font-size:9px}
+.chip-select--any{font-weight:400}
+.prio-chip{display:inline-flex;align-items:center;gap:5px}
+.prio-chip .rank{
+  display:inline-grid;place-items:center;width:14px;height:14px;border-radius:50%;
+  background:rgba(140,91,74,.18);color:#4A362C;font-size:7.5px;font-weight:500;
+}
+.priority-summary{
+  margin-top:9px;font-size:9px;color:var(--butter-ink);background:rgba(230,217,200,.3);
+  border-radius:8px;padding:9px 11px;line-height:1.75;letter-spacing:.01em;
+}
+.prio-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:9px}
+.prio-label{font-size:8px;color:var(--ink-3);letter-spacing:.08em}
+.prio{padding:3px 8px;border-radius:999px;font-size:8.5px;background:rgba(46,40,37,.035);color:var(--ink-3);letter-spacing:.02em}
+.prio.is-hit{background:rgba(201,214,201,.4);color:var(--sage-ink)}
+
+.ticket-card{
+  position:relative;display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:20px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(135deg,#FBF7EC 0%,#F9F2EA 55%,#F8F1E9 100%);
+  box-shadow:0 0 0 1px rgba(46,40,37,.06);
+}
+.ticket-card__label{font-size:8.5px;color:var(--butter-ink);letter-spacing:.1em}
+.ticket-card__value{margin-top:6px;font-size:10px;color:var(--ink-2);letter-spacing:.02em}
+.ticket-card__value b{font-family:var(--font-title);font-size:26px;font-weight:700;letter-spacing:-.02em;color:var(--ink);margin-right:3px}
+.ticket-card__hint{margin-top:7px;font-size:9px;color:var(--ink-3);line-height:1.75;letter-spacing:.01em}
+.ticket-card__hint b{font-weight:500;color:var(--ink-2)}
+
+.reset-btn{
+  display:flex;align-items:center;justify-content:center;gap:7px;width:100%;height:44px;border-radius:999px;
+  background:transparent;font-size:10px;color:var(--ink-3);letter-spacing:.04em;
+  box-shadow:inset 0 0 0 1px var(--line);
+  transition:background .24s,color .24s;
+}
+.reset-btn:active{background:rgba(46,40,37,.03);color:var(--ink-2)}
+.reset-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round}
+.footnote{margin-top:14px;text-align:center;font-size:9px;color:#B2A79E;line-height:1.9;letter-spacing:.02em}
+
+/* ==========================================================================
+   8. 하단 탭바
+   ========================================================================== */
+.tabbar{
+  position:absolute;inset:auto 0 0 0;z-index:40;display:grid;grid-template-columns:repeat(4,1fr);
+  height:calc(var(--nav-h) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);
+  background:rgba(250,247,242,.86);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  box-shadow:0 -1px 0 var(--line);
+}
+.tab{
+  position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  color:#B1A79F;font-size:8.5px;font-weight:400;letter-spacing:.06em;
+  transition:color .24s;
+}
+.tab svg{width:20px;height:20px;transition:transform .3s var(--spring),opacity .24s;opacity:.9}
+.tab::after{
+  content:'';position:absolute;bottom:11px;width:0;height:1px;background:var(--ink);
+  transition:width .3s var(--ease);
+}
+.tab.is-active{color:var(--ink)}
+.tab.is-active::after{width:14px}
+.tab:active svg{transform:scale(.92)}
+.tab__badge{
+  position:absolute;top:8px;right:calc(50% - 18px);min-width:15px;height:15px;padding:0 4px;border-radius:8px;
+  background:var(--apricot-deep);color:#fff;font-size:8px;font-weight:500;display:grid;place-items:center;
+  box-shadow:0 0 0 1.5px var(--paper);
+}
+
+/* ==========================================================================
+   9. 토스트 · 시트 · 이펙트
+   ========================================================================== */
+.toast{
+  position:fixed;left:50%;bottom:calc(var(--nav-h) + 22px);z-index:300;width:max-content;
+  max-width:min(400px,calc(100vw - 40px));display:flex;align-items:center;gap:10px;
+  padding:13px 17px;border-radius:12px;background:rgba(46,40,37,.93);color:#FAF6F0;
+  font-size:10.5px;line-height:1.7;letter-spacing:.01em;backdrop-filter:blur(10px);
+  opacity:0;transform:translate(-50%,12px);pointer-events:none;
+  transition:opacity .3s,transform .36s var(--spring);
+  box-shadow:0 24px 44px -30px rgba(46,40,37,.9);
+}
+.toast.is-on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast span{flex:1 1 auto}
+.toast button{
+  flex:0 0 auto;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;
+  font-size:9px;font-weight:400;letter-spacing:.04em;
+}
+body.mode-admin .toast{bottom:24px}
+
+.sheet-wrap{position:fixed;inset:0;z-index:320;display:flex;align-items:flex-end;justify-content:center}
+.sheet-backdrop{position:absolute;inset:0;background:rgba(46,40,37,.26);backdrop-filter:blur(2px);animation:fadeIn .28s ease}
+@keyframes fadeIn{from{opacity:0}}
+.sheet{
+  position:relative;width:min(440px,100%);max-height:90dvh;overflow-y:auto;
+  background:linear-gradient(180deg,#FCF9F4 0%,#FAF5EE 60%,#F9F4EE 100%);
+  border-radius:24px 24px 0 0;padding:12px 22px calc(24px + env(safe-area-inset-bottom));
+  animation:sheetUp .38s var(--ease);box-shadow:0 -24px 60px -36px rgba(46,40,37,.5);
+}
+@media (min-width:620px){.sheet{border-radius:22px;margin-bottom:24px}}
+@keyframes sheetUp{from{transform:translateY(100%)}}
+.sheet__grabber{width:34px;height:3px;border-radius:2px;background:rgba(46,40,37,.14);margin:0 auto 18px}
+.sheet__head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sheet__head h2{font-family:var(--font-title);font-size:16px;font-weight:700;letter-spacing:-.01em}
+.sheet__sub{margin-top:9px;font-size:10.5px;line-height:1.85;color:var(--ink-2);letter-spacing:.01em}
+.sheet__sub b{font-weight:500;color:var(--ink)}
+.sheet__notice{
+  margin-top:14px;padding:12px 14px;border-radius:10px;
+  background:rgba(230,217,200,.32);color:var(--butter-ink);
+  font-size:10px;line-height:1.75;letter-spacing:.01em;
+}
+.packs{display:flex;flex-direction:column;gap:6px;margin-top:17px}
+.pack{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;
+  border-radius:12px;background:var(--card);box-shadow:0 0 0 1px var(--line);
+}
+.pack__n{font-size:11px;letter-spacing:.04em;color:var(--ink-2)}
+.pack__p{margin-top:5px;font-size:11.5px;color:var(--ink)}
+.pack__tag{
+  display:inline-block;margin-left:8px;padding:2px 7px;border-radius:999px;
+  background:rgba(217,155,132,.28);color:#5C3A2C;font-size:8px;font-weight:400;letter-spacing:.06em;vertical-align:1px;
+}
+.sheet__note{margin-top:15px;font-size:8.5px;line-height:2;color:#B1A79F;letter-spacing:.01em}
+.sheet__actions{display:flex;gap:7px;margin-top:19px}
+.sheet__actions .btn{flex:1;height:44px;font-size:11px}
+.sheet-field{margin-top:16px}
+.sheet-field > label{display:block;margin-bottom:8px;font-size:9px;font-weight:400;color:var(--ink-2);letter-spacing:.08em}
+.sheet-field input{
+  height:46px;border-radius:10px;padding:0 15px;background:#fff;font-size:12px;
+  box-shadow:0 0 0 1px var(--line-2);
+}
+.sheet-field input::placeholder{color:#C5BAB1}
+.sheet-field input:focus{box-shadow:0 0 0 1px rgba(46,40,37,.4)}
+.sheet-hint{margin-top:8px;font-size:8.5px;color:#B1A79F;line-height:1.8;letter-spacing:.01em}
+.sheet-hint b{font-weight:500;color:var(--ink-3)}
+.code-input{letter-spacing:.44em;text-align:center;font-size:19px !important;height:54px !important;font-family:var(--font-title)}
+.demo-code{
+  margin-top:12px;padding:11px 13px;border-radius:10px;
+  background:rgba(230,217,200,.3);color:var(--butter-ink);
+  font-size:9.5px;line-height:1.75;display:flex;align-items:center;gap:8px;justify-content:space-between;
+  letter-spacing:.01em;
+}
+.demo-code button{
+  padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.8);
+  font-size:8.5px;font-weight:400;color:var(--butter-ink);flex:0 0 auto;letter-spacing:.04em;
+}
+.upload-box{
+  margin-top:14px;padding:26px 16px;border-radius:12px;text-align:center;cursor:pointer;display:block;
+  background:rgba(255,253,251,.7);box-shadow:inset 0 0 0 1px var(--line);
+  border:1px dashed rgba(46,40,37,.14);
+}
+.upload-box:active{background:#fff}
+.upload-box__emoji{display:block;margin:0 auto 8px;width:26px;height:26px;color:var(--ink-3)}
+.upload-box__emoji svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.upload-box__text{display:block;font-size:10.5px;font-weight:400;color:var(--ink-2);letter-spacing:.03em}
+.upload-box__hint{display:block;margin-top:5px;font-size:8.5px;color:var(--ink-3);letter-spacing:.04em}
+.doc-preview{margin-top:14px;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px var(--line)}
+.doc-preview img{width:100%;max-height:260px;object-fit:contain;background:#FCF9F4}
+.doc-preview__meta{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 13px;font-size:9px;color:var(--ink-2);box-shadow:inset 0 1px 0 var(--line)}
+.doc-preview__meta button{font-size:9px;color:var(--ink-2);text-decoration:underline;text-underline-offset:2px}
+.reason-pick{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.reason-chip{
+  padding:8px 12px;border-radius:999px;background:rgba(46,40,37,.028);font-size:9.5px;color:var(--ink-2);
+  letter-spacing:.02em;transition:background .22s,color .22s;
+}
+.reason-chip:active{background:rgba(46,40,37,.06)}
+.reason-chip[aria-pressed="true"]{background:rgba(217,155,132,.34);color:#4A362C}
+.check-row{
+  display:flex;align-items:center;gap:9px;margin-top:14px;padding:12px 14px;border-radius:10px;
+  background:rgba(46,40,37,.025);font-size:9.5px;color:var(--ink-2);letter-spacing:.01em;
+}
+.check-row input{width:15px;height:15px;accent-color:#5C7266;flex:0 0 auto}
+
+/* 사진 · 만남 · 포인트 */
+.photo-manage{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:0 0 18px}
+.photo-slot{
+  position:relative;aspect-ratio:1;border-radius:12px;background:rgba(255,253,251,.55);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;overflow:hidden;cursor:pointer;
+  box-shadow:inset 0 0 0 1px var(--line);
+  border:1px dashed rgba(46,40,37,.12);
+}
+.photo-slot img{width:100%;height:100%;object-fit:cover}
+.photo-slot__plus{font-size:16px;color:#C3B8AE;font-weight:300}
+.photo-slot__hint{font-size:8px;color:#C3B8AE;letter-spacing:.06em}
+.photo-slot__remove{
+  position:absolute;top:5px;right:5px;width:19px;height:19px;border-radius:50%;
+  background:rgba(46,40,37,.4);color:#fff;font-size:8px;display:grid;place-items:center;line-height:1;
+  backdrop-filter:blur(4px);
+}
+.photo-slot__tag{
+  position:absolute;bottom:5px;left:5px;padding:2px 7px;border-radius:999px;
+  background:rgba(255,253,251,.9);color:var(--ink-2);font-size:7.5px;letter-spacing:.06em;
+}
+.meet-bar{
+  flex:0 0 auto;display:flex;align-items:center;gap:10px;margin:12px 18px 0;padding:12px 14px;border-radius:12px;
+  background:rgba(230,217,200,.24);
+}
+.meet-bar.is-met{background:rgba(201,214,201,.26)}
+.meet-bar.is-reviewed{background:rgba(230,217,200,.26)}
+.meet-bar__text{flex:1 1 auto;min-width:0}
+.meet-bar__title{font-size:10px;font-weight:400;color:var(--ink);letter-spacing:.02em}
+.meet-bar__sub{margin-top:4px;font-size:8.5px;color:var(--ink-3);line-height:1.6;letter-spacing:.01em}
+.meet-bar__actions{display:flex;gap:5px;flex:0 0 auto}
+.meet-bar__actions .btn{height:30px;font-size:9px;padding:0 11px}
+.fx-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:45}
+.fx{position:absolute;width:14px;height:14px;color:var(--apricot-deep);animation:floatUp 1.4s ease-out forwards;opacity:0}
+.fx svg{width:100%;height:100%;display:block}
+@keyframes floatUp{0%{opacity:0;transform:translateY(0) scale(.7)}18%{opacity:.8}100%{opacity:0;transform:translateY(-150px) scale(1) rotate(var(--r,0deg))}}
+.burst{position:absolute;width:12px;height:12px;color:var(--apricot-deep);animation:burstOut 1.1s ease-out forwards}
+.burst svg{width:100%;height:100%;display:block}
+@keyframes burstOut{0%{opacity:.9;transform:translate(0,0) scale(.5)}70%{opacity:.8}100%{opacity:0;transform:translate(var(--tx,0),var(--ty,-80px)) scale(1.1) rotate(var(--r,0deg))}}
+
+/* ==========================================================================
+   10. 관리자 화면
+   ========================================================================== */
+.admin{width:100%;max-width:980px;height:100%;margin:0 auto;padding:26px 22px 60px;overflow-y:auto}
+.admin-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;
+  padding:24px;border-radius:16px;
+  background:linear-gradient(140deg,#FBF6F1 0%,#F8F2EC 55%,#F5EFE7 100%);
+  box-shadow:0 0 0 1px var(--line);
+}
+.admin-head h1{font-family:var(--font-title);font-size:22px;font-weight:700;letter-spacing:-.01em;margin-top:6px}
+.admin-sub{margin-top:8px;font-size:10px;color:var(--ink-2);line-height:1.85;letter-spacing:.01em}
+.admin-sub b{font-weight:500;color:var(--ink)}
+.admin-head__right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.admin-stats{display:flex;gap:6px;flex-wrap:wrap}
+.admin-stat{
+  display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;background:rgba(255,255,255,.7);
+  font-size:9px;color:var(--ink-2);letter-spacing:.05em;box-shadow:0 0 0 1px var(--line);
+}
+.admin-stat b{font-family:var(--font-title);font-size:13px;font-weight:700;letter-spacing:0;color:var(--ink)}
+.admin-tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.admin-tab{
+  display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;
+  background:rgba(255,255,255,.6);font-size:10px;font-weight:400;
+  color:var(--ink-3);letter-spacing:.04em;
+  box-shadow:0 0 0 1px var(--line);
+  transition:background .24s,color .2s;
+}
+.admin-tab:active{background:#fff}
+.admin-tab b{
+  display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 4px;border-radius:999px;
+  background:rgba(46,40,37,.06);color:var(--ink-3);font-size:8px;font-weight:500;letter-spacing:0;
+}
+.admin-tab.is-on{background:var(--ink);color:var(--paper);box-shadow:none}
+.admin-tab.is-on b{background:rgba(255,255,255,.2);color:#fff}
+.admin-grid{display:grid;gap:22px}
+@media (min-width:880px){.admin-grid{grid-template-columns:1.15fr .85fr;align-items:start}}
+.admin-col__title{display:flex;align-items:center;gap:7px;font-family:var(--font-title);font-size:12px;font-weight:700;letter-spacing:.02em;margin-bottom:11px;padding-left:2px}
+.admin-col__title span{font-family:var(--font-body);font-size:8.5px;font-weight:400;color:var(--ink-3);letter-spacing:.06em}
+.sub-card{
+  padding:16px;border-radius:14px;background:var(--card);margin-bottom:8px;
+  box-shadow:0 0 0 1px var(--line);animation:cardIn .36s var(--ease);
+}
+.sub-card__top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.sub-card__who{display:flex;align-items:center;gap:11px;min-width:0}
+.sub-card__avatar{
+  width:38px;height:38px;border-radius:50%;overflow:hidden;flex:0 0 auto;display:grid;place-items:center;
+  box-shadow:0 0 0 1px var(--line);
+}
+.sub-card__avatar svg{width:100%;height:100%;display:block}
+.sub-card__name{font-family:var(--font-title);font-size:12px;font-weight:700;letter-spacing:.01em;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.sub-card__company{margin-top:3px;font-size:9px;color:var(--ink-3);letter-spacing:.02em}
+.mini-badge{
+  padding:1px 6px;border-radius:999px;background:rgba(46,40,37,.05);color:var(--ink-3);
+  font-family:var(--font-body);font-size:7.5px;font-weight:400;letter-spacing:.06em;
+}
+.mini-badge--red{background:rgba(217,155,132,.3);color:#8A5A48}
+.method-badge{
+  flex:0 0 auto;padding:4px 9px;border-radius:999px;font-size:8px;background:rgba(230,217,200,.35);color:var(--butter-ink);
+  max-width:44%;text-align:right;line-height:1.5;letter-spacing:.03em;
+}
+.sub-card__email{
+  margin-top:11px;padding:9px 12px;border-radius:8px;background:rgba(46,40,37,.025);
+  font-size:9px;color:var(--ink-2);word-break:break-all;line-height:1.7;letter-spacing:.01em;
+}
+.doc-thumb{
+  display:flex;align-items:center;gap:10px;width:100%;margin-top:11px;padding:8px;border-radius:10px;
+  background:rgba(46,40,37,.025);text-align:left;
+}
+.doc-thumb img{width:42px;height:52px;object-fit:cover;border-radius:6px;background:#fff}
+.doc-thumb span{font-size:8.5px;color:var(--ink-2);line-height:1.7;letter-spacing:.02em}
+.sub-card__time{margin-top:10px;font-size:8px;color:#B7ACA3;letter-spacing:.04em}
+.sub-card__actions{display:flex;gap:6px;margin-top:12px}
+.sub-card__actions .btn{flex:1;height:36px;font-size:10px}
+.reject-box{margin-top:10px;padding:12px;border-radius:10px;background:rgba(217,155,132,.1);box-shadow:inset 0 0 0 1px rgba(140,91,74,.1)}
+.reject-box > p{font-size:9px;color:var(--apricot-ink);margin-bottom:8px;letter-spacing:.04em}
+.reject-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.reject-chips button{
+  padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.7);font-size:8.5px;color:var(--apricot-ink);
+  letter-spacing:.02em;
+}
+.reject-box textarea{
+  width:100%;min-height:56px;padding:10px 12px;border-radius:8px;background:#fff;
+  font-size:9.5px;line-height:1.8;resize:none;box-shadow:0 0 0 1px var(--line);
+}
+.reject-box__actions{display:flex;gap:5px;margin-top:7px}
+.reject-box__actions .btn{flex:1;height:32px;font-size:9px}
+.sub-card.is-done{background:rgba(255,253,251,.7)}
+.sub-card__done{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:11px}
+.sub-card__reason{
+  margin-top:8px;padding:9px 11px;border-radius:8px;background:rgba(217,155,132,.14);
+  font-size:8.5px;color:#8A5A48;line-height:1.7;
+}
+.admin-empty{
+  padding:24px;border-radius:12px;background:rgba(255,253,251,.5);text-align:center;
+  font-size:9.5px;color:var(--ink-3);line-height:2;letter-spacing:.02em;
+  box-shadow:inset 0 0 0 1px var(--line);
+}
+.admin-tip{
+  margin-top:12px;padding:13px 15px;border-radius:10px;
+  background:rgba(201,214,201,.16);color:var(--sage-ink);
+  font-size:8.5px;line-height:1.9;letter-spacing:.01em;
+}
+.admin-tip b{font-weight:500}
+.suspended-item{
+  display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:10px;background:rgba(255,253,251,.7);
+  margin-bottom:6px;box-shadow:inset 0 0 0 1px var(--line);
+}
+.suspended-item__name{flex:1 1 auto;font-size:10px;font-weight:400;letter-spacing:.03em}
+.suspended-item__sub{font-size:8px;color:var(--ink-3);margin-top:3px;letter-spacing:.03em}
+
+/* ==========================================================================
+   11. 모션 최소화
+   ========================================================================== */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+}
+/* v0.5 UX improvements — calm editorial palette retained */
+.card-sticker--score{font-size:11px;max-width:62%;line-height:1.35;text-align:right}
+.card-sticker--score b{font-family:var(--font-body);font-size:11px}
+.card-bio,.card-meta,.row__sub,.verify-body p,.sheet__sub,.thread-head__sub{font-size:13px;line-height:1.65}
+.deck-note,.ticket-card__hint,.toggle-desc,.sheet__note,.footnote,.admin-sub,.sub-card__time{font-size:11.5px;line-height:1.7;color:var(--ink-2)}
+.tag,.card-badge,.pill,.section__hint,.sheet-hint,.priority-summary,.status-pill,.method-badge{font-size:11px}
+.tab,.tab__badge,.stat__label,.eyebrow{font-size:11px}
+.btn,.tab,.icon-btn,.chip,.chip-select,.reason-chip,.photo-dot{touch-action:manipulation}
+.tab{min-height:48px}.icon-btn{min-width:44px;min-height:44px}.chip,.chip-select,.reason-chip{min-height:38px;font-size:12px}
+.sheet-field>label,.field>span,.field--col>span,.toggle-title,.verify-card__sub{font-size:12px}
+.sheet__sub,.sheet__notice,.verify-meta,.sheet-hint,.ledger-entry,.admin-audit-intro{font-size:12px;line-height:1.7}
+.undo-row{display:flex;align-items:center;gap:8px;padding-top:8px;justify-content:center}
+.undo-row .btn{height:34px;font-size:11px;padding:0 14px}.undo-row span{font-size:10px;color:var(--ink-2)}
+.ledger-entry{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:13px 15px;margin-top:9px;border-radius:12px;background:var(--card);box-shadow:0 0 0 1px var(--line-2);text-align:left}
+.audit-panel{margin-bottom:20px;background:rgba(255,253,251,.7);padding:15px;border-radius:14px}
+.audit-item,.ledger-item{padding:12px 0;border-bottom:1px solid var(--line);font-size:12px;line-height:1.6}.audit-item:last-child,.ledger-item:last-child{border-bottom:0}
+.muted{color:var(--ink-2);font-size:11.5px}.reason-list{padding:10px 14px;border-radius:12px;background:var(--sage-soft);margin-top:10px}
+.reason-list li{list-style:disc;margin-left:14px;padding:3px 0;font-size:12.5px;color:var(--ink)}
+.detail-gallery{display:flex;gap:8px;overflow-x:auto;margin-top:14px;scroll-snap-type:x mandatory}.detail-gallery figure{margin:0;flex:0 0 78%;scroll-snap-align:start;background:var(--paper-2);border-radius:12px;overflow:hidden}.detail-gallery figure svg{display:block;width:100%;height:175px}.detail-gallery figcaption{font-size:12px;padding:8px 12px}
+.detail-actions{display:flex;gap:8px;margin-top:14px}.detail-actions .btn{flex:1}
+.thread-ended{margin:10px 18px;padding:14px;border-radius:12px;background:var(--sand-soft);font-size:12px;text-align:center;line-height:1.7}
+.demo-limits{margin-top:16px;padding:12px;border:1px solid var(--line-2);border-radius:10px;font-size:11.5px;line-height:1.8;color:var(--ink-2)}
+@media(max-width:370px){.view--today{padding-left:13px;padding-right:13px}.card-head{padding-left:16px;padding-right:16px}.card-body{padding-left:16px;padding-right:16px}.deck-actions{padding-top:8px}.undo-row span{display:none}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3.2l1.9 5.3 5.3 1.9-5.3 1.9L12 17.6l-1.9-5.3L4.8 10.4l5.3-1.9L12 3.2Z"/><path d="M18.6 16.2l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8.8-2.1Z"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.3s-7.7-4.6-7.7-10A4.4 4.4 0 0 1 12 7.4a4.4 4.4 0 0 1 7.7 2.9c0 5.4-7.7 10-7.7 10Z"/></symbol>
+  <symbol id="i-heart-fill" viewBox="0 0 24 24"><path d="M12 20.3s-7.7-4.6-7.7-10A4.4 4.4 0 0 1 12 7.4a4.4 4.4 0 0 1 7.7 2.9c0 5.4-7.7 10-7.7 10Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M20.8 11.6a7.9 7.9 0 0 1-11.5 7L4 20l1.4-4.6a7.9 7.9 0 1 1 15.4-3.8Z"/><path d="M8.8 11.5h.01M12.2 11.5h.01M15.6 11.5h.01"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.4" r="3.9"/><path d="M4.8 20a7.2 7.2 0 0 1 14.4 0"/></symbol>
+  <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3.8 9.4V7a2 2 0 0 1 2-2h12.4a2 2 0 0 1 2 2v2.4a2.6 2.6 0 0 0 0 5.2V17a2 2 0 0 1-2 2H5.8a2 2 0 0 1-2-2v-2.4a2.6 2.6 0 0 0 0-5.2Z"/><path d="M13.6 9.2v1.2M13.6 13v1.2"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19.5V5.2M6.2 10.8 12 5l5.8 5.8"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M14.6 5.4 8 12l6.6 6.6"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.4 6.4l11.2 11.2M17.6 6.4 6.4 17.6"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4.4v4.2h-4.2"/></symbol>
+  <symbol id="i-signal" viewBox="0 0 20 14"><rect x="1" y="9" width="3" height="4" rx="1" fill="currentColor"/><rect x="6" y="6.4" width="3" height="6.6" rx="1" fill="currentColor"/><rect x="11" y="3.6" width="3" height="9.4" rx="1" fill="currentColor"/><rect x="16" y="1" width="3" height="12" rx="1" fill="currentColor" opacity=".35"/></symbol>
+  <symbol id="i-wifi" viewBox="0 0 24 18"><path d="M2 6.4a14 14 0 0 1 20 0M5.4 10a9.2 9.2 0 0 1 13.2 0M8.8 13.5a4.4 4.4 0 0 1 6.4 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16.2" r="1.3" fill="currentColor"/></symbol>
+  <symbol id="i-battery" viewBox="0 0 26 13"><rect x=".7" y=".7" width="21" height="11.6" rx="3.4" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1"/><rect x="2.4" y="2.4" width="15.6" height="8.2" rx="2" fill="currentColor"/><path d="M23.4 4.4v4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-opacity=".5"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M6 3.6v16.8"/><path d="M6 4.6h11l-2.2 3.6L17 11.8H6"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.4" y="5.6" width="17.2" height="12.8" rx="2.6"/><path d="M4.2 7.4 12 13l7.8-5.6"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6.6 3.6h6.6l4.2 4.2v12.6H6.6z"/><path d="M13 3.8v4.2h4.2"/><path d="M9.4 12.4h5.4M9.4 15.6h5.4"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M12 7.6V12l3 1.9"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.4 9.6 17 19 7.4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.4l7 2.6v5.4c0 4.3-2.9 7.4-7 8.7-4.1-1.3-7-4.4-7-8.7V6z"/></symbol>
+  <symbol id="i-badge" viewBox="0 0 24 24"><path d="M12 3.4l7 2.6v5.4c0 4.3-2.9 7.4-7 8.7-4.1-1.3-7-4.4-7-8.7V6z"/><path d="M8.8 11.6 11 13.8l4.2-4.4"/></symbol>
+  <symbol id="i-clip" viewBox="0 0 24 24"><path d="M16.6 7.8 10 14.4a2.3 2.3 0 0 0 3.2 3.2l6.6-6.6a4.2 4.2 0 0 0-6-6l-6.8 6.8a6.1 6.1 0 0 0 8.6 8.6l5.2-5.2"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M12 20.4c0-5.6 0-9.6 1.4-12.4"/><path d="M12.6 12.6c-3.4-.4-5.8-2.6-6.4-6 3.4.4 5.8 2.6 6.4 6Z"/><path d="M13.4 9.4c2.8-.8 4.8-2.8 5.4-5.8-2.8.8-4.8 2.8-5.4 5.8Z"/></symbol>
+</svg>
+
+<div class="stage" id="stage">
+
+  <!-- 상단 모드 전환 -->
+  <div class="mode-bar">
+    <p class="mode-bar__brand">
+      <svg width="15" height="15" viewBox="0 0 100 100" aria-hidden="true" fill="none" stroke="#2F2A2B" stroke-opacity=".5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M52 94 C52 68 52 44 54 20"/>
+        <path d="M53 64 C42 60 35 50 33 36 C45 38 52 48 53 64Z"/>
+        <path d="M54 52 C66 48 73 38 75 25 C63 27 55 38 54 52Z"/>
+        <path d="M53 80 C44 78 37 70 35 60 C45 61 51 69 53 80Z"/>
+      </svg>
+      990 인연 <span>직장인 소개팅 · 프로토타입</span>
+    </p>
+    <div class="seg" role="tablist" aria-label="화면 전환">
+      <button class="seg__btn is-on" data-action="mode" data-mode="user" role="tab" aria-selected="true">사용자</button>
+      <button class="seg__btn" data-action="mode" data-mode="admin" role="tab" aria-selected="false">
+        운영자<span class="seg__count" id="adminPendingDot" hidden>0</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="workspace">
+    <!-- ═══════════════════════════ 사용자 화면 ═══════════════════════════ -->
+    <div class="phone" id="userMode">
+      <div class="statusbar" aria-hidden="true">
+        <span id="clock">12:41</span>
+        <span class="statusbar__icons">
+          <svg width="20" height="14"><use href="#i-signal"/></svg>
+          <svg width="24" height="18"><use href="#i-wifi"/></svg>
+          <svg width="26" height="13"><use href="#i-battery"/></svg>
+        </span>
+      </div>
+
+      <main class="screen">
+        <!-- 오늘의 인연 -->
+        <section class="view view--today is-active" data-view="today" aria-label="오늘의 인연">
+          <header class="view-head">
+            <div class="view-head__text">
+              <p class="eyebrow" id="todayDate">11월 19일 목요일 · 직장인 한정</p>
+              <h1 class="view-title">오늘의 인연</h1>
+            </div>
+            <div class="head-actions">
+              <button class="points-chip" data-action="open-topup" aria-label="포인트">
+                <svg class="icon icon--sm"><use href="#i-spark"/></svg><b id="pointsCount">0</b>P
+              </button>
+              <button class="ticket-chip" data-action="open-topup" aria-label="매칭권 충전">
+                <svg class="icon icon--sm"><use href="#i-ticket"/></svg><b id="ticketCount">3</b>
+              </button>
+            </div>
+          </header>
+          <svg class="wave" viewBox="0 0 320 8" preserveAspectRatio="none" aria-hidden="true"><path d="M0 4 q20 -4 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+
+          <button class="promo" data-action="open-topup">
+            <span class="promo__badge">990원</span>
+            <span>매칭권 한 장이면 충분해요</span>
+            <span class="promo__arrow">›</span>
+          </button>
+
+          <div class="deck" id="deck"></div>
+
+          <div class="undo-row"><button class="btn btn--ghost" id="undoPassBtn" data-action="undo-pass" disabled>↶ 직전 건너뛰기 취소</button><span>가장 최근 1건만 복구</span></div>
+          <div class="deck-actions" id="deckActions">
+            <button class="btn btn--ghost" data-action="pass">건너뛰기</button>
+            <button class="btn btn--primary" data-action="like">호감 보내기</button>
+          </div>
+          <p class="deck-note" id="deckNote">매칭권 1장(990원) 사용 · <b>48시간 안에 답이 없으면 자동 반환</b></p>
+          <p class="safety-note" id="safetyNote" hidden></p>
+        </section>
+
+        <!-- 매칭 현황 -->
+        <section class="view view--scroll" data-view="matches" aria-label="매칭 현황">
+          <header class="view-head">
+            <div class="view-head__text">
+              <p class="eyebrow">나의 기록</p>
+              <h1 class="view-title">매칭 현황</h1>
+            </div>
+          </header>
+          <svg class="wave" viewBox="0 0 320 8" preserveAspectRatio="none" aria-hidden="true"><path d="M0 4 q20 -4 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <div id="matchesBody"></div>
+        </section>
+
+        <!-- 대화 -->
+        <section class="view view--chat" data-view="chat" aria-label="대화">
+          <div class="chat-list" id="chatListPane">
+            <header class="view-head">
+              <div class="view-head__text">
+                <p class="eyebrow">이어진 인연</p>
+                <h1 class="view-title">대화</h1>
+              </div>
+            </header>
+            <svg class="wave" viewBox="0 0 320 8" preserveAspectRatio="none" aria-hidden="true"><path d="M0 4 q20 -4 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <div id="chatList"></div>
+          </div>
+
+          <div class="thread" id="thread" hidden>
+            <header class="thread-head">
+              <button class="icon-btn" data-action="close-thread" aria-label="대화 목록으로">
+                <svg class="icon"><use href="#i-back"/></svg>
+              </button>
+              <div class="avatar avatar--sm" id="threadAvatar"></div>
+              <div class="thread-head__text">
+                <p class="thread-head__name" id="threadName">서지후</p>
+                <p class="thread-head__sub" id="threadSub">매칭됨</p>
+              </div>
+              <button class="btn btn--ghost btn--sm" id="threadSafetyBtn" data-action="chat-safety">안전</button>
+              <button class="icon-btn" id="threadReportBtn" data-action="report" aria-label="신고하기">
+                <svg class="icon"><use href="#i-flag"/></svg>
+              </button>
+            </header>
+            <div class="meet-bar" id="meetBar"></div>
+            <div class="thread-body" id="threadBody"></div>
+            <div class="chips" id="chipArea">
+              <p class="chips__label">이런 말로 시작해 보세요</p>
+              <div class="chips__row" id="chipRow"></div>
+            </div>
+            <form class="composer" id="composer" autocomplete="off">
+              <input class="composer__field" id="msgInput" type="text" placeholder="하고 싶은 말을 적어보세요" maxlength="300" aria-label="메시지 입력">
+              <button class="send" id="sendBtn" type="submit" aria-label="보내기" disabled>
+                <svg class="icon"><use href="#i-send"/></svg>
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- 내 프로필 -->
+        <section class="view view--scroll" data-view="profile" aria-label="내 프로필">
+          <header class="view-head">
+            <div class="view-head__text">
+              <p class="eyebrow">나의 소개</p>
+              <h1 class="view-title">내 프로필</h1>
+            </div>
+            <button class="text-btn" data-action="save-profile">저장</button>
+          </header>
+          <svg class="wave" viewBox="0 0 320 8" preserveAspectRatio="none" aria-hidden="true"><path d="M0 4 q20 -4 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+
+          <div class="profile-card">
+            <div class="avatar avatar--lg" id="meAvatar"></div>
+            <div class="profile-card__text">
+              <p class="profile-card__name"><span id="meName">예지</span><span id="meAge">35</span>
+                <span class="pill pill--mint" id="meVerifyBadge" hidden>인증</span>
+              </p>
+              <p class="profile-card__meta" id="meMeta">콘텐츠 기획 · 성수건축</p>
+            </div>
+          </div>
+
+          <div class="photo-manage" id="photoManage"></div>
+
+          <div id="verifySection"></div>
+
+          <form id="profileForm" autocomplete="off">
+            <div class="form-card">
+              <label class="field"><span>닉네임</span><input id="fNickname" maxlength="12" placeholder="닉네임"></label>
+              <label class="field"><span>나이</span><input id="fAge" type="number" min="19" max="99" inputmode="numeric" placeholder="나이"></label>
+              <label class="field"><span>직업</span><input id="fJob" maxlength="20" placeholder="직업"></label>
+              <label class="field"><span>회사</span><input id="fCompany" maxlength="24" placeholder="회사명"></label>
+              <label class="field field--col"><span>한 줄 소개</span>
+                <textarea id="fBio" rows="3" maxlength="120" placeholder="어떤 사람인지 소개해 주세요"></textarea>
+              </label>
+            </div>
+          </form>
+
+          <section class="section" style="margin-top:24px">
+            <div class="section__head">
+              <h2 class="section__title">선호 조건</h2>
+              <span class="section__hint">순위에 따라 궁합이 달라져요</span>
+            </div>
+            <div class="form-card">
+              <div class="field field--col"><span>선호 나이</span>
+                <div class="range-row">
+                  <input id="fAgeMin" type="number" min="19" max="99" inputmode="numeric"> <span>세</span>
+                  <span class="dash">–</span>
+                  <input id="fAgeMax" type="number" min="19" max="99" inputmode="numeric"> <span>세</span>
+                </div>
+              </div>
+              <div class="field field--col"><span>선호 MBTI</span>
+                <div class="chips-select chips-select--dense" id="mbtiChips"></div>
+                <p class="sheet-hint">여러 개 고를 수 있어요 · 아무것도 고르지 않으면 <b>상관없음</b></p>
+              </div>
+              <div class="field field--col"><span>매칭 우선순위</span>
+                <div class="chips-select" id="priorityChips"></div>
+                <p class="priority-summary" id="prioritySummary"></p>
+                <p class="sheet-hint">순서대로 최대 3개 · 궁합과 카드 순서가 바로 바뀝니다</p>
+              </div>
+              <div class="field field--col"><span>선호 지역</span><div class="chips-select" id="areaChips"></div></div>
+              <div class="field field--col"><span>중요하게 보는 것</span><div class="chips-select" id="valueChips"></div></div>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section__head">
+              <h2 class="section__title">안전 설정</h2>
+              <span class="section__hint">아는 사람은 조용히 피해요</span>
+            </div>
+            <div class="form-card">
+              <div class="toggle-row">
+                <div class="toggle-row__text">
+                  <p class="toggle-title">같은 회사 사람 보지 않기</p>
+                  <p class="toggle-desc">회사가 같은 인연은 오늘의 인연에서 숨깁니다</p>
+                </div>
+                <button class="switch" id="sameCompanySwitch" data-action="toggle-same-company" aria-pressed="false" aria-label="같은 회사 사람 보지 않기"><span></span></button>
+              </div>
+              <div class="field field--col">
+                <span>지인 번호 차단</span>
+                <div class="phone-add">
+                  <input id="blockPhone" placeholder="010-0000-0000" inputmode="numeric" maxlength="15" aria-label="차단할 번호">
+                  <button class="btn btn--sm btn--primary" data-action="add-block">추가</button>
+                </div>
+                <p class="sheet-hint">번호는 <b>마스킹과 해시</b>로만 저장하고 원본은 남기지 않아요. 데모 예시: <b>010-5555-1234</b></p>
+                <ul id="blockedList"></ul>
+                <p class="safety-note-inline" id="safetySummary"></p>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="ticket-card">
+              <div>
+                <p class="ticket-card__label">매칭권</p>
+                <p class="ticket-card__value"><b id="ticketBalance">3</b>장 남음</p>
+                <p class="ticket-card__hint">1장 990원 · 48시간 무응답이면 자동 반환</p>
+                <p class="ticket-card__hint">보유 포인트 <b id="profilePoints">0</b>P · 결제에 사용할 수 있어요</p>
+              </div>
+              <button class="btn btn--white" data-action="open-topup">충전하기</button>
+            </div>
+            <button class="ledger-entry" data-action="ticket-history">매칭권 이용내역 · 반환 기준 보기 <span>›</span></button>
+          </section>
+
+          <section class="section">
+            <button class="reset-btn" data-action="ask-reset">
+              <svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg>
+              데모 데이터 초기화
+            </button>
+            <p class="footnote">프로토타입 v0.5 · 모든 기록은 브라우저에만 저장됩니다 · 실제 결제·인증·채팅 아님</p>
+          </section>
+        </section>
+      </main>
+
+      <nav class="tabbar" role="tablist" aria-label="주요 메뉴">
+        <button class="tab is-active" data-action="tab" data-view="today" role="tab" aria-selected="true">
+          <svg class="icon"><use href="#i-spark"/></svg><span>오늘</span>
+        </button>
+        <button class="tab" data-action="tab" data-view="matches" role="tab" aria-selected="false">
+          <svg class="icon"><use href="#i-heart"/></svg><span>매칭</span>
+          <span class="tab__badge" id="matchBadge" hidden>0</span>
+        </button>
+        <button class="tab" data-action="tab" data-view="chat" role="tab" aria-selected="false">
+          <svg class="icon"><use href="#i-chat"/></svg><span>대화</span>
+          <span class="tab__badge" id="chatBadge" hidden>0</span>
+        </button>
+        <button class="tab" data-action="tab" data-view="profile" role="tab" aria-selected="false">
+          <svg class="icon"><use href="#i-user"/></svg><span>프로필</span>
+        </button>
+      </nav>
+
+      <div class="fx-layer" id="fxLayer" aria-hidden="true"></div>
+    </div>
+
+    <!-- ═══════════════════════════ 운영자 화면 ═══════════════════════════ -->
+    <section class="admin" id="adminView" hidden aria-label="운영자">
+      <div class="admin-head">
+        <div>
+          <p class="eyebrow">운영자 화면 · 예지님</p>
+          <h1>운영 콘솔</h1>
+          <p class="admin-sub">인증과 신고를 처리하면 사용자 화면에 <b>바로</b> 반영돼요. 같은 브라우저의 다른 탭에도 실시간으로 동기화돼요.</p>
+        </div>
+        <div class="admin-head__right">
+          <div class="admin-stats">
+            <span class="admin-stat">인증 대기 <b id="adminPending">0</b></span>
+            <span class="admin-stat">신고 접수 <b id="adminReports">0</b></span>
+            <span class="admin-stat">승인 <b id="adminApproved">0</b></span>
+          </div>
+          <button class="btn btn--ghost btn--sm" data-action="mode" data-mode="user">사용자 화면으로</button>
+        </div>
+      </div>
+
+      <div class="admin-tabs" role="tablist">
+        <button class="admin-tab is-on" data-action="admin-tab" data-tab="verify" role="tab" aria-selected="true">
+          직장인 인증 심사 <b id="tabVerifyCount">0</b>
+        </button>
+        <button class="admin-tab" data-action="admin-tab" data-tab="reports" role="tab" aria-selected="false">
+          신고 내역 <b id="tabReportCount">0</b>
+        </button>
+      </div>
+
+      <div class="admin-audit-intro">데모 관리자: 역할 기반 권한 검증이 없으며 처리 기록은 이 브라우저에만 저장됩니다.</div>
+      <section class="audit-panel"><div class="section__head"><h2 class="section__title">운영 처리 이력</h2><span class="section__hint">담당자 · 시각 · 대상 · 결과</span></div><div id="adminAuditList"></div></section>
+      <div id="adminVerifyPanel">
+        <div class="admin-grid">
+          <div>
+            <p class="admin-col__title">심사 대기 <span id="pendingLabel">0건</span></p>
+            <div id="adminPendingList"></div>
+          </div>
+          <div>
+            <p class="admin-col__title">처리 완료 <span id="doneLabel">0건</span></p>
+            <div id="adminDoneList"></div>
+            <p class="admin-tip"><b>데모 팁</b> — 사용자 화면의 내 프로필에서 직장인 인증 서류를 제출한 뒤, 여기서 승인해 보세요. 마크가 바로 붙어요.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="adminReportsPanel" hidden>
+        <div class="admin-grid">
+          <div>
+            <p class="admin-col__title">접수된 신고 <span id="reportLabel">0건</span></p>
+            <div id="adminReportList"></div>
+          </div>
+          <div>
+            <p class="admin-col__title">이용 정지 회원 <span id="suspendLabel">0명</span></p>
+            <div id="adminSuspendedList"></div>
+            <p class="admin-tip"><b>데모 팁</b> — 신고를 이용 정지하면 오늘의 인연과 받은 호감에서 즉시 사라집니다. 잘못 처리했다면 복구할 수 있어요.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="sheet-wrap" id="sheetWrap" hidden>
+    <div class="sheet-backdrop" data-action="close-sheet"></div>
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="안내"></div>
+  </div>
+</div>
+
+
+<script>
+'use strict';
+/* ==========================================================================
+   990 인연 · 직장인 소개팅 프로토타입
+   ---------------------------------------------------------------------------
+     1. 샘플 데이터
+     2. 상태 & 저장소 (localStorage — 백엔드 연결 지점)
+     3. 유틸 & 안전 필터
+     4. 렌더러 (유저)
+     5. 렌더러 (관리자)
+     6. 액션
+     7. 이벤트 & 초기화
+   ========================================================================== */
+
+/* ==========================================================================
+   1. 샘플 데이터
+   ========================================================================== */
+const MIN = 60 * 1000, HOUR = 60 * MIN, DAY = 24 * HOUR;
+const RESPONSE_HOURS = 48;   // 무응답 시 매칭권 반환 기준
+const TICKET_PRICE = 990;
+const ago = (ms) => new Date(Date.now() - ms).toISOString();
+
+/* 데모용 재직증명서 이미지 */
+const SAMPLE_DOC = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="560" viewBox="0 0 420 560">
+    <rect width="420" height="560" fill="#FFFDF6"/>
+    <rect x="10" y="10" width="400" height="540" fill="none" stroke="#E7D3C2" stroke-width="6"/>
+    <text x="210" y="92" text-anchor="middle" font-family="sans-serif" font-size="30" font-weight="700" fill="#3F3230">재 직 증 명 서</text>
+    <line x1="96" y1="118" x2="324" y2="118" stroke="#3F3230" stroke-width="2.5"/>
+    <text x="60" y="180" font-family="sans-serif" font-size="17" fill="#4A3B36">성명 : 박지훈</text>
+    <text x="60" y="222" font-family="sans-serif" font-size="17" fill="#4A3B36">소속 : 늘봄초등학교</text>
+    <text x="60" y="264" font-family="sans-serif" font-size="17" fill="#4A3B36">직위 : 교사</text>
+    <text x="60" y="306" font-family="sans-serif" font-size="17" fill="#4A3B36">재직기간 : 2019.03 ~ 현재</text>
+    <text x="60" y="390" font-family="sans-serif" font-size="15" fill="#6B5754">위 사람은 본교에 재직 중임을 증명합니다.</text>
+    <text x="210" y="470" text-anchor="middle" font-family="sans-serif" font-size="17" font-weight="700" fill="#3F3230">늘봄초등학교장</text>
+    <circle cx="330" cy="468" r="38" fill="none" stroke="#E0577A" stroke-width="3"/>
+    <text x="330" y="474" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#E0577A">직인</text>
+  </svg>`
+);
+
+const PROFILES = [
+  {
+    id: 'dohyun', name: '김도현', age: 36, job: '건축가', company: '성수건축',
+    phone: '010-2345-6789', area: '성수동', mbti: 'ENFJ',
+    jobStable: true, distKm: 1.2, hobbyMatch: 2, valueMatch: 2, nonsmoker: true, height: 182,
+    bio: '주말엔 전시 보러 가고, 집에서는 커피 내려 마셔요. 말이 잘 통하는 사람이면 좋겠어요.',
+    hobbies: ['전시·건축', '홈카페', '러닝'], values: ['다정한 대화', '꾸준함'],
+    reason: '대화 스타일과 생활 리듬이 비슷해요',
+    photos: [
+      { caption: '성수동 작업실' },
+      { caption: '주말 홈카페' },
+      { caption: '전시 보러 가는 날' }
+    ]
+  },
+  {
+    id: 'junho', name: '이준호', age: 34, job: '프로덕트 디자이너', company: '스튜디오 모노',
+    phone: '010-3456-7890', area: '망원동', mbti: 'INFP',
+    jobStable: true, distKm: 8.4, hobbyMatch: 3, valueMatch: 3, nonsmoker: true, height: 178,
+    bio: '필름카메라 들고 동네를 자주 걸어요. 조용한 데서 오래 이야기하는 걸 좋아합니다.',
+    hobbies: ['필름카메라', '망원시장', '재즈'], values: ['진솔함', '존중'],
+    reason: '좋아하는 동네와 취향이 겹쳐요',
+    photos: [
+      { caption: '망원동 산책' },
+      { caption: '필름 스캔하는 밤' },
+      { caption: '단골 재즈바' }
+    ]
+  },
+  {
+    id: 'jihoon', name: '박지훈', age: 33, job: '초등 교사', company: '늘봄초등학교',
+    phone: '010-5555-1234', area: '일산', mbti: 'ISFJ',
+    jobStable: true, distKm: 24, hobbyMatch: 2, valueMatch: 2, nonsmoker: true, height: 176,
+    bio: '아이들을 가르쳐요. 주말엔 등산이나 요리로 쉬어요. 편안한 사람이 좋습니다.',
+    hobbies: ['등산', '요리', '독서'], values: ['편안함', '성실함'],
+    reason: '라이프스타일이 안정적이에요',
+    photos: [
+      { caption: '교실 풍경' },
+      { caption: '주말 등산' },
+      { caption: '요리하는 밤' }
+    ]
+  },
+  {
+    id: 'woojin', name: '정우진', age: 37, job: '데이터 엔지니어', company: '데이터브릿지',
+    phone: '010-7777-2468', area: '판교', mbti: 'ISTJ',
+    jobStable: true, distKm: 19, hobbyMatch: 2, valueMatch: 3, nonsmoker: false, height: 180,
+    bio: '클라이밍과 위스키를 좋아해요. 계획한 건 끝까지 해내는 편입니다.',
+    hobbies: ['클라이밍', '위스키', '독서'], values: ['신뢰', '계획성'],
+    reason: '가치관 항목이 잘 맞아요',
+    photos: [
+      { caption: '퇴근 후 클라이밍' },
+      { caption: '위스키 한 잔' },
+      { caption: '독서하는 주말' }
+    ]
+  },
+  {
+    id: 'jihoo', name: '서지후', age: 35, job: '사진작가', company: '프레임워크 스튜디오',
+    phone: '010-8888-1357', area: '연남동', mbti: 'ENTJ',
+    jobStable: false, distKm: 6, hobbyMatch: 3, valueMatch: 3, nonsmoker: false, height: 179,
+    bio: '빛이 좋은 시간에 사진을 찍어요. 대화는 솔직한 쪽이 좋습니다.',
+    hobbies: ['필름카메라', '전시·출사', '재즈바'], values: ['진솔함', '자유로움'],
+    reason: '취향과 대화 방식이 잘 맞아요',
+    photos: [
+      { caption: '연남동 스냅' },
+      { caption: '작업실 한 컷' },
+      { caption: '노을 출사' }
+    ]
+  }
+];
+const PROFILE_MAP = Object.fromEntries(PROFILES.map((p) => [p.id, p]));
+
+const AREA_OPTIONS = ['성수·성동', '망원·마포', '판교·분당', '일산', '서울 전역'];
+const VALUE_OPTIONS = ['다정한 대화', '진솔함', '유머 코드', '안정적인 생활', '같은 취미'];
+const MBTI_TYPES = ['ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
+const PRIORITY_OPTIONS = [
+  { key: 'personality', label: 'MBTI·성격' },
+  { key: 'job', label: '직장·안정감' },
+  { key: 'area', label: '동네·거리' },
+  { key: 'hobby', label: '취미·가치관' },
+  { key: 'habit', label: '비흡연·음주' },
+  { key: 'style', label: '키·스타일' }
+];
+const PRIORITY_LABEL = Object.fromEntries(PRIORITY_OPTIONS.map((o) => [o.key, o.label]));
+const REPORT_REASONS = ['불쾌한 대화·메시지', '허위 프로필 의심', '부적절한 사진·내용', '광고·사기 의심', '기타'];
+
+const ICEBREAKERS = [
+  '주말엔 보통 어떻게 보내세요?',
+  '요즘 푹 빠진 취미가 있나요?',
+  '가장 좋아하는 동네는 어디예요?',
+  '커피파인가요, 차파인가요?',
+  '이번 주에 기대되는 일이 있나요?'
+];
+
+/* 데모용 자동 응답 — 실제 상대/서버가 붙으면 이 블록을 제거 */
+const MOCK_REPLIES = [
+  '좋아요 :) 저도 그런 편이에요. 조금 더 이야기해 주실래요?',
+  '하하 공감돼요. 요즘 주말엔 전시나 산책을 자주 해요.',
+  '반가워요! 천천히 알아가는 게 좋더라고요. 편하게 말씀해 주세요.',
+  '그럼 이번 주에 커피 한잔 어떠세요? 되는 날 알려주시면 맞춰볼게요.'
+];
+
+const FREE_MAIL = ['gmail.com', 'naver.com', 'daum.net', 'hanmail.net', 'nate.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com', 'kakao.com'];
+
+/* ==========================================================================
+   2. 상태 & 저장소
+   ========================================================================== */
+const STORAGE_KEY = 'blind-date-mvp/v3';
+const TICKET_COST = 1;
+
+function defaultState() {
+  return {
+    version: 3,
+    user: {
+      nickname: '예지', age: 35, job: '콘텐츠 기획', company: '성수건축',
+      bio: '전시랑 산책, 오래 하는 대화를 좋아해요.',
+      photos: [],
+      prefs: {
+        ageMin: 32, ageMax: 40,
+        mbti: ['ENFJ', 'INFP', 'ENFP'],
+        priorities: ['personality', 'job', 'area'],
+        areas: ['서울 전역'], values: ['다정한 대화', '진솔함']
+      }
+    },
+    safety: {
+      hideSameCompany: true,
+      blockedNumbers: [],     // { hash, masked, at } — 원본 번호는 저장하지 않음
+      blockedProfiles: []
+    },
+    tickets: 3,
+    lastPassed: null,
+    ticketLedger: [{kind:"initial",delta:3,at:ago(4*DAY),detail:"데모 시작 잔액"}],
+    endedChats: [],
+    chatRead: {},
+    auditLog: [],
+    points: 0,
+    meetings: {},          // { [profileId]: { status, plannedAt, metAt, review } }
+    deck: ['dohyun', 'junho', 'jihoon', 'woojin'],
+    passed: [],
+    sent: [],                 // { id, at, status: pending | matched | refunded }
+    received: [
+      { id: 'junho', at: ago(2 * HOUR), status: 'pending' },
+      { id: 'woojin', at: ago(1 * DAY), status: 'pending' }
+    ],
+    matches: [{ id: 'jihoo', at: ago(3 * DAY), via: 'mutual' }],
+    chats: {
+      jihoo: [
+        { from: 'them', text: '안녕하세요 :) 프로필 잘 봤어요. 사진 좋아하신다길래 반가웠어요.', at: ago(3 * DAY) },
+        { from: 'me', text: '반가워요! 요즘은 필름카메라로 동네 사진을 찍고 있어요.', at: ago(3 * DAY - 40 * MIN) },
+        { from: 'them', text: '오, 그거 궁금하네요. 다음에 한 장 보여주실 수 있어요?', at: ago(1 * DAY) }
+      ]
+    },
+    unread: { jihoo: 1 },
+    verification: {
+      status: 'none', method: null, company: '', email: '',
+      docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: ''
+    },
+    submissions: [
+      {
+        id: 'sub_dohyun', owner: 'dohyun', ownerName: '김도현', method: 'email',
+        company: '성수건축', email: 'dohyun@seongsu-arch.com', docName: '', docPreview: '',
+        at: ago(3 * HOUR), status: 'pending', reason: '', decidedAt: null
+      },
+      {
+        id: 'sub_jihoon', owner: 'jihoon', ownerName: '박지훈', method: 'doc',
+        company: '늘봄초등학교', email: '', docName: '재직증명서.jpg', docPreview: SAMPLE_DOC,
+        at: ago(5 * HOUR), status: 'pending', reason: '', decidedAt: null
+      },
+      {
+        id: 'sub_junho', owner: 'junho', ownerName: '이준호', method: 'email',
+        company: '스튜디오 모노', email: 'junho@studio-mono.kr', docName: '', docPreview: '',
+        at: ago(2 * DAY), status: 'approved', reason: '', decidedAt: ago(2 * DAY - 2 * HOUR)
+      },
+      {
+        id: 'sub_yuna', owner: '', ownerName: '최유나', method: 'doc',
+        company: '한빛상사', email: '', docName: '명함.jpg', docPreview: '',
+        at: ago(1 * DAY), status: 'rejected', reason: '제출한 서류가 흐려서 재직 여부를 확인할 수 없어요.', decidedAt: ago(20 * HOUR)
+      }
+    ],
+    verifiedIds: ['junho'],
+    reports: [
+      {
+        id: 'rep_1', targetId: 'woojin', targetName: '정우진', reporter: '이수민', reporterId: 'user_sumin',
+        reason: '허위 프로필 의심', detail: '직장인 인증 배지가 있는데 회사에 그런 사람이 없다고 해요.',
+        at: ago(4 * HOUR), status: 'open', decidedAt: null
+      },
+      {
+        id: 'rep_2', targetId: 'jihoon', targetName: '박지훈', reporter: '김하늘', reporterId: 'user_haneul',
+        reason: '불쾌한 대화·메시지', detail: '',
+        at: ago(1 * DAY), status: 'dismissed', decidedAt: ago(20 * HOUR)
+      }
+    ],
+    suspendedIds: []
+  };
+}
+
+/* 저장소 어댑터 — 백엔드 연결 시 이 두 함수만 교체하면 됩니다 */
+const storage = {
+  load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return defaultState();
+      return normalize(JSON.parse(raw));
+    } catch (err) {
+      console.warn('[storage] 불러오기 실패', err);
+      return defaultState();
+    }
+  },
+  save(s) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+    catch (err) { console.warn('[storage] 저장 실패', err); }
+  }
+};
+
+function normalize(s) {
+  const base = defaultState();
+  if (!s || typeof s !== 'object') return base;
+  return {
+    version: 3,
+    user: (() => {
+      const prefs = { ...base.user.prefs, ...((s.user && s.user.prefs) || {}) };
+      prefs.mbti = Array.isArray(prefs.mbti) ? prefs.mbti.filter((t) => MBTI_TYPES.includes(t)) : [];
+      prefs.priorities = Array.isArray(prefs.priorities)
+        ? prefs.priorities.filter((k) => PRIORITY_LABEL[k]).slice(0, 3) : [];
+      prefs.areas = Array.isArray(prefs.areas) && prefs.areas.length ? prefs.areas : ['서울 전역'];
+      prefs.values = Array.isArray(prefs.values) ? prefs.values : [];
+      const user = { ...base.user, ...(s.user || {}), prefs };
+      user.photos = Array.isArray(user.photos) ? user.photos.slice(0, 3) : [];
+      return user;
+    })(),
+    safety: {
+      hideSameCompany: s.safety ? Boolean(s.safety.hideSameCompany) : base.safety.hideSameCompany,
+      blockedNumbers: Array.isArray(s.safety?.blockedNumbers) ? s.safety.blockedNumbers : [],
+      blockedProfiles: Array.isArray(s.safety?.blockedProfiles) ? s.safety.blockedProfiles : []
+    },
+    tickets: Number.isFinite(s.tickets) ? s.tickets : base.tickets,
+    lastPassed: typeof s.lastPassed === "string" ? s.lastPassed : null,
+    ticketLedger: Array.isArray(s.ticketLedger) ? s.ticketLedger : base.ticketLedger,
+    endedChats: Array.isArray(s.endedChats) ? s.endedChats : [],
+    chatRead: s.chatRead && typeof s.chatRead === "object" ? s.chatRead : {},
+    auditLog: Array.isArray(s.auditLog) ? s.auditLog : [],
+    points: Number.isFinite(s.points) ? s.points : 0,
+    meetings: s.meetings && typeof s.meetings === 'object' ? s.meetings : {},
+    deck: Array.isArray(s.deck) ? s.deck.filter((id) => PROFILE_MAP[id]) : base.deck,
+    passed: Array.isArray(s.passed) ? s.passed : [],
+    sent: Array.isArray(s.sent) ? s.sent : [],
+    received: Array.isArray(s.received) ? s.received : base.received,
+    matches: Array.isArray(s.matches) ? s.matches : base.matches,
+    chats: s.chats && typeof s.chats === 'object' ? s.chats : {},
+    unread: s.unread && typeof s.unread === 'object' ? s.unread : {},
+    verification: { ...base.verification, ...(s.verification || {}) },
+    submissions: Array.isArray(s.submissions) ? s.submissions : base.submissions,
+    verifiedIds: Array.isArray(s.verifiedIds) ? s.verifiedIds : [],
+    reports: Array.isArray(s.reports) ? s.reports : base.reports,
+    suspendedIds: Array.isArray(s.suspendedIds) ? s.suspendedIds : []
+  };
+}
+
+let state = storage.load();
+function save() { storage.save(state); }
+
+/* ==========================================================================
+   3. 유틸 & 안전 필터
+   ========================================================================== */
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+const pad2 = (n) => String(n).padStart(2, '0');
+function todayLabel(d = new Date()) { return `${d.getMonth() + 1}월 ${d.getDate()}일 ${DOW[d.getDay()]}요일 · 직장인 한정`; }
+function timeHM(v) { const d = new Date(v); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+function relTime(v) {
+  const diff = Date.now() - new Date(v).getTime();
+  if (diff < MIN) return '방금 전';
+  const m = Math.floor(diff / MIN);
+  if (m < 60) return `${m}분 전`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}시간 전`;
+  const d = Math.floor(h / 24);
+  if (d === 1) return '어제';
+  if (d < 7) return `${d}일 전`;
+  const dt = new Date(v);
+  return `${dt.getMonth() + 1}월 ${dt.getDate()}일`;
+}
+function esc(str) {
+  return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function isVerified(profileId) { return state.verifiedIds.includes(profileId); }
+function myVerified() { return state.verification.status === 'verified'; }
+
+/* --- 매칭 우선순위 & 궁합 계산 ---------------------------------------------
+   프로필의 속성과 사용자가 고른 우선순위를 비교해 궁합 %를 다시 계산합니다.
+   true = 조건 충족 · false = 불충족 · null = 판단 보류(중립)
+   ------------------------------------------------------------------------- */
+function matchesPriority(p, key) {
+  const prefs = state.user.prefs;
+  switch (key) {
+    case 'personality': return prefs.mbti && prefs.mbti.length ? prefs.mbti.includes(p.mbti) : null;
+    case 'job': return Boolean(p.jobStable);
+    case 'area': return (p.distKm || 99) <= 7;
+    case 'hobby': return (p.hobbyMatch || 0) >= 2;
+    case 'habit': return Boolean(p.nonsmoker);
+    case 'style': return (p.height || 0) >= 178;
+    default: return null;
+  }
+}
+
+function matchReasons(p) {
+  const prefs = state.user.prefs;
+  const reasons = [];
+  if (p.age >= Number(prefs.ageMin) && p.age <= Number(prefs.ageMax)) reasons.push(`선호 연령 ${prefs.ageMin}~${prefs.ageMax}세에 해당`);
+  if ((prefs.mbti || []).includes(p.mbti)) reasons.push(`선호 MBTI ${p.mbti} 일치`);
+  if ((prefs.areas || []).includes('서울 전역') && ['성수동','망원동','연남동'].includes(p.area)) reasons.push(`선호 지역 서울 · ${p.area}`);
+  if ((prefs.areas || []).some(a => (a.startsWith('성수') && p.area === '성수동') || (a.startsWith('망원') && p.area === '망원동') || (a.startsWith('판교') && p.area === '판교') || (a === p.area))) reasons.push(`선호 지역 ${p.area} 일치`);
+  (prefs.priorities || []).forEach(key => { if (matchesPriority(p,key) === true) {
+    const criterion = {personality:`성격 우선: ${p.mbti}`,job:'직장·안정감 우선 조건 충족 (샘플)',area:`거리 우선 조건 충족 (샘플 ${p.distKm}km)`,hobby:'취미 우선 조건 충족 (샘플)',habit:'비흡연 조건 충족',style:`키 조건 충족 (${p.height}cm)`};
+    if (!reasons.includes(criterion[key])) reasons.push(criterion[key]);
+  }});
+  return [...new Set(reasons)];
+}
+function ledger(kind,delta,detail,at=new Date().toISOString()) { state.ticketLedger.unshift({kind,delta,detail,at}); }
+function audit(action,target,detail) { state.auditLog.unshift({action,target,detail,actor:'데모 운영자',at:new Date().toISOString()}); }
+function safeProfile(id) { return PROFILE_MAP[id] && !state.suspendedIds.includes(id) && !state.safety.blockedProfiles.includes(id); }
+
+function compatibility(p) {
+  const prefs = state.user.prefs;
+  let score = 56 + (p.hobbyMatch || 0) * 3 + (p.valueMatch || 0) * 3;
+  if (prefs.mbti && prefs.mbti.length && prefs.mbti.includes(p.mbti)) score += 6;
+  (prefs.priorities || []).forEach((key, i) => {
+    const weight = [10, 7, 4][i] || 0;
+    const hit = matchesPriority(p, key);
+    if (hit === true) score += weight;
+    else if (hit === false) score -= Math.round(weight * 0.4);
+  });
+  return Math.max(55, Math.min(99, Math.round(score)));
+}
+
+function priorityHitIndex(p) {
+  const prios = state.user.prefs.priorities || [];
+  for (let i = 0; i < prios.length; i++) {
+    if (matchesPriority(p, prios[i]) === true) return i;
+  }
+  return -1;
+}
+
+/* --- 전화번호: 정규화 → 마스킹 + 해시 (원본은 저장하지 않음) --- */
+function normPhone(raw) { return String(raw || '').replace(/\D/g, '').replace(/^82/, '0'); }
+function hashPhone(digits) {           // 데모용 FNV-1a. 실서비스는 서버에서 SHA-256 + salt 사용
+  let h = 0x811c9dc5;
+  for (let i = 0; i < digits.length; i++) {
+    h ^= digits.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, '0');
+}
+function maskPhone(digits) {
+  if (digits.length < 7) return digits;
+  return `${digits.slice(0, 3)}-****-${digits.slice(-4)}`;
+}
+
+/* --- 안전 필터: 정지 · 신고 차단 · 지인 번호 · 같은 회사 --- */
+function hiddenReason(p) {
+  if (!p) return null;
+  if (state.suspendedIds.includes(p.id)) return 'suspended';
+  if (state.safety.blockedProfiles.includes(p.id)) return 'blocked';
+  const digits = normPhone(p.phone);
+  if (digits && state.safety.blockedNumbers.some((b) => b.hash === hashPhone(digits))) return 'phone';
+  if (state.safety.hideSameCompany && p.company && state.user.company &&
+      p.company.trim() === state.user.company.trim()) return 'company';
+  return null;
+}
+function isHidden(p) { return hiddenReason(p) !== null; }
+function visibleDeck() {
+  return state.deck
+    .map((id) => PROFILE_MAP[id])
+    .filter((p) => p && !isHidden(p))
+    .sort((a, b) => compatibility(b) - compatibility(a));   // 우선순위가 높은 인연을 먼저
+}
+function hiddenDeckCount() { return state.deck.length - visibleDeck().length; }
+
+/* --- 48시간 무응답 → 매칭권 반환 --- */
+function expiresAt(sent) { return new Date(sent.at).getTime() + RESPONSE_HOURS * HOUR; }
+function remainingShort(at) {
+  const left = expiresAt({ at }) - Date.now();
+  if (left <= 0) return '곧 반환';
+  const h = Math.floor(left / HOUR);
+  const m = Math.floor((left % HOUR) / MIN);
+  return `${h}:${pad2(m)} 남음`;
+}
+function processExpirations(notify) {
+  let refunded = 0;
+  state.sent.forEach((s) => {
+    if (s.status === 'pending' && Date.now() >= expiresAt(s)) {
+      s.status = 'refunded';
+      s.refundedAt = new Date().toISOString();
+      state.tickets += 1;
+      ledger("refund",1,`${PROFILE_MAP[s.id]?.name||s.id}님 48시간 무응답`,s.refundedAt);
+      refunded += 1;
+    }
+  });
+  if (refunded) {
+    save();
+    if (notify) toast(`48시간 동안 답이 없어 매칭권 ${refunded}장이 돌아왔어요.`);
+  }
+  return refunded;
+}
+
+/* --- 이펙트 --- */
+const FX = {
+  hearts() {
+    const layer = $('#fxLayer');
+    for (let i = 0; i < 7; i++) {
+      const el = document.createElement('span');
+      el.className = 'fx';
+      el.innerHTML = i % 3 === 2 ? fxSparkSVG() : fxHeartSVG();
+      el.style.left = `${30 + Math.random() * 40}%`;
+      el.style.top = `${45 + Math.random() * 20}%`;
+      el.style.setProperty('--r', `${(Math.random() - 0.5) * 60}deg`);
+      el.style.animationDelay = `${i * 60}ms`;
+      layer.appendChild(el);
+      setTimeout(() => el.remove(), 1700 + i * 60);
+    }
+  },
+  burst() {
+    const layer = $('#fxLayer');
+    for (let i = 0; i < 12; i++) {
+      const el = document.createElement('span');
+      el.className = 'burst';
+      el.innerHTML = i % 2 ? fxHeartSVG() : fxSparkSVG();
+      el.style.left = '50%';
+      el.style.top = '40%';
+      const angle = (Math.PI * 2 * i) / 12;
+      el.style.setProperty('--tx', `${Math.cos(angle) * (70 + Math.random() * 60)}px`);
+      el.style.setProperty('--ty', `${Math.sin(angle) * (70 + Math.random() * 60)}px`);
+      el.style.setProperty('--r', `${Math.random() * 120 - 60}deg`);
+      layer.appendChild(el);
+      setTimeout(() => el.remove(), 1200);
+    }
+  }
+};
+
+/* ==========================================================================
+   4. 렌더러 — 유저 화면
+   ========================================================================== */
+/* ==========================================================================
+   파스텔 라인아트 일러스트 (인라인 SVG)
+   — 얇은 선 + 물감 번짐(wash). 이모지·만화 캐릭터 대신 조용한 에디토리얼 그림.
+   ========================================================================== */
+const ART = {
+  arch: () => `<path d="M150 202 V126 a50 50 0 0 1 100 0 V202" fill="none" stroke="#2F2A2B" stroke-opacity=".62" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M136 202 H264" fill="none" stroke="#2F2A2B" stroke-opacity=".2" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M200 76 V202" fill="none" stroke="#2F2A2B" stroke-opacity=".4" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M150 150 H250" fill="none" stroke="#2F2A2B" stroke-opacity=".28" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><circle cx="222" cy="114" r="13" fill="none" stroke="#2F2A2B" stroke-opacity=".26" stroke-width="1.2"/><path d="M266 202 c9 -20 11 -38 9 -56" fill="none" stroke="#2F2A2B" stroke-opacity=".28" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M270 174 c9 -4 13 -11 14 -19 c-9 1 -13 8 -14 19z" fill="none" stroke="#2F2A2B" stroke-opacity=".34" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>`, // noqa
+  coffee: () => `<path d="M166 148 h68 q0 30 -10 40 q-24 8 -48 0 q-10 -10 -10 -40 z" fill="none" stroke="#2F2A2B" stroke-opacity=".62" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="200" cy="148" rx="34" ry="7" fill="none" stroke="#2F2A2B" stroke-opacity=".62" stroke-width="1.35"/><path d="M234 158 c15 -1 15 22 1 21" fill="none" stroke="#2F2A2B" stroke-opacity=".62" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M186 132 c-6 -9 6 -13 0 -23" fill="none" stroke="#2F2A2B" stroke-opacity=".24" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M202 128 c-6 -9 6 -13 0 -21" fill="none" stroke="#2F2A2B" stroke-opacity=".24" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M150 196 H246" fill="none" stroke="#2F2A2B" stroke-opacity=".2" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M266 196 c10 -18 14 -34 15 -50" fill="none" stroke="#2F2A2B" stroke-opacity=".3" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M274 170 c10 -4 14 -12 15 -20 c-9 1 -14 8 -15 20z" fill="none" stroke="#2F2A2B" stroke-opacity=".36" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M270 184 c-9 -5 -15 -12 -17 -20 c9 0 15 7 17 20z" fill="none" stroke="#2F2A2B" stroke-opacity=".36" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>`, // noqa
+  book: () => `<path d="M148 164 q27 -19 52 -5 v48 q-25 -13 -52 5 z" fill="none" stroke="#2F2A2B" stroke-opacity=".62" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M252 164 q-27 -19 -52 -5 v48 q25 -13 52 5 z" fill="none" stroke="#2F2A2B" stroke-opacity=".62" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M200 159 V212" fill="none" stroke="#2F2A2B" stroke-opacity=".36" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M160 178 q14 -5 28 1" fill="none" stroke="#2F2A2B" stroke-opacity=".2" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M160 191 q14 -5 28 1" fill="none" stroke="#2F2A2B" stroke-opacity=".2" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M240 178 q-14 -5 -28 1" fill="none" stroke="#2F2A2B" stroke-opacity=".2" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M240 191 q-14 -5 -28 1" fill="none" stroke="#2F2A2B" stroke-opacity=".2" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M212 150 c6 -16 12 -30 20 -40" fill="none" stroke="#2F2A2B" stroke-opacity=".36" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M224 126 c10 -2 16 -8 19 -16 c-10 0 -16 5 -19 16z" fill="none" stroke="#2F2A2B" stroke-opacity=".32" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M216 138 c-10 -2 -16 -8 -19 -16 c10 0 16 5 19 16z" fill="none" stroke="#2F2A2B" stroke-opacity=".32" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>`, // noqa
+  camera: () => `<path d="M152 110 h96 a8 8 0 0 1 8 8 v48 a8 8 0 0 1 -8 8 h-96 a8 8 0 0 1 -8 -8 v-48 a8 8 0 0 1 8 -8 z" fill="none" stroke="#2F2A2B" stroke-opacity=".62" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M168 110 l6 -12 h20 l6 12" fill="none" stroke="#2F2A2B" stroke-opacity=".4" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><circle cx="200" cy="142" r="22" fill="none" stroke="#2F2A2B" stroke-opacity=".5" stroke-width="1.3"/><circle cx="200" cy="142" r="11" fill="none" stroke="#2F2A2B" stroke-opacity=".28" stroke-width="1.2"/><circle cx="236" cy="106" r="3" fill="none" stroke="#2F2A2B" stroke-opacity=".38" stroke-width="1.2"/><path d="M146 118 c-18 8 -22 28 -14 44" fill="none" stroke="#2F2A2B" stroke-opacity=".2" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M254 118 c18 8 22 28 14 44" fill="none" stroke="#2F2A2B" stroke-opacity=".2" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>`, // noqa
+  moon: () => `<path d="M212 78 a30 30 0 1 0 26 48 a24 24 0 0 1 -26 -48 z" fill="none" stroke="#2F2A2B" stroke-opacity=".55" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><circle cx="166" cy="96" r="2" fill="#2F2A2B" fill-opacity=".3" stroke="none"/><circle cx="148" cy="126" r="1.3" fill="#2F2A2B" fill-opacity=".22" stroke="none"/><path d="M124 192 H276" fill="none" stroke="#2F2A2B" stroke-opacity=".16" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M124 192 c26 -16 48 -22 76 -20 c28 -2 50 4 76 20" fill="none" stroke="#2F2A2B" stroke-opacity=".2" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>`, // noqa
+  plant: () => `<path d="M172 202 l5 -30 h46 l5 30 q-28 8 -56 0 z" fill="none" stroke="#2F2A2B" stroke-opacity=".62" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M176 172 h48" fill="none" stroke="#2F2A2B" stroke-opacity=".4" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M198 172 c-1 -26 -1 -46 2 -62" fill="none" stroke="#2F2A2B" stroke-opacity=".4" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M200 142 c-13 -6 -19 -18 -21 -32 c13 2 21 14 21 32 z" fill="none" stroke="#2F2A2B" stroke-opacity=".38" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M200 128 c13 -8 19 -20 21 -34 c-13 2 -21 14 -21 34 z" fill="none" stroke="#2F2A2B" stroke-opacity=".38" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M198 160 c-15 -2 -25 -10 -30 -22 c14 -2 26 6 30 22 z" fill="none" stroke="#2F2A2B" stroke-opacity=".38" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M202 154 c15 -4 25 -14 29 -26 c-14 0 -26 8 -29 26 z" fill="none" stroke="#2F2A2B" stroke-opacity=".38" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>`, // noqa
+  glass: () => `<path d="M178 126 l6 60 q16 7 32 0 l6 -60" fill="none" stroke="#2F2A2B" stroke-opacity=".62" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="200" cy="126" rx="22" ry="5.5" fill="none" stroke="#2F2A2B" stroke-opacity=".5" stroke-width="1.3"/><path d="M183 154 q17 6 34 0" fill="none" stroke="#2F2A2B" stroke-opacity=".28" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M184 168 q16 5 32 0" fill="none" stroke="#2F2A2B" stroke-opacity=".18" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M206 140 l0 10" fill="none" stroke="#2F2A2B" stroke-opacity=".18" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M198 140 l0 6" fill="none" stroke="#2F2A2B" stroke-opacity=".14" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M150 190 H246" fill="none" stroke="#2F2A2B" stroke-opacity=".16" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>`, // noqa
+  mountain: () => `<path d="M118 196 l34 -46 l22 28 l18 -20 l26 38" fill="none" stroke="#2F2A2B" stroke-opacity=".62" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M238 196 l22 -24 l16 14 l14 -10 l14 20" fill="none" stroke="#2F2A2B" stroke-opacity=".24" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><circle cx="262" cy="104" r="15" fill="none" stroke="#2F2A2B" stroke-opacity=".24" stroke-width="1.2"/><path d="M120 196 H278" fill="none" stroke="#2F2A2B" stroke-opacity=".14" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>`, // noqa
+  tulip: () => `<path d="M186 168 q-7 22 3 36 q11 8 22 0 q10 -14 3 -36" fill="none" stroke="#2F2A2B" stroke-opacity=".62" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M186 168 h28" fill="none" stroke="#2F2A2B" stroke-opacity=".36" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M200 168 c0 -22 -2 -40 -4 -54" fill="none" stroke="#2F2A2B" stroke-opacity=".4" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M200 168 c4 -20 8 -36 14 -48" fill="none" stroke="#2F2A2B" stroke-opacity=".4" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M200 168 c-6 -18 -14 -30 -24 -38" fill="none" stroke="#2F2A2B" stroke-opacity=".4" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M188 108 c0 -12 5 -16 12 -16 c7 0 12 4 12 16 c0 6 -5 8 -12 8 c-7 0 -12 -2 -12 -8 z" fill="none" stroke="#2F2A2B" stroke-opacity=".55" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M194 94 q6 8 12 0" fill="none" stroke="#2F2A2B" stroke-opacity=".3" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M206 118 c0 -10 4 -14 10 -14 c6 0 10 4 10 14 c0 5 -4 7 -10 7 c-6 0 -10 -2 -10 -7 z" fill="none" stroke="#2F2A2B" stroke-opacity=".55" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M212 106 q5 7 10 0" fill="none" stroke="#2F2A2B" stroke-opacity=".3" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M166 126 c0 -10 4 -14 10 -14 c6 0 10 4 10 14 c0 5 -4 7 -10 7 c-6 0 -10 -2 -10 -7 z" fill="none" stroke="#2F2A2B" stroke-opacity=".55" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M172 114 q5 7 10 0" fill="none" stroke="#2F2A2B" stroke-opacity=".3" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M196 148 c-10 -2 -16 -8 -18 -16 c9 -1 15 5 18 16 z" fill="none" stroke="#2F2A2B" stroke-opacity=".32" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M204 158 c10 -3 15 -10 16 -18 c-9 0 -14 7 -16 18 z" fill="none" stroke="#2F2A2B" stroke-opacity=".32" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M152 204 H248" fill="none" stroke="#2F2A2B" stroke-opacity=".14" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>`, // noqa
+  letter: () => `<path d="M148 122 h104 v68 h-104 z" fill="none" stroke="#2F2A2B" stroke-opacity=".62" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M148 124 l52 38 l52 -38" fill="none" stroke="#2F2A2B" stroke-opacity=".5" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M148 188 l38 -34" fill="none" stroke="#2F2A2B" stroke-opacity=".22" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M252 188 l-38 -34" fill="none" stroke="#2F2A2B" stroke-opacity=".22" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><circle cx="200" cy="162" r="10" fill="none" stroke="#2F2A2B" stroke-opacity=".3" stroke-width="1.3"/><path d="M196 162 q4 -5 8 0 q-4 5 -8 0 z" fill="none" stroke="#2F2A2B" stroke-opacity=".22" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M262 190 c8 -18 10 -34 8 -50" fill="none" stroke="#2F2A2B" stroke-opacity=".26" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M266 164 c9 -4 13 -11 14 -19 c-9 1 -13 8 -14 19z" fill="none" stroke="#2F2A2B" stroke-opacity=".3" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>`, // noqa
+  duo: () => `<path d="M136 176 h44 q0 20 -7 26 q-15 5 -30 0 q-7 -6 -7 -26 z" fill="none" stroke="#2F2A2B" stroke-opacity=".5" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="158" cy="176" rx="22" ry="4.6" fill="none" stroke="#2F2A2B" stroke-opacity=".5" stroke-width="1.3"/><path d="M180 182 c10 0 10 15 0 14" fill="none" stroke="#2F2A2B" stroke-opacity=".45" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M248 176 h44 q0 20 -7 26 q-15 5 -30 0 q-7 -6 -7 -26 z" fill="none" stroke="#2F2A2B" stroke-opacity=".5" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="270" cy="176" rx="22" ry="4.6" fill="none" stroke="#2F2A2B" stroke-opacity=".5" stroke-width="1.3"/><path d="M226 182 c-10 0 -10 15 0 14" fill="none" stroke="#2F2A2B" stroke-opacity=".45" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M150 164 c-4 -7 5 -10 0 -17" fill="none" stroke="#2F2A2B" stroke-opacity=".2" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M262 164 c-4 -7 5 -10 0 -17" fill="none" stroke="#2F2A2B" stroke-opacity=".2" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M126 210 H200" fill="none" stroke="#2F2A2B" stroke-opacity=".14" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M228 210 H302" fill="none" stroke="#2F2A2B" stroke-opacity=".14" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/><circle cx="200" cy="140" r="1.4" fill="#2F2A2B" fill-opacity=".2" stroke="none"/>`, // noqa
+};
+
+const ART_WASH = {
+  arch: ['#EABFA8','#E6D9C8',244,96,128,92],
+  coffee: ['#EFE3CE','#EABFA8',262,108,122,86],
+  book: ['#C9D6C9','#E6D9C8',228,100,120,88],
+  camera: ['#E6D9C8','#EABFA8',258,106,124,88],
+  moon: ['#E6D9C8','#C9D6C9',250,100,128,92],
+  plant: ['#C9D6C9','#E6D9C8',236,104,118,88],
+  glass: ['#EFE3CE','#C9D6C9',254,110,116,86],
+  mountain: ['#C9D6C9','#E6D9C8',246,100,126,88],
+  tulip: ['#EABFA8','#C9D6C9',248,106,118,90],
+  letter: ['#EFE3CE','#E6D9C8',242,104,118,88],
+  duo: ['#EABFA8','#EFE3CE',200,108,126,88],
+};
+
+let artSeq = 0;
+
+function plateSVG(motif, opts = {}) {
+  const m = ART[motif] ? motif : 'letter';
+  const [a, b, cx, cy, rx, ry] = ART_WASH[m];
+  const uid = 'w' + (++artSeq);
+  const bg = opts.bg === false ? '' : '<rect width="400" height="240" fill="#F4EDE4"/>';
+  return `<svg viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <radialGradient id="${uid}a" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${a}" stop-opacity=".58"/>
+        <stop offset="46%" stop-color="${a}" stop-opacity=".44"/>
+        <stop offset="100%" stop-color="${a}" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="${uid}b" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${b}" stop-opacity=".5"/>
+        <stop offset="48%" stop-color="${b}" stop-opacity=".3"/>
+        <stop offset="100%" stop-color="${b}" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    ${bg}
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#${uid}a)"/>
+    <ellipse cx="${cx + 56}" cy="${cy + 64}" rx="${Math.round(rx * .72)}" ry="${Math.round(ry * .66)}" fill="url(#${uid}b)"/>
+    <ellipse cx="${cx - 104}" cy="${cy + 86}" rx="${Math.round(rx * .7)}" ry="${Math.round(ry * .5)}" fill="url(#${uid}a)" opacity=".4"/>
+    ${ART[m]()}
+  </svg>`;
+}
+
+/* 프로필별 사진 모티프 (사진 1·2·3) */
+const PROFILE_ART = {
+  me: ['tulip', 'book', 'letter'],
+  dohyun: ['arch', 'coffee', 'book'],
+  junho: ['camera', 'coffee', 'moon'],
+  jihoon: ['book', 'plant', 'coffee'],
+  woojin: ['mountain', 'glass', 'book'],
+  jihoo: ['camera', 'letter', 'moon']
+};
+function artFor(id, idx) {
+  const list = PROFILE_ART[id] || ['letter', 'coffee', 'book'];
+  return list[Math.min(Math.max(idx || 0, 0), list.length - 1)];
+}
+
+/* 이름 첫 글자 모노그램 — 사진이 없을 때 쓰는 조용한 아바타 */
+const MONO_TONES = { apricot: '#F3E2D6', sage: '#E4EBE3', sand: '#F0E7DA', butter: '#F8F1E1', oat: '#EDE5DA' };
+const TONE_BY_ID = { me: 'sage', dohyun: 'apricot', junho: 'sand', jihoon: 'sage', woojin: 'oat', jihoo: 'butter' };
+
+function monogramSVG(name, tone) {
+  const t = String(name || '').trim();
+  const hangul = /[\uAC00-\uD7A3]/.test(t);
+  const ch = hangul && t.length > 1 ? t.slice(1, 2) : (t.slice(0, 1) || '·');
+  const bg = MONO_TONES[tone] || MONO_TONES.apricot;
+  return `<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="${bg}"/>
+    <text x="50" y="53" text-anchor="middle" dominant-baseline="middle" font-family="Gowun Batang, Noto Serif KR, Georgia, serif" font-size="38" fill="#4A3B3E">${ch}</text></svg>`;
+}
+function avatarSVG(id, name) { return monogramSVG(name, TONE_BY_ID[id] || 'apricot'); }
+
+/* 헤더용 작은 가지 그림 */
+function sprigSVG() {
+  return `<svg viewBox="0 0 100 100" aria-hidden="true" fill="none" stroke="#2F2A2B" stroke-opacity=".45"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M52 92 C52 68 52 46 54 22"/>
+    <path d="M53 64 C42 60 35 50 33 36 C45 38 52 48 53 64Z"/>
+    <path d="M54 52 C66 48 73 38 75 25 C63 27 55 38 54 52Z"/>
+    <path d="M53 78 C43 76 36 68 34 58 C44 59 51 67 53 78Z"/>
+    <circle cx="54" cy="18" r="2.4" fill="#2F2A2B" fill-opacity=".35" stroke="none"/>
+  </svg>`;
+}
+
+/* 빈 화면 일러스트 */
+function emptyArt(kind) {
+  return `<div class="empty__art" aria-hidden="true">${plateSVG(kind)}</div>`;
+}
+
+/* 효과용 하트/스파클 (이모지 대신 얇은 선) */
+function fxHeartSVG() {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-opacity=".8" stroke-width="1.4"
+    stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.2s-7.4-4.5-7.4-9.7A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.4 2.9c0 5.2-7.4 9.7-7.4 9.7Z"/></svg>`;
+}
+function fxSparkSVG() {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-opacity=".7" stroke-width="1.4"
+    stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v5M12 15v5M4 12h5M15 12h5"/></svg>`;
+}
+
+let activeChatId = null;
+let deckSignature = '';
+let threadSignature = '';
+let currentMode = 'user';
+const photoState = {};            // 카드별로 보고 있는 사진 인덱스
+
+function photoAt(p, idx) {
+  const list = (p.photos && p.photos.length) ? p.photos : [{ caption: p.area }];
+  return list[Math.min(Math.max(idx, 0), list.length - 1)];
+}
+
+function setCardPhoto(id, idx) {
+  const p = PROFILE_MAP[id];
+  const card = document.querySelector(`.card[data-id="${id}"]`);
+  if (!p || !card) return;
+  photoState[id] = idx;
+  const photo = photoAt(p, idx);
+  const art = card.querySelector('.card-art');
+  if (art) art.innerHTML = plateSVG(artFor(id, idx));
+  const cap = card.querySelector('.photo-caption');
+  if (cap) cap.textContent = photo.caption || p.area;
+  card.querySelectorAll('.photo-dot').forEach((d, i) => d.classList.toggle('is-on', i === idx));
+}
+
+function dateLabel(iso) {
+  const d = new Date(iso);
+  return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+}
+
+/* ---------- 4-1. 오늘의 매칭 ---------- */
+function cardHTML(p, depth) {
+  const prios = state.user.prefs.priorities || [];
+  const hit = priorityHitIndex(p);
+  const badgeText = hit >= 0
+    ? `내 ${hit + 1}순위 ${PRIORITY_LABEL[prios[hit]]} · 잘 맞는 인연`
+    : '오늘의 추천';
+  const photoIndex = photoState[p.id] || 0;
+  const photo = photoAt(p, photoIndex);
+  const photoCount = (p.photos || []).length || 1;
+  return `
+    <article class="card" data-id="${p.id}" data-depth="${depth}" style="--depth:${depth}" aria-label="${esc(p.name)} 프로필">
+      <div class="card-photo">
+        <div class="card-art">${plateSVG(artFor(p.id, photoIndex))}</div>
+        ${isVerified(p.id) ? '<span class="card-sticker card-sticker--verified">직장인 인증</span>' : ''}
+        <span class="card-sticker card-sticker--score"><b>${matchReasons(p).length}개</b> 추천 조건 일치</span>
+        <div class="swipe-label swipe-label--like">호감</div>
+        <div class="swipe-label swipe-label--pass">건너뛰기</div>
+        <span class="photo-caption">${esc(photo.caption || p.area)}</span>
+        ${photoCount > 1 ? `<div class="photo-dots">${Array.from({ length: photoCount }, (_, i) =>
+          `<button class="photo-dot${i === photoIndex ? ' is-on' : ''}" data-action="photo" data-id="${p.id}" data-index="${i}" aria-label="사진 ${i + 1}"></button>`).join('')}</div>` : ''}
+      </div>
+      <div class="card-head">
+        <span class="card-badge ${hit >= 0 ? 'card-badge--hit' : ''}">${badgeText}</span>
+        <h2 class="card-name">${esc(p.name)} <span>${p.age}</span></h2>
+        <p class="card-meta">${esc(p.job)} · ${esc(p.area)} · ${p.mbti}</p>
+      </div>
+      <div class="card-body">
+        <p class="card-bio">${esc(p.bio)}</p>
+        <div class="tag-row"><span class="tag-label">취미</span>
+          ${p.hobbies.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}
+        </div>
+        <div class="tag-row"><span class="tag-label">가치관</span>
+          ${p.values.map((t) => `<span class="tag tag--value">${esc(t)}</span>`).join('')}
+        </div>
+        <p class="match-reason"><span>${esc(matchReasons(p).slice(0,2).join(" · ") || "설정한 조건과 일치하는 항목이 아직 없어요")}</span></p>
+        <button class="btn btn--ghost btn--sm" data-action="detail-profile" data-id="${p.id}" style="margin-top:9px">상세 프로필 · 추천 근거 보기</button>
+        <button class="report-link" data-action="report" data-id="${p.id}">이 프로필 신고하기</button>
+      </div>
+    </article>`;
+}
+
+function renderDeck() {
+  const deck = $('#deck');
+  const actions = $('#deckActions');
+  const note = $('#deckNote');
+  const safety = $('#safetyNote');
+  const visible = visibleDeck();
+  const hidden = hiddenDeckCount();
+  const signature = [visible.map((p) => `${p.id}:${matchReasons(p).join('/')}`).join(','), state.deck.length, hidden, state.verifiedIds.join(',')].join('|');
+  const undoButton = $('#undoPassBtn'); if (undoButton) undoButton.disabled = !state.lastPassed;
+  if (signature === deckSignature) {
+    safety.hidden = hidden === 0;
+    if (hidden) safety.textContent = `안전 설정으로 ${hidden}분을 가려 두었어요`;
+    return;
+  }
+  deckSignature = signature;
+
+  safety.hidden = hidden === 0;
+  if (hidden) safety.textContent = `안전 설정으로 ${hidden}분을 가려 두었어요`;
+
+  if (state.deck.length === 0) {
+    actions.hidden = true; note.hidden = true; safety.hidden = true;
+    const pending = state.received.filter((r) => r.status === 'pending' && !isHidden(PROFILE_MAP[r.id])).length;
+    deck.innerHTML = `
+      <div class="empty">
+        ${emptyArt('moon')}
+        <h3>오늘의 인연은 여기까지</h3>
+        <p>내일 아침 9시에 새로운 인연을<br>한 분 더 소개해 드릴게요.${pending ? '<br>받은 호감을 먼저 살펴보시겠어요?' : ''}</p>
+        <button class="btn btn--primary" data-action="tab" data-view="matches">매칭 현황 보기</button>
+      </div>`;
+    return;
+  }
+
+  if (visible.length === 0) {
+    actions.hidden = true; note.hidden = true;
+    deck.innerHTML = `
+      <div class="empty">
+        ${emptyArt('letter')}
+        <h3>안전 설정으로 모두 가려 두었어요</h3>
+        <p>같은 회사·지인 번호 설정 때문에<br>오늘의 인연 ${hidden}분이 보이지 않아요.</p>
+        <button class="btn btn--ghost" data-action="tab" data-view="profile">안전 설정 열기</button>
+      </div>`;
+    return;
+  }
+
+  actions.hidden = false; note.hidden = false;
+  const cards = visible.slice(0, 3).map((p, i) => cardHTML(p, i)).reverse();
+  deck.innerHTML = cards.join('');
+}
+
+function openProfileDetail(id) {
+  const p = PROFILE_MAP[id]; if (!p) return;
+  const reasons = matchReasons(p);
+  openSheet(`<div class="sheet__grabber"></div><div class="sheet__head"><h2>${esc(p.name)}님의 상세 프로필</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기">✕</button></div>
+    <p class="sheet__sub">${p.age}세 · ${esc(p.job)} · ${esc(p.area)} · ${esc(p.mbti)} ${isVerified(id)?'· 직장 인증(데모)':''}</p>
+    <div class="detail-gallery">${(p.photos||[]).map((photo,i)=>`<figure>${plateSVG(artFor(id,i))}<figcaption>${esc(photo.caption)}</figcaption></figure>`).join('')}</div>
+    <p class="sheet__sub">${esc(p.bio)}</p><p class="sheet__sub">취미: ${p.hobbies.map(esc).join(', ')}<br>가치관: ${p.values.map(esc).join(', ')}<br>흡연: ${p.nonsmoker?'비흡연':'정보상 비흡연 아님'} · 키: ${p.height}cm</p>
+    <div class="reason-list"><strong>추천 조건 ${reasons.length}개 일치</strong>${reasons.length?`<ul>${reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`:'<p>현재 설정된 조건에서 확인된 일치 항목이 없습니다.</p>'}</div>
+    <p class="demo-limits">추천 조건은 샘플 프로필과 사용자가 선택한 설정의 단순 비교입니다. 점수나 실제 성격·관계 궁합을 보증하지 않으며, 사진은 실제 인물 사진이 아닌 SVG 예시 일러스트입니다.</p>
+    <div class="detail-actions"><button class="btn btn--ghost" data-action="close-sheet">닫기</button><button class="btn btn--primary" data-action="detail-like" data-id="${id}" ${state.deck.includes(id)?'':'disabled'}>호감 보내기</button></div>`);
+}
+function undoPass() {
+  const id = state.lastPassed;
+  if (!id || !state.passed.includes(id)) return;
+  state.passed = state.passed.filter(x=>x!==id);
+  state.deck = [id,...state.deck.filter(x=>x!==id)];
+  state.lastPassed = null; deckSignature=''; renderAll(); toast('마지막 건너뛰기를 되돌렸어요.');
+}
+function showTicketHistory() {
+  const labels = {initial:'초기 지급',use:'호감 전송',refund:'무응답 반환',topup:'충전 (데모)',demo:'데모 테스트'};
+  openSheet(`<div class="sheet__grabber"></div><div class="sheet__head"><h2>매칭권 이용내역</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기">✕</button></div>
+    <p class="sheet__sub">현재 ${state.tickets}장 · 충전 / 사용 / 반환 기록</p>
+    <div>${state.ticketLedger.length?state.ticketLedger.map(x=>`<div class="ledger-item"><b>${esc(labels[x.kind]||x.kind)} · ${x.delta>0?'+':''}${x.delta}장</b><div class="muted">${esc(x.detail)} · ${esc(new Date(x.at).toLocaleString('ko-KR'))}</div></div>`).join(''):'<p class="sheet__sub">아직 내역이 없어요.</p>'}</div>
+    <p class="demo-limits"><b>반환 기준:</b> 호감 전송 후 48시간 내 응답이 없으면 매칭권 1장을 반환합니다. 수락 또는 거절 등 응답이 있으면 자동 반환 대상이 아닙니다. 현 데모는 브라우저 실행 중/다시 열 때 만료 여부를 계산하며 서버 자동정산이나 실제 환불을 수행하지 않습니다. 실제 결제·환불 정책은 출시 전에 별도 확정해야 합니다.</p>
+    <button class="btn btn--ghost btn--block" data-action="close-sheet">확인</button>`);
+}
+
+/* ---------- 4-2. 매칭 현황 ---------- */
+function renderMatches() {
+  const pendingAll = state.received.filter((r) => r.status === 'pending');
+  const pending = pendingAll.filter((r) => !isHidden(PROFILE_MAP[r.id]));
+  const matchedIds = new Set(state.matches.map((m) => m.id));
+
+  const receivedHTML = pending.length
+    ? pending.map((r) => {
+        const p = PROFILE_MAP[r.id];
+        return `
+          <li class="row">
+            <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
+            <div class="row__main">
+              <p class="row__name">${esc(p.name)} <span>${p.age}</span></p>
+              <p class="row__sub">${esc(p.job)} · ${esc(p.area)} · ${relTime(r.at)}</p>
+            </div>
+            <div class="row__actions">
+              <button class="btn btn--sm btn--ghost" data-action="decline" data-id="${p.id}">거절</button>
+              <button class="btn btn--sm btn--primary" data-action="accept" data-id="${p.id}">수락</button>
+            </div>
+          </li>`;
+      }).join('')
+    : '<li class="list-empty">받은 호감이 아직 없어요.<br>오늘의 인연에서 먼저 인사를 건네보세요.</li>';
+
+  const sentHTML = state.sent.length
+    ? state.sent.slice().reverse().map((s) => {
+        const p = PROFILE_MAP[s.id];
+        const done = s.status === 'matched' || matchedIds.has(s.id);
+        const refunded = s.status === 'refunded';
+        const sub = refunded
+          ? `${esc(p.job)} · 48시간 무응답 · 990원 반환`
+          : done
+            ? `${esc(p.job)} · ${esc(p.area)} · ${relTime(s.at)}`
+            : `${esc(p.job)} · ${remainingShort(s.at)}`;
+        const pill = refunded
+          ? '<span class="status-pill status-pill--refund">환불 완료</span>'
+          : done
+            ? '<span class="status-pill status-pill--done">매칭 성사</span>'
+            : '<span class="status-pill status-pill--wait">답변 대기</span>';
+        return `
+          <li class="row">
+            <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
+            <div class="row__main">
+              <p class="row__name">${esc(p.name)} <span>${p.age}</span></p>
+              <p class="row__sub">${sub}</p>
+            </div>
+            ${pill}
+          </li>`;
+      }).join('')
+    : '<li class="list-empty">보낸 호감이 없어요.<br>990원짜리 용기 한 번, 어떨까요.</li>';
+
+  const matchHTML = state.matches.length
+    ? state.matches.slice().reverse().map((m) => {
+        const p = PROFILE_MAP[m.id];
+        const meet = meetingOf(m.id);
+        const meetLabel = meet.status === 'reviewed' ? ' · 후기 완료'
+          : meet.status === 'met' ? ' · 만남 기록'
+          : meet.status === 'planned' && meet.plannedAt ? ` · ${dateLabel(meet.plannedAt)} 약속`
+          : '';
+        return `
+          <li class="row">
+            <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
+            <div class="row__main">
+              <p class="row__name">${esc(p.name)} <span>${p.age}</span></p>
+              <p class="row__sub">${m.via === 'accepted' ? '받은 호감 수락' : '서로 호감'} · ${relTime(m.at)}${meetLabel}</p>
+            </div>
+            <button class="btn btn--sm btn--primary" data-action="open-chat" data-id="${p.id}">대화하기</button>
+          </li>`;
+      }).join('')
+    : '<li class="list-empty">이어진 인연이 아직 없어요.<br>서로 호감을 보내면 매칭이 성사돼요.</li>';
+
+  $('#matchesBody').innerHTML = `
+    <div class="stats">
+      <div class="stat ${pending.length ? 'is-hot' : ''}">
+        <p class="stat__value">${pending.length}<em>건</em></p>
+        <p class="stat__label">받은 호감</p>
+      </div>
+      <div class="stat">
+        <p class="stat__value">${state.sent.length}<em>건</em></p>
+        <p class="stat__label">보낸 호감</p>
+      </div>
+      <div class="stat ${state.matches.length ? 'is-hot' : ''}">
+        <p class="stat__value">${state.matches.length}<em>쌍</em></p>
+        <p class="stat__label">이어진 인연</p>
+      </div>
+    </div>
+
+    <section class="section">
+      <div class="section__head"><h2 class="section__title">받은 호감</h2><span class="section__count">${pending.length}건</span></div>
+      <ul class="list">${receivedHTML}</ul>
+    </section>
+
+    <section class="section">
+      <div class="section__head"><h2 class="section__title">보낸 호감</h2><span class="section__count">${state.sent.length}건</span></div>
+      <div class="refund-banner">
+        <span>48시간 안에 답이 없으면 <b>990원 매칭권이 자동으로 돌아와요</b></span>
+        <button data-action="demo-expire">환불 데모</button>
+      </div>
+      <ul class="list">${sentHTML}</ul>
+    </section>
+
+    <section class="section">
+      <div class="section__head"><h2 class="section__title">이어진 인연</h2><span class="section__count">${state.matches.length}쌍</span></div>
+      <ul class="list">${matchHTML}</ul>
+      <p class="footnote" style="margin-top:10px;text-align:left">대화방에서 만남을 기록하고 후기를 남기면 <b>300P</b>가 쌓여요</p>
+    </section>`;
+}
+
+/* ---------- 4-3. 대화 ---------- */
+function lastMessage(id) {
+  const list = state.chats[id] || [];
+  return list.length ? list[list.length - 1] : null;
+}
+
+function renderChatList() {
+  const wrap = $('#chatList');
+  if (!state.matches.length) {
+    wrap.innerHTML = `
+      <div class="empty" style="height:auto;padding-top:48px">
+        ${emptyArt('duo')}
+        <h3>아직 대화가 없어요</h3>
+        <p>매칭이 성사되면 여기에서<br>첫 대화를 시작할 수 있어요</p>
+        <button class="btn btn--ghost" data-action="tab" data-view="matches">매칭 현황 보기</button>
+      </div>`;
+    return;
+  }
+
+  const rows = state.matches.filter(m=>safeProfile(m.id) && !state.endedChats.includes(m.id)).slice().sort((a, b) => {
+    const la = lastMessage(a.id), lb = lastMessage(b.id);
+    return new Date(lb ? lb.at : b.at) - new Date(la ? la.at : a.at);
+  });
+
+  if (!rows.length) {
+    wrap.innerHTML = `<div class="empty" style="height:auto;padding-top:48px"><h3>진행 중인 대화가 없어요</h3><p>차단하거나 종료한 채팅은 목록에서 숨겨집니다.<br>안전 설정은 내 프로필에서 확인할 수 있어요.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <ul class="list">
+      ${rows.map((m) => {
+        const p = PROFILE_MAP[m.id];
+        const last = lastMessage(m.id);
+        const unread = state.unread[m.id] || 0;
+        return `
+          <li class="row" data-action="open-chat" data-id="${p.id}" style="cursor:pointer">
+            <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
+            <div class="row__main">
+              <p class="row__name">${esc(p.name)} <span>${p.age}</span></p>
+              <p class="row__sub">${last ? esc(last.text) : '첫 대화를 기다리고 있어요'}</p>
+            </div>
+            ${unread
+              ? `<span class="status-pill status-pill--done">${unread}</span>`
+              : `<span class="status-pill">${last ? relTime(last.at) : relTime(m.at)}</span>`}
+          </li>`;
+      }).join('')}
+    </ul>
+    <p class="footnote" style="margin-top:18px">매칭된 상대와만 대화할 수 있어요 · 데모에서는 상대의 답장이 자동으로 도착해요</p>`;
+}
+
+/* ---------- 4-4. 대화 스레드 ---------- */
+function renderThread() {
+  if (!activeChatId) return;
+  const p = PROFILE_MAP[activeChatId];
+  if (!p || !safeProfile(activeChatId) || state.endedChats.includes(activeChatId)) { closeThread(); return; }
+  const msgs = state.chats[activeChatId] || [];
+  const match = state.matches.find((m) => m.id === activeChatId);
+  const signature = activeChatId + '|' + msgs.length + '|' + typingChats.has(activeChatId) + '|' + JSON.stringify(state.chatRead[activeChatId]||null);
+  if (signature === threadSignature) return;
+  threadSignature = signature;
+
+  $('#threadAvatar').innerHTML = avatarSVG(p.id, p.name);
+  $('#threadName').textContent = p.name;
+  $('#threadSub').textContent = `${match ? relTime(match.at) + ' 매칭' : '매칭'} · ${p.job} · ${p.mbti}`;
+  $('#threadReportBtn').dataset.id = activeChatId;
+
+  const divider = msgs.length
+    ? `<div class="day-divider">대화 시작 · ${relTime(msgs[0].at)}</div>`
+    : `<div class="day-divider">매칭이 성사됐어요 — 먼저 인사를 건네보세요</div>`;
+
+  $('#threadBody').innerHTML = divider +
+    msgs.map((m) => `
+      <div class="bubble bubble--${m.from === 'me' ? 'me' : 'them'}">${esc(m.text)}</div>
+      <div class="bubble__time">${timeHM(m.at)}${m.from === "me" ? (state.chatRead[activeChatId] && new Date(m.at) <= new Date(state.chatRead[activeChatId]) ? " · 읽음 (데모)" : " · 보냄") : ""}</div>`).join('') +
+    (typingChats.has(activeChatId) ? '<div class="typing"><i></i><i></i><i></i></div>' : '');
+
+  $('#chipRow').innerHTML = ICEBREAKERS.map((t) =>
+    `<button class="chip" data-action="send-chip" data-text="${esc(t)}">${esc(t)}</button>`).join('');
+
+  requestAnimationFrame(() => { const b = $('#threadBody'); if (b) b.scrollTop = b.scrollHeight; });
+}
+
+/* ---------- 4-4b. 만남 기록 & 후기 ---------- */
+function meetingOf(id) {
+  return state.meetings[id] || { status: 'none', plannedAt: null, metAt: null, review: null };
+}
+
+function renderMeetBar() {
+  const bar = $('#meetBar');
+  if (!bar) return;
+  if (!activeChatId) { bar.innerHTML = ''; bar.hidden = true; return; }
+  bar.hidden = false;
+
+  const id = activeChatId;
+  const m = meetingOf(id);
+  const p = PROFILE_MAP[id];
+
+  if (m.status === 'reviewed') {
+    bar.className = 'meet-bar is-reviewed';
+    bar.innerHTML = `
+      <div class="meet-bar__text">
+        <p class="meet-bar__title">만남 후기 완료 · 300P 적립</p>
+        <p class="meet-bar__sub">${esc(m.review?.manners || '')} · ${esc(m.review?.again || '')}</p>
+      </div>`;
+    return;
+  }
+  if (m.status === 'met') {
+    bar.className = 'meet-bar is-met';
+    bar.innerHTML = `
+      <div class="meet-bar__text">
+        <p class="meet-bar__title">만남을 기록했어요</p>
+        <p class="meet-bar__sub">후기를 남기면 매칭권에 쓸 수 있는 300P를 드려요</p>
+      </div>
+      <div class="meet-bar__actions">
+        <button class="btn btn--sm btn--primary" data-action="meet-review" data-id="${id}">후기 남기기</button>
+      </div>`;
+    return;
+  }
+  if (m.status === 'planned') {
+    bar.className = 'meet-bar';
+    bar.innerHTML = `
+      <div class="meet-bar__text">
+        <p class="meet-bar__title">약속 · ${m.plannedAt ? dateLabel(m.plannedAt) : ''}</p>
+        <p class="meet-bar__sub">만난 뒤 기록하면 후기 포인트 300P</p>
+      </div>
+      <div class="meet-bar__actions">
+        <button class="btn btn--sm btn--ghost" data-action="meet-plan" data-id="${id}">변경</button>
+        <button class="btn btn--sm btn--primary" data-action="meet-done" data-id="${id}">만났어요</button>
+      </div>`;
+    return;
+  }
+
+  bar.className = 'meet-bar';
+  bar.innerHTML = `
+    <div class="meet-bar__text">
+      <p class="meet-bar__title">${esc(p.name)}님과 만나셨나요?</p>
+      <p class="meet-bar__sub">만남을 기록하고 후기를 남기면 300P 적립</p>
+    </div>
+    <div class="meet-bar__actions">
+      <button class="btn btn--sm btn--ghost" data-action="meet-plan" data-id="${id}">약속 잡기</button>
+      <button class="btn btn--sm btn--primary" data-action="meet-done" data-id="${id}">만났어요</button>
+    </div>`;
+}
+
+let planDraft = null;
+let reviewDraft = null;
+
+function openMeetSheet(id, step) {
+  const p = PROFILE_MAP[id];
+  const m = meetingOf(id);
+
+  if (step === 'plan') {
+    const options = [
+      { label: '오늘 저녁', days: 0 },
+      { label: '내일 저녁', days: 1 },
+      { label: '이번 주말', days: 3 },
+      { label: '다음 주말', days: 10 }
+    ];
+    planDraft = m.plannedAt || null;
+    const isoFor = (days) => {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      d.setHours(19, 0, 0, 0);
+      return d.toISOString();
+    };
+    openSheet(`
+      <div class="sheet__grabber"></div>
+      <div class="sheet__head">
+        <h2>만남 약속 잡기</h2>
+        <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+      </div>
+      <p class="sheet__sub">${esc(p.name)}님과 언제 만나기로 하셨나요?</p>
+      <div class="reason-pick" id="planOptions">
+        ${options.map((o) => `<button class="reason-chip" data-action="pick-plan-date" data-iso="${isoFor(o.days)}" aria-pressed="false">${o.label}</button>`).join('')}
+      </div>
+      <div class="sheet__actions">
+        <button class="btn btn--ghost" data-action="close-sheet">나중에</button>
+        <button class="btn btn--primary" data-action="confirm-plan" data-id="${id}" id="confirmPlanBtn" ${planDraft ? '' : 'disabled'}>약속 저장</button>
+      </div>
+      <p class="sheet__note">데모 약속이에요. 실제 캘린더 연동은 다음 단계에서 붙일 수 있어요.</p>`);
+    return;
+  }
+
+  if (step === 'confirm') {
+    openSheet(`
+      <div class="sheet__grabber"></div>
+      <div class="sheet__head">
+        <h2>실제로 만나셨나요?</h2>
+        <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+      </div>
+      <p class="sheet__sub">${esc(p.name)}님과의 만남을 기록하면<br>후기를 남길 수 있어요. 후기 작성 시 <b>300P</b> 적립.</p>
+      <div class="sheet__actions">
+        <button class="btn btn--ghost" data-action="close-sheet">아직이요</button>
+        <button class="btn btn--primary" data-action="confirm-meet" data-id="${id}">네, 만났어요</button>
+      </div>`);
+    return;
+  }
+
+  /* 후기 작성 */
+  reviewDraft = { manners: '', talk: '', again: '', note: '' };
+  const block = (field, title, opts) => `
+    <div class="sheet-field">
+      <label>${title}</label>
+      <div class="reason-pick" data-field="${field}">
+        ${opts.map((o) => `<button class="reason-chip" data-action="pick-review" data-field="${field}" data-value="${esc(o)}" aria-pressed="false">${esc(o)}</button>`).join('')}
+      </div>
+    </div>`;
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head">
+      <h2>만남 후기</h2>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <p class="sheet__sub">${esc(p.name)}님과의 만남은 어떠셨나요? 솔직한 후기가 더 나은 매칭을 만듭니다.</p>
+    ${block('manners', '매너', ['최고였어요', '좋았어요', '아쉬웠어요'])}
+    ${block('talk', '대화', ['말이 잘 통했어요', '무난했어요', '조금 어색했어요'])}
+    ${block('again', '다시 만날 의향', ['또 보고 싶어요', '글쎄요'])}
+    <div class="sheet-field">
+      <label for="reviewNote">한 줄 후기 (선택)</label>
+      <input id="reviewNote" placeholder="예: 웃음이 많고 배려심 있는 분이었어요" maxlength="80">
+    </div>
+    <div class="sheet__actions">
+      <button class="btn btn--ghost" data-action="close-sheet">나중에</button>
+      <button class="btn btn--primary" data-action="submit-review" data-id="${id}">후기 남기고 300P 받기</button>
+    </div>
+    <p class="sheet__note">후기는 상대에게 공개되지 않고 매칭 품질 개선에만 사용됩니다.</p>`);
+}
+
+function saveMeeting(id, patch) {
+  state.meetings[id] = { ...meetingOf(id), ...patch };
+  save();
+  renderAll();
+}
+
+function confirmPlan(id) {
+  if (!planDraft) { toast('약속 날짜를 골라주세요.'); return; }
+  saveMeeting(id, { status: 'planned', plannedAt: planDraft });
+  closeSheet();
+  toast(`${dateLabel(planDraft)} 약속을 저장했어요.`);
+}
+
+function confirmMeet(id) {
+  saveMeeting(id, { status: 'met', metAt: new Date().toISOString() });
+  closeSheet();
+  toast('만남을 기록했어요. 후기를 남기면 300P를 드려요.');
+  openMeetSheet(id, 'review');
+}
+
+function submitReview(id) {
+  if (!reviewDraft) return;
+  if (meetingOf(id).status !== 'met') return;          // 중복 적립 방지
+  if (!reviewDraft.manners || !reviewDraft.talk || !reviewDraft.again) {
+    toast('매너·대화·재만남 항목을 모두 골라주세요.');
+    return;
+  }
+  reviewDraft.note = ($('#reviewNote')?.value || '').trim();
+  state.points += 300;
+  saveMeeting(id, {
+    status: 'reviewed',
+    review: { ...reviewDraft, at: new Date().toISOString(), points: 300 }
+  });
+  closeSheet();
+  toast('후기 완료. 300P가 적립됐어요. 매칭권 결제에 쓸 수 있어요.');
+}
+
+/* ---------- 4-5. 프로필 · 인증 · 안전 설정 ---------- */
+function fillProfileForm() {
+  const u = state.user;
+  $('#fNickname').value = u.nickname || '';
+  $('#fAge').value = u.age || '';
+  $('#fJob').value = u.job || '';
+  $('#fCompany').value = u.company || '';
+  $('#fBio').value = u.bio || '';
+  $('#fAgeMin').value = u.prefs.ageMin || '';
+  $('#fAgeMax').value = u.prefs.ageMax || '';
+  renderPrefChips();
+  renderProfileChrome();
+}
+
+function renderPrefChips() {
+  const prefs = state.user.prefs;
+
+  /* MBTI — 아무것도 고르지 않으면 '상관없음' */
+  $('#mbtiChips').innerHTML =
+    `<button type="button" class="chip-select chip-select--any" data-action="toggle-mbti" data-value="" aria-pressed="${prefs.mbti.length === 0}">상관없음</button>` +
+    MBTI_TYPES.map((t) =>
+      `<button type="button" class="chip-select" data-action="toggle-mbti" data-value="${t}" aria-pressed="${prefs.mbti.includes(t)}">${t}</button>`).join('');
+
+  /* 우선순위 — 번호가 붙은 칩 */
+  $('#priorityChips').innerHTML = PRIORITY_OPTIONS.map((o) => {
+    const rank = prefs.priorities.indexOf(o.key);
+    return `<button type="button" class="chip-select prio-chip" data-action="toggle-priority" data-value="${o.key}" aria-pressed="${rank >= 0}">${
+      rank >= 0 ? `<span class="rank">${rank + 1}</span>` : ''
+    }<span>${o.label}</span></button>`;
+  }).join('');
+
+  $('#prioritySummary').textContent = prefs.priorities.length
+    ? prefs.priorities.map((k, i) => `${i + 1}순위 ${PRIORITY_LABEL[k]}`).join('  →  ')
+    : '우선순위를 고르면 궁합 %와 카드 순서가 바로 바뀌어요';
+
+  /* 지역 · 가치관 */
+  $('#areaChips').innerHTML = AREA_OPTIONS.map((a) =>
+    `<button type="button" class="chip-select" data-action="toggle-area" data-value="${esc(a)}" aria-pressed="${prefs.areas.includes(a)}">${esc(a)}</button>`).join('');
+  $('#valueChips').innerHTML = VALUE_OPTIONS.map((v) =>
+    `<button type="button" class="chip-select" data-action="toggle-value" data-value="${esc(v)}" aria-pressed="${prefs.values.includes(v)}">${esc(v)}</button>`).join('');
+}
+
+/* 선호 조건은 고르는 즉시 저장 → 궁합 %와 카드 순서가 바로 바뀝니다 */
+function updatePrefs(patch) {
+  state.user.prefs = { ...state.user.prefs, ...patch };
+  deckSignature = '';
+  save();
+  renderPrefChips();
+  renderAll();
+}
+
+function togglePref(listName, value) {
+  const arr = [...state.user.prefs[listName]];
+  const idx = arr.indexOf(value);
+  if (idx >= 0) {
+    if (arr.length === 1) { toast('한 개는 선택해 주세요'); return; }
+    arr.splice(idx, 1);
+  } else arr.push(value);
+  updatePrefs({ [listName]: arr });
+}
+
+function toggleMbti(value) {
+  const current = [...(state.user.prefs.mbti || [])];
+  if (value === '') { updatePrefs({ mbti: [] }); return; }   // 상관없음
+  const idx = current.indexOf(value);
+  if (idx >= 0) current.splice(idx, 1);
+  else current.push(value);
+  updatePrefs({ mbti: current });
+}
+
+function togglePriority(key) {
+  const current = [...(state.user.prefs.priorities || [])];
+  const idx = current.indexOf(key);
+  if (idx >= 0) current.splice(idx, 1);
+  else if (current.length >= 3) { toast('우선순위는 3개까지 고를 수 있어요.'); return; }
+  else current.push(key);
+  updatePrefs({ priorities: current });
+}
+
+function renderProfileChrome() {
+  const u = state.user;
+  $('#meName').textContent = u.nickname || '나';
+  $('#meAge').textContent = u.age ? `${u.age}` : '';
+  $('#meMeta').textContent = [u.job, u.company].filter(Boolean).join(' · ');
+  const avatar = $('#meAvatar');
+  if (u.photos && u.photos[0]) {
+    avatar.innerHTML = `<img src="${u.photos[0]}" alt="내 사진" style="width:100%;height:100%;object-fit:cover">`;
+  } else {
+    avatar.innerHTML = avatarSVG('me', u.nickname || '나');
+  }
+  $('#meVerifyBadge').hidden = !myVerified();
+  $('#ticketBalance').textContent = state.tickets;
+  $('#ticketCount').textContent = state.tickets;
+  $('#pointsCount').textContent = state.points;
+  $('#profilePoints').textContent = state.points;
+  renderPhotoManage();
+  renderVerifyCard();
+  renderSafety();
+}
+
+function renderPhotoManage() {
+  const manage = $('#photoManage');
+  if (!manage) return;
+  const photos = state.user.photos || [];
+  manage.innerHTML = [0, 1, 2].map((i) => {
+    const src = photos[i];
+    if (src) {
+      return `<div class="photo-slot is-filled">
+        <img src="${src}" alt="내 사진 ${i + 1}">
+        <button class="photo-slot__remove" data-action="remove-photo" data-index="${i}" aria-label="사진 삭제">✕</button>
+        ${i === 0 ? '<span class="photo-slot__tag">대표</span>' : ''}
+      </div>`;
+    }
+    return `<label class="photo-slot">
+      <span class="photo-slot__plus">＋</span>
+      <span class="photo-slot__hint">사진 ${i + 1}</span>
+      <input type="file" accept="image/*" data-photo-upload hidden>
+    </label>`;
+  }).join('');
+}
+
+function renderVerifyCard() {
+  const v = state.verification;
+  const wrap = $('#verifySection');
+  if (!wrap) return;
+
+  const statusPill = {
+    none: '<span class="pill pill--gray">미인증</span>',
+    pending: '<span class="pill pill--yellow">심사 중</span>',
+    verified: '<span class="pill pill--mint">인증 완료</span>',
+    rejected: '<span class="pill pill--pink">반려</span>'
+  }[v.status] || '<span class="pill pill--gray">미인증</span>';
+
+  let body = '';
+  if (v.status === 'none') {
+    body = `
+      <p>직장인 인증을 하면 프로필에 <b>인증 마크</b>가 붙고,<br>매칭 수락률이 올라갑니다.</p>
+      <div class="verify-actions">
+        <button class="btn btn--primary" data-action="open-email-verify">회사 메일로 인증</button>
+        <button class="btn btn--ghost" data-action="open-doc-verify">명함·재직증명서로 인증</button>
+      </div>
+      <div class="verify-meta">① 제출 방식 선택 → ② 이메일 코드 확인 또는 서류 제출 → ③ 운영자 심사 → ④ 승인·반려 안내<br>데모에서는 실제 메일을 보내지 않으며 운영자 심사 소요시간을 보장하지 않습니다.</div>`;
+  } else if (v.status === 'pending') {
+    const methodLabel = v.method === 'email' ? '회사 메일' : '명함·재직증명서';
+    body = `
+      <div class="steps">
+        <span class="on"><span class="dot">1</span> 제출</span><span>›</span>
+        <span class="on"><span class="dot">2</span> 심사 중</span><span>›</span>
+        <span><span class="dot">3</span> 완료</span>
+      </div>
+      <div class="verify-meta" style="margin-top:11px">
+        <b>${esc(v.company)}</b> · ${methodLabel}<br>
+        ${relTime(v.submittedAt)} 접수 · 단계 3/4 운영자 심사 대기 (데모)
+      </div>
+      <p style="margin-top:10px;font-size:9.5px;color:var(--ink-3)">승인되면 이 카드가 바로 인증 완료로 바뀝니다. 운영자 화면에서 처리 상황을 볼 수 있어요.</p>`;
+  } else if (v.status === 'verified') {
+    body = `
+      <div class="verify-meta" style="margin-top:11px;background:rgba(255,255,255,.7)">
+        <b>${esc(v.company)}</b> 재직 확인 완료<br>
+        ${v.decidedAt ? relTime(v.decidedAt) + ' 승인' : ''} · 프로필에 인증 마크가 표시되고 있어요
+      </div>`;
+  } else {
+    body = `
+      <div class="reject-reason">반려 사유 · ${esc(v.reason || '제출 서류를 다시 확인해 주세요')}</div>
+      <div class="verify-actions">
+        <button class="btn btn--primary" data-action="open-doc-verify">서류 다시 제출하기</button>
+        <button class="btn btn--ghost" data-action="open-email-verify">회사 메일로 인증</button>
+      </div>`;
+  }
+
+  const cls = { pending: 'is-pending', verified: 'is-verified', rejected: 'is-rejected' }[v.status] || '';
+  const iconId = { pending: 'i-clock', verified: 'i-badge', rejected: 'i-mail' }[v.status] || 'i-badge';
+  const sub = {
+    none: '인증하고 신뢰 마크를 받아보세요',
+    pending: '운영자가 확인하고 있어요',
+    verified: '4/4단계 승인 완료 (데모)',
+    rejected: '4/4단계 반려 · 재제출 가능'
+  }[v.status];
+
+  wrap.innerHTML = `
+    <div class="verify-card ${cls}">
+      <div class="verify-card__head">
+        <div class="verify-card__emoji"><svg class="icon"><use href="#${iconId}"/></svg></div>
+        <div>
+          <p class="verify-card__title">직장인 인증</p>
+          <p class="verify-card__sub">${sub}</p>
+        </div>
+        <div class="verify-status">${statusPill}</div>
+      </div>
+      <div class="verify-body">${body}</div>
+    </div>`;
+}
+
+function renderSafety() {
+  const sw = $('#sameCompanySwitch');
+  if (!sw) return;
+  sw.setAttribute('aria-pressed', String(state.safety.hideSameCompany));
+
+  const list = $('#blockedList');
+  list.innerHTML = state.safety.blockedNumbers.length
+    ? state.safety.blockedNumbers.map((b) => `
+        <li class="blocked-item">
+          <span>${esc(b.masked)} <span style="color:var(--ink-3)">· ${relTime(b.at)}</span></span>
+          <button data-action="remove-block" data-hash="${b.hash}">삭제</button>
+        </li>`).join('')
+    : '';
+
+  const hidden = hiddenDeckCount();
+  $('#safetySummary').textContent = hidden
+    ? `지금 오늘의 인연에서 ${hidden}분이 숨겨져 있어요.`
+    : '지금 숨겨진 인연은 없어요.';
+}
+
+/* ---------- 4-6. 탭 배지 ---------- */
+function renderNav() {
+  const pending = state.received.filter((r) => r.status === 'pending' && !isHidden(PROFILE_MAP[r.id])).length;
+  const unread = Object.values(state.unread).reduce((a, b) => a + b, 0);
+
+  const matchBadge = $('#matchBadge');
+  matchBadge.hidden = pending === 0;
+  matchBadge.textContent = pending;
+
+  const chatBadge = $('#chatBadge');
+  chatBadge.hidden = unread === 0;
+  chatBadge.textContent = unread > 9 ? '9+' : unread;
+
+  const pendingVerify = state.submissions.filter((s) => s.status === 'pending').length;
+  const openReports = state.reports.filter((r) => r.status === 'open').length;
+  const dot = $('#adminPendingDot');
+  const total = pendingVerify + openReports;
+  dot.hidden = total === 0;
+  dot.textContent = total;
+}
+
+/* ==========================================================================
+   5. 렌더러 — 관리자
+   ========================================================================== */
+let adminTab = 'verify';
+let openRejects = new Set();
+let rejectDrafts = {};
+
+function renderAdmin() {
+  const pendingV = state.submissions.filter((s) => s.status === 'pending').sort((a, b) => new Date(a.at) - new Date(b.at));
+  const doneV = state.submissions.filter((s) => s.status !== 'pending')
+    .sort((a, b) => new Date(b.decidedAt || b.at) - new Date(a.decidedAt || a.at));
+  const approved = doneV.filter((s) => s.status === 'approved').length;
+  const openReports = state.reports.filter((r) => r.status === 'open');
+  const doneReports = state.reports.filter((r) => r.status !== 'open')
+    .sort((a, b) => new Date(b.decidedAt || b.at) - new Date(a.decidedAt || a.at));
+
+  $('#adminPending').textContent = pendingV.length;
+  $('#adminReports').textContent = openReports.length;
+  $('#adminApproved').textContent = approved;
+  $('#tabVerifyCount').textContent = pendingV.length;
+  $('#tabReportCount').textContent = openReports.length;
+  $('#pendingLabel').textContent = `${pendingV.length}건`;
+  $('#doneLabel').textContent = `${doneV.length}건`;
+  $('#reportLabel').textContent = `${state.reports.length}건`;
+  $('#suspendLabel').textContent = `${state.suspendedIds.length}명`;
+
+  const auditEl=$('#adminAuditList');
+  if(auditEl) auditEl.innerHTML=state.auditLog.length?state.auditLog.slice(0,30).map(x=>`<div class="audit-item"><b>${esc(x.action)}</b> · ${esc(x.target)}<div class="muted">담당: ${esc(x.actor)} · ${esc(new Date(x.at).toLocaleString('ko-KR'))}</div><div>${esc(x.detail||'처리 완료')}</div></div>`).join(''):'<p class="muted">새로 처리된 내역이 없습니다. 기존 샘플 데이터에는 담당자 이력이 없습니다.</p>';
+  /* 인증 패널 */
+  $('#adminPendingList').innerHTML = pendingV.length
+    ? pendingV.map((s) => submissionCardHTML(s, true)).join('')
+    : '<div class="admin-empty">대기 중인 심사가 없어요.<br>사용자 화면에서 인증을 제출하면 여기에 나타납니다.</div>';
+  $('#adminDoneList').innerHTML = doneV.length
+    ? doneV.map((s) => submissionCardHTML(s, false)).join('')
+    : '<div class="admin-empty">아직 처리한 내역이 없어요.</div>';
+
+  /* 신고 패널 */
+  $('#adminReportList').innerHTML = openReports.length
+    ? openReports.map((r) => reportCardHTML(r, true)).join('') + doneReports.map((r) => reportCardHTML(r, false)).join('')
+    : doneReports.length
+      ? doneReports.map((r) => reportCardHTML(r, false)).join('')
+      : '<div class="admin-empty">접수된 신고가 없어요.</div>';
+
+  $('#adminSuspendedList').innerHTML = state.suspendedIds.length
+    ? state.suspendedIds.map((id) => {
+        const p = PROFILE_MAP[id];
+        return `
+          <div class="suspended-item">
+            <span class="avatar avatar--sm">${avatarSVG(id, p ? p.name : id)}</span>
+            <div>
+              <p class="suspended-item__name">${esc(p ? p.name : id)}</p>
+              <p class="suspended-item__sub">이용 정지 · 매칭에서 숨김</p>
+            </div>
+            <button class="btn btn--ghost btn--sm" data-action="restore-suspend" data-id="${id}">복구</button>
+          </div>`;
+      }).join('')
+    : '<div class="admin-empty">이용 정지된 회원이 없어요.</div>';
+
+  /* 반려 입력창 복원 */
+  pendingV.forEach((s) => {
+    if (!openRejects.has(s.id)) return;
+    const box = document.querySelector(`[data-reject="${s.id}"]`);
+    if (box) box.hidden = false;
+  });
+  Object.entries(rejectDrafts).forEach(([id, text]) => {
+    const ta = document.querySelector(`[data-reason-input="${id}"]`);
+    if (ta) ta.value = text;
+  });
+}
+
+function submissionCardHTML(s, isPending) {
+  const isMine = s.owner === 'me';
+  const profile = PROFILE_MAP[s.owner];
+  const who = isMine ? (state.user.nickname || '나') : s.ownerName;
+  const avatar = isMine ? avatarSVG('me', who) : avatarSVG(s.owner, profile ? profile.name : s.ownerName);
+  const name = isMine ? `${state.user.nickname} (나)` : s.ownerName;
+  const methodBadge = s.method === 'email' ? '회사 메일' : '명함·서류';
+
+  if (!isPending) {
+    const ok = s.status === 'approved';
+    return `
+      <article class="sub-card is-done" data-sub="${s.id}">
+        <div class="sub-card__top">
+          <div class="sub-card__who">
+            <span class="sub-card__avatar">${avatar}</span>
+            <div>
+              <p class="sub-card__name">${esc(name)}</p>
+              <p class="sub-card__company">${esc(s.company)}</p>
+            </div>
+          </div>
+          <span class="method-badge">${methodBadge}</span>
+        </div>
+        ${s.method === 'email'
+          ? `<p class="sub-card__email">${esc(s.email)}</p>`
+          : `<p class="sub-card__email">${esc(s.docName || '명함·재직증명서')}</p>`}
+        <div class="sub-card__done">
+          <span class="status-pill ${ok ? 'status-pill--done' : ''}">${ok ? '승인됨' : '반려됨'}</span>
+          <span class="sub-card__time">${relTime(s.decidedAt || s.at)} 처리</span>
+        </div>
+        ${!ok && s.reason ? `<p class="sub-card__reason">사유 · ${esc(s.reason)}</p>` : ''}
+      </article>`;
+  }
+
+  return `
+    <article class="sub-card" data-sub="${s.id}">
+      <div class="sub-card__top">
+        <div class="sub-card__who">
+          <span class="sub-card__avatar">${avatar}</span>
+          <div>
+            <p class="sub-card__name">${esc(name)}${isMine ? '<span class="mini-badge">나</span>' : ''}</p>
+            <p class="sub-card__company">${esc(s.company)}</p>
+          </div>
+        </div>
+        <span class="method-badge">${methodBadge}</span>
+      </div>
+      ${s.method === 'email'
+        ? `<p class="sub-card__email">${esc(s.email)}</p>`
+        : (s.docPreview
+          ? `<button class="doc-thumb" data-action="preview-doc" data-id="${s.id}">
+               <img src="${s.docPreview}" alt="제출 서류 미리보기">
+               <span>${esc(s.docName || '제출 서류')}<br>눌러서 크게 보기</span>
+             </button>`
+          : '<p class="sub-card__email">첨부 이미지 없음 (데모 데이터)</p>')}
+      <p class="sub-card__time">${relTime(s.at)} 제출</p>
+      <div class="sub-card__actions">
+        <button class="btn btn--mint btn--sm" data-action="approve-sub" data-id="${s.id}">승인</button>
+        <button class="btn btn--ghost btn--sm" data-action="toggle-reject" data-id="${s.id}">반려</button>
+      </div>
+      <div class="reject-box" data-reject="${s.id}" hidden>
+        <p>반려 사유를 적어주세요</p>
+        <div class="reject-chips">
+          ${['서류 식별 불가', '회사 확인 불가', '재직 정보 불일치', '중복 제출'].map((r) =>
+            `<button data-action="reject-chip" data-id="${s.id}" data-reason="${r}">${r}</button>`).join('')}
+        </div>
+        <textarea data-reason-input="${s.id}" placeholder="예: 재직증명서가 흐려서 확인이 어려워요"></textarea>
+        <div class="reject-box__actions">
+          <button class="btn btn--ghost btn--sm" data-action="toggle-reject" data-id="${s.id}">취소</button>
+          <button class="btn btn--primary btn--sm" data-action="reject-sub" data-id="${s.id}">반려 확정</button>
+        </div>
+      </div>
+    </article>`;
+}
+
+function reportCardHTML(r, isOpen) {
+  const p = PROFILE_MAP[r.targetId];
+  const name = p ? p.name : r.targetName;
+  const count = state.reports.filter((x) => x.targetId === r.targetId).length;
+  const reporter = r.reporter === 'me' ? `${state.user.nickname} (나)` : (r.reporter || '회원');
+
+  if (!isOpen) {
+    const suspended = r.status === 'suspended';
+    return `
+      <article class="sub-card is-done">
+        <div class="sub-card__top">
+          <div class="sub-card__who">
+            <span class="sub-card__avatar">${avatarSVG(r.targetId, name)}</span>
+            <div>
+              <p class="sub-card__name">${esc(name)}</p>
+              <p class="sub-card__company">신고자 ${esc(reporter)} · ${relTime(r.at)}</p>
+            </div>
+          </div>
+          <span class="method-badge">${esc(r.reason)}</span>
+        </div>
+        ${r.detail ? `<p class="sub-card__email">“${esc(r.detail)}”</p>` : ''}
+        <div class="sub-card__done">
+          <span class="status-pill ${suspended ? '' : 'status-pill--done'}">${suspended ? '이용 정지' : '기각'}</span>
+          <span class="sub-card__time">${relTime(r.decidedAt || r.at)} 처리</span>
+        </div>
+      </article>`;
+  }
+
+  return `
+    <article class="sub-card">
+      <div class="sub-card__top">
+        <div class="sub-card__who">
+          <span class="sub-card__avatar">${avatarSVG(r.targetId, name)}</span>
+          <div>
+            <p class="sub-card__name">${esc(name)}
+              ${count > 1 ? `<span class="mini-badge mini-badge--red">신고 ${count}회</span>` : ''}
+            </p>
+            <p class="sub-card__company">신고자 ${esc(reporter)} · ${relTime(r.at)}</p>
+          </div>
+        </div>
+        <span class="method-badge">${esc(r.reason)}</span>
+      </div>
+      ${r.detail ? `<p class="sub-card__email">“${esc(r.detail)}”</p>` : ''}
+      <div class="sub-card__actions">
+        <button class="btn btn--ghost btn--sm" data-action="dismiss-report" data-id="${r.id}">기각</button>
+        <button class="btn btn--primary btn--sm" data-action="suspend-report" data-id="${r.id}">이용 정지</button>
+      </div>
+    </article>`;
+}
+
+/* ==========================================================================
+   6. 액션
+   ========================================================================== */
+let busy = false;
+let toastAction = null;
+let toastTimer = null;
+const typingChats = new Set();
+const replyTimers = new Map();
+
+/* ---------- 6-1. 카드 ---------- */
+function commit(kind) {
+  if (busy) return;
+  const target = visibleDeck()[0];
+  if (!target) return;
+  if (kind === 'like' && state.tickets < TICKET_COST) { openTopUp('insufficient'); return; }
+
+  busy = true;
+  const card = $('#deck .card[data-depth="0"]');
+  if (card) {
+    card.classList.remove('is-dragging');
+    card.style.setProperty('--dx', '0px');
+    card.style.setProperty('--rot', '0deg');
+    card.classList.add(kind === 'like' ? 'fly-like' : 'fly-pass');
+  }
+  if (kind === 'like') FX.hearts();
+
+  setTimeout(() => { applyCardAction(kind, target.id); busy = false; }, 380);
+}
+
+function applyCardAction(kind, id) {
+  const p = PROFILE_MAP[id];
+  state.deck = state.deck.filter((x) => x !== id);
+
+  if (kind === 'pass') { state.passed.push(id); state.lastPassed=id; deckSignature=''; renderAll(); toast('건너뛰었어요.',{label:'되돌리기',action:undoPass}); return; }
+
+  state.lastPassed = null;
+  state.tickets = Math.max(0, state.tickets - TICKET_COST);
+  ledger("use",-1,`${p.name}님에게 호감 전송`);
+  const incoming = state.received.find((r) => r.id === id && r.status === 'pending');
+  const alreadyMatched = state.matches.some((m) => m.id === id);
+  if (incoming) incoming.status = 'matched';
+  state.sent.push({ id, at: new Date().toISOString(), status: incoming ? 'matched' : 'pending' });
+
+  if (incoming && !alreadyMatched) {
+    addMatch(id, 'mutual');
+    renderAll();
+    FX.burst();
+    toast(`${p.name}님과 매칭이 성사됐어요. 대화를 시작해볼까요?`, {
+      label: '대화하기', action: () => { switchView('chat'); openChat(id); }
+    });
+  } else {
+    renderAll();
+    toast(`${p.name}님에게 호감을 보냈어요. 48시간 안에 답이 없으면 매칭권이 자동으로 돌아와요.`);
+  }
+}
+
+function addMatch(id, via) {
+  if (!state.matches.some((m) => m.id === id)) state.matches.push({ id, at: new Date().toISOString(), via });
+  if (!state.chats[id]) state.chats[id] = [];
+  state.deck = state.deck.filter((x) => x !== id);
+}
+
+/* ---------- 6-2. 받은 호감 ---------- */
+function acceptLike(id) {
+  const r = state.received.find((x) => x.id === id && x.status === 'pending');
+  if (!r) return;
+  const p = PROFILE_MAP[id];
+  r.status = 'accepted';
+  addMatch(id, 'accepted');
+  renderAll();
+  FX.burst();
+  toast(`${p.name}님과 매칭됐어요. 인사를 건네볼까요?`, {
+    label: '대화하기', action: () => { switchView('chat'); openChat(id); }
+  });
+}
+
+function declineLike(id) {
+  const r = state.received.find((x) => x.id === id && x.status === 'pending');
+  if (!r) return;
+  r.status = 'declined';
+  renderAll();
+  toast('이번 인연은 정중히 넘어갈게요.');
+}
+
+/* ---------- 6-3. 48시간 환불 데모 ---------- */
+function demoExpire() {
+  let sent = state.sent.find((s) => s.status === 'pending');
+  if (!sent) {
+    const candidate = PROFILES.find((p) =>
+      !state.matches.some((m) => m.id === p.id) && !state.sent.some((s) => s.id === p.id));
+    sent = { id: (candidate || PROFILES[0]).id, at: new Date().toISOString(), status: 'pending' };
+    state.sent.push(sent);
+    state.tickets = Math.max(0, state.tickets - TICKET_COST);
+    ledger("demo",-1,"만료 시뮬레이션용 매칭권 사용");
+  }
+  sent.at = new Date(Date.now() - (RESPONSE_HOURS + 1) * HOUR).toISOString();
+  processExpirations(false);
+  renderAll();
+  toast('48시간 무응답으로 990원 매칭권이 돌아왔어요.');
+}
+
+/* ---------- 6-4. 대화 ---------- */
+function openChat(id) {
+  if (!safeProfile(id) || state.endedChats.includes(id) || !state.matches.some(m=>m.id===id)) { toast('종료·차단 또는 이용 제한된 대화입니다.'); return; }
+  activeChatId = id;
+  state.unread[id] = 0;
+  threadSignature = '';
+  $('#thread').hidden = false;
+  $('#chatListPane').hidden = true;
+  $('#msgInput').value = '';
+  $('#sendBtn').disabled = true;
+  renderThread();
+  renderMeetBar();
+  renderNav();
+  save();
+  setTimeout(() => $('#msgInput').focus({ preventScroll: true }), 60);
+}
+
+function closeThread() {
+  activeChatId = null;
+  $('#thread').hidden = true;
+  $('#chatListPane').hidden = false;
+  threadSignature = '';
+  const bar = $('#meetBar');
+  if (bar) { bar.hidden = true; bar.innerHTML = ''; }
+  renderChatList();
+}
+
+function sendMessage(text) {
+  const id = activeChatId;
+  if (!id || !text.trim()) return;
+  if (!safeProfile(id) || state.endedChats.includes(id)) { toast('메시지를 보낼 수 없는 대화입니다.'); return; }
+  if (!state.chats[id]) state.chats[id] = [];
+  state.chats[id].push({ from: 'me', text: text.trim(), at: new Date().toISOString() });
+  threadSignature = '';
+  renderThread();
+  save();
+  scheduleMockReply(id);
+}
+
+/* 데모용 자동 응답 — 백엔드 연결 시 제거 */
+function scheduleMockReply(id) {
+  if (replyTimers.has(id)) return;
+  typingChats.add(id);
+  threadSignature = '';
+  if (activeChatId === id) renderThread();
+
+  const delay = 1100 + Math.random() * 900;
+  const timer = setTimeout(() => {
+    replyTimers.delete(id);
+    typingChats.delete(id);
+    if (!safeProfile(id) || state.endedChats.includes(id)) return;
+    state.chatRead[id] = new Date().toISOString(); // 데모 봇 응답 시점 = 읽음 시뮬레이션
+    const msgs = state.chats[id] || [];
+    msgs.push({ from: 'them', text: MOCK_REPLIES[msgs.length % MOCK_REPLIES.length], at: new Date().toISOString() });
+    threadSignature = '';
+    if (activeChatId === id) { renderThread(); renderNav(); }
+    else { state.unread[id] = (state.unread[id] || 0) + 1; renderNav(); renderChatList(); }
+    save();
+  }, delay);
+  replyTimers.set(id, timer);
+}
+
+function showChatSafety() {
+  const id=activeChatId, p=PROFILE_MAP[id]; if(!id||!p)return;
+  openSheet(`<div class="sheet__grabber"></div><h2>대화 안전 관리 · ${esc(p.name)}</h2><p class="sheet__sub">상대를 차단하면 매칭과 채팅 목록에서 숨겨지고 이후 메시지를 보낼 수 없습니다. 대화 종료는 차단 없이 채팅을 닫습니다.</p>
+    <div class="verify-actions"><button class="btn btn--ghost" data-action="end-chat" data-id="${id}">대화 종료</button><button class="btn btn--primary" data-action="block-chat" data-id="${id}">상대 차단</button><button class="btn btn--ghost" data-action="report" data-id="${id}">신고하기</button><button class="btn btn--ghost" data-action="close-sheet">취소</button></div><p class="demo-limits">데모에서만 로컬 차단·종료 상태가 저장됩니다. 실제 서비스의 서버 메시지 차단이나 신고 조사 처리는 구현되어 있지 않습니다.</p>`);
+}
+function endOrBlockChat(id,block) {
+  if (!PROFILE_MAP[id]) return;
+  if (!state.endedChats.includes(id)) state.endedChats.push(id);
+  if (block && !state.safety.blockedProfiles.includes(id)) state.safety.blockedProfiles.push(id);
+  const timer=replyTimers.get(id); if(timer){clearTimeout(timer);replyTimers.delete(id);typingChats.delete(id)}
+  if (activeChatId===id) closeThread();
+  closeSheet();deckSignature='';renderAll();toast(block?'상대를 차단했어요 (데모).':'대화를 종료했어요 (데모).');
+}
+
+/* ---------- 6-5. 프로필 ---------- */
+function saveProfile() {
+  const nickname = $('#fNickname').value.trim();
+  const age = parseInt($('#fAge').value, 10);
+  const job = $('#fJob').value.trim();
+  const company = $('#fCompany').value.trim();
+  const bio = $('#fBio').value.trim();
+  let ageMin = parseInt($('#fAgeMin').value, 10);
+  let ageMax = parseInt($('#fAgeMax').value, 10);
+
+  if (!nickname) { toast('닉네임을 입력해 주세요.'); $('#fNickname').focus(); return; }
+  if (!Number.isFinite(age) || age < 19 || age > 99) { toast('나이는 19~99세 사이로 입력해 주세요'); $('#fAge').focus(); return; }
+  if (Number.isFinite(ageMin) && Number.isFinite(ageMax) && ageMin > ageMax) [ageMin, ageMax] = [ageMax, ageMin];
+
+  state.user = {
+    ...state.user,
+    nickname, age, job, company, bio,
+    prefs: {
+      ...state.user.prefs,
+      ageMin: Number.isFinite(ageMin) ? ageMin : 30,
+      ageMax: Number.isFinite(ageMax) ? ageMax : 40
+    }
+  };
+  $('#fAgeMin').value = state.user.prefs.ageMin;
+  $('#fAgeMax').value = state.user.prefs.ageMax;
+  deckSignature = '';
+  renderAll();
+  toast('프로필을 저장했어요.');
+}
+
+/* ---------- 6-6. 안전 설정 ---------- */
+function toggleSameCompany() {
+  state.safety.hideSameCompany = !state.safety.hideSameCompany;
+  deckSignature = '';
+  renderAll();
+  toast(state.safety.hideSameCompany
+    ? '같은 회사 인연은 오늘의 인연에서 숨겨요.'
+    : '같은 회사 인연도 다시 보여드릴게요');
+}
+
+function addBlockedNumber() {
+  const input = $('#blockPhone');
+  const digits = normPhone(input.value);
+  if (digits.length < 10) { toast('번호를 정확히 입력해 주세요.'); input.focus(); return; }
+
+  const hash = hashPhone(digits);
+  if (state.safety.blockedNumbers.some((b) => b.hash === hash)) { toast('이미 차단한 번호예요'); return; }
+
+  state.safety.blockedNumbers.push({ hash, masked: maskPhone(digits), at: new Date().toISOString() });
+  input.value = '';
+  deckSignature = '';
+  renderAll();
+  toast('지인 번호를 차단했어요. 오늘의 인연에서 자동으로 빠져요.');
+}
+
+function removeBlockedNumber(hash) {
+  state.safety.blockedNumbers = state.safety.blockedNumbers.filter((b) => b.hash !== hash);
+  deckSignature = '';
+  renderAll();
+  toast('차단을 해제했어요');
+}
+
+/* ---------- 6-7. 매칭권 ---------- */
+const PACKS = [
+  { n: 1, price: 990, tag: '가볍게' },
+  { n: 3, price: 2500, tag: '인기' },
+  { n: 5, price: 3900, tag: '꿀혜택' }
+];
+
+let usePoints = false;
+
+function openTopUp(reason) {
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head">
+      <h2>매칭권 충전</h2>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    ${reason === 'insufficient'
+      ? '<p class="sheet__notice">매칭권이 없어요. 990원이면 인연을 한 번 더 만날 수 있어요.</p>'
+      : '<p class="sheet__sub">매칭권 1장으로 호감을 한 번 보낼 수 있어요. 커피 한 잔보다 가벼운 가격이에요.</p>'}
+    <ul class="packs">
+      ${PACKS.map((p) => {
+        const off = usePoints ? Math.min(state.points, p.price) : 0;
+        return `
+        <li class="pack">
+          <div>
+            <p class="pack__n">매칭권 ${p.n}장</p>
+            <p class="pack__p">${p.price.toLocaleString('ko-KR')}원${
+              off > 0 ? ` <span style="color:var(--apricot-ink)">→ ${(p.price - off).toLocaleString('ko-KR')}원</span>` : ''
+            }${p.tag ? `<span class="pack__tag">${p.tag}</span>` : ''}</p>
+          </div>
+          <button class="btn btn--sm btn--primary" data-action="buy-ticket" data-n="${p.n}">충전</button>
+        </li>`;
+      }).join('')}
+    </ul>
+    <label class="check-row" style="margin-top:10px">
+      <input type="checkbox" id="usePoints" ${usePoints ? 'checked' : ''}>
+      <span>포인트 사용 (보유 <b>${state.points}P</b>) · 1P = 1원</span>
+    </label>
+    <p class="sheet__note">호감을 보낸 뒤 48시간 동안 답이 없으면 매칭권 1장이 자동으로 돌아옵니다.<br>만남 후기를 남기면 300P가 쌓여 결제에 쓸 수 있어요.<br>프로토타입 미리보기라 실제 결제는 연결되어 있지 않습니다.</p>
+    <div class="sheet__actions"><button class="btn btn--ghost" data-action="close-sheet">닫기</button></div>`);
+}
+
+function buyTicket(n) {
+  const pack = PACKS.find((p) => p.n === n);
+  const price = pack ? pack.price : n * TICKET_PRICE;
+  const used = usePoints ? Math.min(state.points, price) : 0;
+  state.points -= used;
+  state.tickets += n;
+  ledger("topup",n,`매칭권 ${n}장 · ${price}원 상당 (실제 결제 없음, 포인트 ${used}P 차감)`);
+  renderProfileChrome();
+  renderNav();
+  save();
+  closeSheet();
+  toast(used
+    ? `매칭권 ${n}장 충전 · 포인트 ${used}P 사용 (데모)`
+    : `매칭권 ${n}장을 충전했어요 (데모)`);
+}
+
+/* ---------- 6-8. 직장인 인증 ---------- */
+let emailDraft = { company: '', email: '' };
+let emailCode = '';
+let docDraft = null;
+
+function openEmailSheet() {
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head">
+      <h2>회사 메일 인증</h2>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <p class="sheet__sub">회사 도메인 메일로 인증번호를 보내드려요. 개인 메일(gmail 등)은 서류 인증을 이용해 주세요.</p>
+    <div class="sheet-field">
+      <label for="emailCompany">회사명</label>
+      <input id="emailCompany" placeholder="예: 성수건축" value="${esc(emailDraft.company || state.user.company || '')}" maxlength="30">
+    </div>
+    <div class="sheet-field">
+      <label for="emailAddr">회사 이메일</label>
+      <input id="emailAddr" type="email" placeholder="name@company.com" value="${esc(emailDraft.email)}" inputmode="email" autocomplete="off">
+      <p class="sheet-hint">데모라 실제 메일은 발송되지 않습니다. 인증번호가 화면에 표시돼요.</p>
+    </div>
+    <div class="sheet__actions">
+      <button class="btn btn--ghost" data-action="close-sheet">취소</button>
+      <button class="btn btn--primary" data-action="send-code">인증번호 받기</button>
+    </div>`);
+}
+
+function sendCode() {
+  const company = ($('#emailCompany')?.value || '').trim();
+  const email = ($('#emailAddr')?.value || '').trim();
+  const domain = (email.split('@')[1] || '').toLowerCase();
+
+  if (!company) { toast('회사명을 적어주세요.'); $('#emailCompany')?.focus(); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('이메일 형식을 확인해 주세요.'); $('#emailAddr')?.focus(); return; }
+  if (FREE_MAIL.includes(domain)) { toast('회사 도메인 메일이 필요해요. 개인 메일은 서류 인증을 이용해 주세요.'); return; }
+
+  emailDraft = { company, email };
+  emailCode = String(Math.floor(100000 + Math.random() * 900000));
+
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head">
+      <h2>인증번호 입력</h2>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <p class="sheet__sub"><b>${esc(email)}</b> 로 인증번호를 보냈어요.<br>6자리 숫자를 입력해 주세요.</p>
+    <div class="sheet-field">
+      <input id="codeInput" class="code-input" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+    </div>
+    <div class="demo-code">
+      <span>데모용 인증번호 · <b>${emailCode}</b></span>
+      <button data-action="fill-demo-code">자동 입력</button>
+    </div>
+    <div class="sheet__actions">
+      <button class="btn btn--ghost" data-action="open-email-verify">이전</button>
+      <button class="btn btn--primary" data-action="verify-code">확인</button>
+    </div>
+    <p class="sheet__note">확인 후 운영자 승인만 남아요. 보통 10분 안에 처리돼요.</p>`);
+  setTimeout(() => $('#codeInput')?.focus(), 120);
+}
+
+function verifyCode() {
+  const code = ($('#codeInput')?.value || '').trim();
+  if (code.length !== 6) { toast('6자리 인증번호를 입력해 주세요'); return; }
+  if (code !== emailCode) { toast('인증번호가 일치하지 않아요. 다시 확인해 주세요.'); return; }
+  submitVerification({
+    method: 'email', company: emailDraft.company, email: emailDraft.email,
+    docName: '', docPreview: ''
+  });
+}
+
+function openDocSheet() {
+  docDraft = null;
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head">
+      <h2>명함·재직증명서 인증</h2>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <p class="sheet__sub">명함이나 재직증명서 사진을 올려주세요. 운영자가 확인하면 인증 마크가 붙어요.</p>
+    <div class="sheet-field">
+      <label for="docCompany">회사명</label>
+      <input id="docCompany" placeholder="예: 늘봄초등학교" maxlength="30" value="${esc(state.user.company || '')}">
+    </div>
+    <label class="upload-box" for="docFile" id="uploadBox">
+      <span class="upload-box__emoji"><svg><use href="#i-clip"/></svg></span>
+      <span class="upload-box__text">사진 선택하기</span>
+      <span class="upload-box__hint">JPG · PNG · 화면 캡처도 괜찮아요</span>
+    </label>
+    <input id="docFile" type="file" accept="image/*" hidden>
+    <div id="docPreviewArea"></div>
+    <div class="sheet__actions">
+      <button class="btn btn--ghost" data-action="close-sheet">취소</button>
+      <button class="btn btn--primary" data-action="submit-doc" id="submitDocBtn" disabled>제출하기</button>
+    </div>
+    <p class="sheet__note">데모에서는 선택한 이미지가 이 브라우저에만 저장되고 외부로 전송되지 않습니다.</p>`);
+
+  const input = $('#docFile');
+  input.addEventListener('change', async () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast('이미지 파일만 올릴 수 있어요.'); return; }
+    try {
+      docDraft = await readImageFile(file);
+      $('#docPreviewArea').innerHTML = `
+        <div class="doc-preview">
+          <img src="${docDraft.dataUrl}" alt="업로드한 서류 미리보기">
+          <div class="doc-preview__meta">
+            <span>${esc(docDraft.name)} · ${Math.round(docDraft.bytes / 1024)}KB</span>
+            <button data-action="open-doc-verify">다시 선택</button>
+          </div>
+        </div>`;
+      $('#uploadBox').hidden = true;
+      $('#submitDocBtn').disabled = !($('#docCompany')?.value || '').trim();
+    } catch (err) {
+      toast('이미지를 읽지 못했어요. 다른 파일로 시도해 주세요.');
+    }
+  });
+}
+
+function readImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 760;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+        resolve({ dataUrl, name: file.name, bytes: Math.round((dataUrl.length * 3) / 4) });
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function submitDoc() {
+  const company = ($('#docCompany')?.value || '').trim();
+  if (!company) { toast('회사명을 적어주세요.'); $('#docCompany')?.focus(); return; }
+  if (!docDraft) { toast('서류 사진을 올려주세요.'); return; }
+  submitVerification({
+    method: 'doc', company, email: '',
+    docName: docDraft.name, docPreview: docDraft.dataUrl
+  });
+}
+
+/* 공통: 인증 제출 → 관리자 심사 큐 */
+function submitVerification(payload) {
+  const now = new Date().toISOString();
+  state.verification = {
+    status: 'pending', method: payload.method, company: payload.company,
+    email: payload.email || '', docName: payload.docName || '', docPreview: payload.docPreview || '',
+    submittedAt: now, decidedAt: null, reason: ''
+  };
+  state.submissions.push({
+    id: 'sub_' + Date.now(),
+    owner: 'me', ownerName: state.user.nickname,
+    method: payload.method, company: payload.company,
+    email: payload.email || '', docName: payload.docName || '', docPreview: payload.docPreview || '',
+    at: now, status: 'pending', reason: '', decidedAt: null
+  });
+  closeSheet();
+  renderAll();
+  toast('인증 서류를 접수했어요. 운영자 확인 후 바로 알려드릴게요.', {
+    label: '운영자 화면 열기', action: () => switchMode('admin')
+  });
+}
+
+/* ---------- 6-9. 신고 ---------- */
+let reportDraft = null;
+
+function openReportSheet(targetId) {
+  const p = PROFILE_MAP[targetId];
+  if (!p) return;
+  reportDraft = { targetId, reason: '' };
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head">
+      <h2>신고하기</h2>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <p class="sheet__sub"><b>${esc(p.name)}</b>님을 신고하는 이유를 골라주세요. 운영자가 확인하고 조치해요.</p>
+    <div class="reason-pick" id="reportReasons">
+      ${REPORT_REASONS.map((r) =>
+        `<button class="reason-chip" data-action="pick-report-reason" data-value="${esc(r)}" aria-pressed="false">${esc(r)}</button>`).join('')}
+    </div>
+    <div class="sheet-field">
+      <label for="reportDetail">자세한 내용 (선택)</label>
+      <input id="reportDetail" placeholder="상황을 적어주시면 더 정확히 확인할 수 있어요" maxlength="120">
+    </div>
+    <label class="check-row">
+      <input type="checkbox" id="reportBlock" checked>
+      <span>이 사람 다시 보지 않기 (차단)</span>
+    </label>
+    <div class="sheet__actions">
+      <button class="btn btn--ghost" data-action="close-sheet">취소</button>
+      <button class="btn btn--primary" data-action="submit-report">신고 접수</button>
+    </div>
+    <p class="sheet__note">허위 신고는 서비스 이용에 제한이 있을 수 있어요. 접수된 내용은 운영자만 볼 수 있습니다.</p>`);
+}
+
+function pickReportReason(value, el) {
+  if (!reportDraft) return;
+  reportDraft.reason = value;
+  $$('#reportReasons .reason-chip').forEach((c) => c.setAttribute('aria-pressed', String(c === el)));
+}
+
+function submitReport() {
+  if (!reportDraft) return;
+  if (!reportDraft.reason) { toast('신고 사유를 골라주세요.'); return; }
+  const p = PROFILE_MAP[reportDraft.targetId];
+  const detail = ($('#reportDetail')?.value || '').trim();
+  const block = Boolean($('#reportBlock')?.checked);
+
+  state.reports.unshift({
+    id: 'rep_' + Date.now(),
+    targetId: p.id, targetName: p.name,
+    reporter: 'me', reporterId: 'me',
+    reason: reportDraft.reason, detail,
+    at: new Date().toISOString(), status: 'open', decidedAt: null
+  });
+
+  if (block && !state.safety.blockedProfiles.includes(p.id)) state.safety.blockedProfiles.push(p.id);
+
+  reportDraft = null;
+  deckSignature = '';
+  closeSheet();
+  renderAll();
+  toast('신고를 접수했어요. 운영자가 확인해요.', {
+    label: '운영자 화면 열기', action: () => switchMode('admin')
+  });
+}
+
+/* ---------- 6-10. 관리자 액션 ---------- */
+function approveSubmission(id) {
+  const s = state.submissions.find((x) => x.id === id);
+  if (!s || s.status !== 'pending') return;
+
+  s.status = 'approved';
+  audit('인증 승인',s.ownerName||state.user.nickname,`${s.company} · ${s.method}`);
+  s.decidedAt = new Date().toISOString();
+  s.reason = '';
+
+  if (s.owner === 'me') {
+    state.verification.status = 'verified';
+    state.verification.decidedAt = s.decidedAt;
+    state.verification.reason = '';
+  } else if (s.owner && !state.verifiedIds.includes(s.owner)) {
+    state.verifiedIds.push(s.owner);
+  }
+
+  deckSignature = '';
+  renderAll();
+  toast(`${s.owner === 'me' ? '내' : s.ownerName + '님'} 인증을 승인했어요. 사용자 화면의 마크가 바로 바뀌었어요.`);
+}
+
+function toggleRejectBox(id) {
+  const box = document.querySelector(`[data-reject="${id}"]`);
+  if (!box) return;
+  box.hidden = !box.hidden;
+  if (!box.hidden) box.querySelector('textarea')?.focus();
+  openRejects = new Set([...document.querySelectorAll('.reject-box')].filter((b) => !b.hidden).map((b) => b.dataset.reject));
+}
+
+function rejectSubmission(id) {
+  const s = state.submissions.find((x) => x.id === id);
+  if (!s || s.status !== 'pending') return;
+  const ta = document.querySelector(`[data-reason-input="${id}"]`);
+  const reason = (ta?.value || '').trim();
+  if (!reason) { toast('반려 사유를 적어주세요.'); ta?.focus(); return; }
+
+  s.status = 'rejected';
+  audit('인증 반려',s.ownerName||state.user.nickname,reason);
+  s.reason = reason;
+  s.decidedAt = new Date().toISOString();
+
+  if (s.owner === 'me') {
+    state.verification.status = 'rejected';
+    state.verification.reason = reason;
+    state.verification.decidedAt = s.decidedAt;
+  }
+
+  openRejects.delete(id);
+  delete rejectDrafts[id];
+  renderAll();
+  toast('반려 처리했어요. 사유가 사용자 화면에 표시돼요.');
+}
+
+function suspendReport(id) {
+  const r = state.reports.find((x) => x.id === id);
+  if (!r || r.status !== 'open') return;
+  r.status = 'suspended';
+  audit('신고 이용 정지',r.targetName,r.reason);
+  r.decidedAt = new Date().toISOString();
+  if (!state.suspendedIds.includes(r.targetId)) state.suspendedIds.push(r.targetId);
+
+  state.received.forEach((x) => { if (x.id === r.targetId && x.status === 'pending') x.status = 'declined'; });
+  deckSignature = '';
+  renderAll();
+  toast(`${r.targetName}님을 이용 정지했어요. 사용자 화면에서 바로 사라졌어요.`);
+}
+
+function dismissReport(id) {
+  const r = state.reports.find((x) => x.id === id);
+  if (!r || r.status !== 'open') return;
+  r.status = 'dismissed';
+  audit('신고 기각',r.targetName,r.reason);
+  r.decidedAt = new Date().toISOString();
+  renderAll();
+  toast('신고를 기각 처리했어요.');
+}
+
+function restoreSuspend(id) {
+  state.suspendedIds = state.suspendedIds.filter((x) => x !== id);
+  audit('이용 정지 해제',PROFILE_MAP[id]?.name||id,'운영자 복구');
+  deckSignature = '';
+  renderAll();
+  toast('이용 정지를 해제했어요');
+}
+
+function previewDoc(id) {
+  const s = state.submissions.find((x) => x.id === id);
+  if (!s) return;
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head">
+      <h2>제출 서류</h2>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <p class="sheet__sub">${esc(s.ownerName)} · ${esc(s.company)} · ${relTime(s.at)} 제출</p>
+    ${s.docPreview
+      ? `<div class="doc-preview" style="margin-top:12px"><img src="${s.docPreview}" alt="제출 서류"></div>`
+      : '<div class="admin-empty" style="margin-top:12px">이미지가 없는 데모 데이터예요.</div>'}
+    <div class="sheet__actions"><button class="btn btn--ghost" data-action="close-sheet">닫기</button></div>`);
+}
+
+/* ---------- 6-11. 초기화 ---------- */
+function openResetConfirm() {
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head">
+      <h2>데모 데이터 초기화</h2>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <p class="sheet__sub">호감·매칭·대화·인증·신고·안전 설정이 모두 처음 상태로 돌아갑니다.</p>
+    <div class="sheet__actions">
+      <button class="btn btn--ghost" data-action="close-sheet">취소</button>
+      <button class="btn btn--primary" data-action="do-reset">초기화</button>
+    </div>`);
+}
+
+function resetDemo() {
+  state = defaultState();
+  activeChatId = null;
+  deckSignature = '';
+  threadSignature = '';
+  adminTab = 'verify';
+  openRejects = new Set();
+  rejectDrafts = {};
+  typingChats.clear();
+  replyTimers.forEach((t) => clearTimeout(t));
+  replyTimers.clear();
+  closeSheet();
+  $('#thread').hidden = true;
+  $('#chatListPane').hidden = false;
+  fillProfileForm();
+  renderAll();
+  switchAdminTab('verify');
+  switchView('today');
+  toast('데모 데이터를 처음 상태로 되돌렸어요.');
+}
+
+/* ---------- 6-12. 공통 UI ---------- */
+function openSheet(html) {
+  $('#sheet').innerHTML = html;
+  $('#sheetWrap').hidden = false;
+}
+function closeSheet() { $('#sheetWrap').hidden = true; }
+
+function toast(message, opts = {}) {
+  const el = $('#toast');
+  el.innerHTML = `<span>${esc(message)}</span>` + (opts.label ? `<button data-action="toast-action">${esc(opts.label)}</button>` : '');
+  el.classList.add('is-on');
+  toastAction = opts.action || null;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.classList.remove('is-on'); toastAction = null; }, opts.label ? 6500 : 2800);
+}
+
+function switchView(name) {
+  $$('.view').forEach((v) => v.classList.toggle('is-active', v.dataset.view === name));
+  $$('.tab').forEach((t) => {
+    const on = t.dataset.view === name;
+    t.classList.toggle('is-active', on);
+    t.setAttribute('aria-selected', String(on));
+  });
+  if (name !== 'chat') closeThread();
+  if (name === 'matches') renderMatches();
+  if (name === 'chat') renderChatList();
+  if (name === 'today') renderDeck();
+  if (name === 'profile') { renderVerifyCard(); renderSafety(); }
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  document.body.classList.toggle('mode-admin', mode === 'admin');
+  $('#userMode').hidden = mode !== 'user';
+  $('#adminView').hidden = mode !== 'admin';
+  $$('.seg__btn').forEach((b) => {
+    const on = b.dataset.mode === mode;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-selected', String(on));
+  });
+  if (mode === 'admin') renderAdmin();
+}
+
+function switchAdminTab(tab) {
+  adminTab = tab;
+  $('#adminVerifyPanel').hidden = tab !== 'verify';
+  $('#adminReportsPanel').hidden = tab !== 'reports';
+  $$('.admin-tab').forEach((b) => {
+    const on = b.dataset.tab === tab;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-selected', String(on));
+  });
+  renderAdmin();
+}
+
+/* ---------- 6-13. 전체 렌더 ---------- */
+function renderAll() {
+  renderDeck();
+  renderMatches();
+  renderChatList();
+  renderThread();
+  renderMeetBar();
+  renderProfileChrome();
+  renderNav();
+  renderAdmin();
+  save();
+}
+
+/* ==========================================================================
+   7. 이벤트 & 초기화
+   ========================================================================== */
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const action = el.dataset.action;
+  const id = el.dataset.id;
+
+  switch (action) {
+    case 'mode': switchMode(el.dataset.mode); break;
+    case 'tab': switchView(el.dataset.view); break;
+    case 'like': commit('like'); break;
+    case 'pass': commit('pass'); break;
+    case 'undo-pass': undoPass(); break;
+    case 'detail-profile': openProfileDetail(id); break;
+    case 'detail-like': { closeSheet(); const top=visibleDeck()[0]; if(top?.id===id) commit('like'); else toast('현재 맨 앞 카드에서만 호감을 보낼 수 있어요.'); break; }
+    case 'ticket-history': showTicketHistory(); break;
+    case 'chat-safety': showChatSafety(); break;
+    case 'end-chat': endOrBlockChat(id,false); break;
+    case 'block-chat': endOrBlockChat(id,true); break;
+    case 'accept': acceptLike(id); break;
+    case 'decline': declineLike(id); break;
+    case 'open-chat': switchView('chat'); openChat(id); break;
+    case 'close-thread': closeThread(); break;
+    case 'send-chip': sendMessage(el.dataset.text); break;
+    case 'open-topup': openTopUp(); break;
+    case 'close-sheet': closeSheet(); break;
+    case 'buy-ticket': buyTicket(parseInt(el.dataset.n, 10)); break;
+    case 'ask-reset': openResetConfirm(); break;
+    case 'do-reset': resetDemo(); break;
+    case 'save-profile': saveProfile(); break;
+    case 'toggle-area': togglePref('areas', el.dataset.value); break;
+    case 'toggle-value': togglePref('values', el.dataset.value); break;
+    case 'toggle-mbti': toggleMbti(el.dataset.value); break;
+    case 'toggle-priority': togglePriority(el.dataset.value); break;
+    case 'demo-expire': demoExpire(); break;
+    case 'toast-action': {
+      const fn = toastAction;
+      $('#toast').classList.remove('is-on');
+      toastAction = null;
+      if (fn) fn();
+      break;
+    }
+    /* 안전 설정 */
+    case 'toggle-same-company': toggleSameCompany(); break;
+    case 'add-block': addBlockedNumber(); break;
+    case 'remove-block': removeBlockedNumber(el.dataset.hash); break;
+    /* 인증 */
+    case 'open-email-verify': openEmailSheet(); break;
+    case 'open-doc-verify': openDocSheet(); break;
+    case 'send-code': sendCode(); break;
+    case 'verify-code': verifyCode(); break;
+    case 'fill-demo-code': if ($('#codeInput')) $('#codeInput').value = emailCode; break;
+    case 'submit-doc': submitDoc(); break;
+    /* 신고 */
+    case 'report': if (id) openReportSheet(id); break;
+    case 'pick-report-reason': pickReportReason(el.dataset.value, el); break;
+    case 'submit-report': submitReport(); break;
+    /* 사진 */
+    case 'photo': setCardPhoto(el.dataset.id, parseInt(el.dataset.index, 10)); break;
+    case 'remove-photo': removePhoto(parseInt(el.dataset.index, 10)); break;
+    /* 만남 · 후기 */
+    case 'meet-plan': openMeetSheet(id, 'plan'); break;
+    case 'pick-plan-date': {
+      planDraft = el.dataset.iso;
+      $$('#planOptions .reason-chip').forEach((c) => c.setAttribute('aria-pressed', String(c === el)));
+      const btn = $('#confirmPlanBtn');
+      if (btn) btn.disabled = false;
+      break;
+    }
+    case 'confirm-plan': confirmPlan(id); break;
+    case 'meet-done': openMeetSheet(id, 'confirm'); break;
+    case 'confirm-meet': confirmMeet(id); break;
+    case 'meet-review': openMeetSheet(id, 'review'); break;
+    case 'pick-review': {
+      if (!reviewDraft) break;
+      const field = el.dataset.field;
+      reviewDraft[field] = el.dataset.value;
+      $$(`[data-field="${field}"] .reason-chip`).forEach((c) => c.setAttribute('aria-pressed', String(c === el)));
+      break;
+    }
+    case 'submit-review': submitReview(id); break;
+    /* 관리자 */
+    case 'admin-tab': switchAdminTab(el.dataset.tab); break;
+    case 'approve-sub': approveSubmission(id); break;
+    case 'toggle-reject': toggleRejectBox(id); break;
+    case 'reject-sub': rejectSubmission(id); break;
+    case 'reject-chip': {
+      const ta = document.querySelector(`[data-reason-input="${id}"]`);
+      if (ta) ta.value = el.dataset.reason;
+      rejectDrafts[id] = el.dataset.reason;
+      break;
+    }
+    case 'preview-doc': previewDoc(id); break;
+    case 'suspend-report': suspendReport(id); break;
+    case 'dismiss-report': dismissReport(id); break;
+    case 'restore-suspend': restoreSuspend(id); break;
+  }
+});
+
+function removePhoto(index) {
+  if (!Array.isArray(state.user.photos)) return;
+  state.user.photos.splice(index, 1);
+  save();
+  renderProfileChrome();
+  toast('사진을 삭제했어요');
+}
+
+document.addEventListener('input', (e) => {
+  if (e.target.matches('[data-reason-input]')) rejectDrafts[e.target.dataset.reasonInput] = e.target.value;
+  if (e.target.id === 'docCompany') {
+    const btn = $('#submitDocBtn');
+    if (btn) btn.disabled = !(e.target.value.trim() && docDraft);
+  }
+});
+
+document.addEventListener('change', async (e) => {
+  if (e.target.id === 'usePoints') {
+    usePoints = e.target.checked;
+    if (!$('#sheetWrap').hidden) openTopUp();   // 가격표를 바로 갱신
+    return;
+  }
+  if (!e.target.matches('[data-photo-upload]')) return;
+
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { toast('이미지 파일만 올릴 수 있어요.'); return; }
+  try {
+    const img = await readImageFile(file);
+    state.user.photos = [...(state.user.photos || []), img.dataUrl].slice(0, 3);
+    save();
+    renderProfileChrome();
+    toast('사진을 추가했어요. 첫 사진이 대표 사진이 돼요.');
+  } catch (err) {
+    toast('이미지를 읽지 못했어요. 다른 파일로 시도해 주세요');
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  if (e.target.id === 'blockPhone') { e.preventDefault(); addBlockedNumber(); }
+});
+
+/* 메시지 입력 */
+const msgInput = $('#msgInput');
+msgInput.addEventListener('input', () => { $('#sendBtn').disabled = msgInput.value.trim().length === 0; });
+$('#composer').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = msgInput.value;
+  if (!text.trim()) return;
+  msgInput.value = '';
+  $('#sendBtn').disabled = true;
+  sendMessage(text);
+});
+
+/* ESC */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (!$('#sheetWrap').hidden) closeSheet();
+    else if (activeChatId && currentMode === 'user') closeThread();
+  }
+});
+
+/* 카드 드래그 */
+const deckEl = $('#deck');
+let drag = null;
+
+deckEl.addEventListener('pointerdown', (e) => {
+  if (busy) return;
+  const card = e.target.closest('.card[data-depth="0"]');
+  if (!card) return;
+  drag = { card, startX: e.clientX, startY: e.clientY, dx: 0, active: false, pointerId: e.pointerId };
+});
+
+deckEl.addEventListener('pointermove', (e) => {
+  if (!drag || e.pointerId !== drag.pointerId) return;
+  const dx = e.clientX - drag.startX;
+  const dy = e.clientY - drag.startY;
+  if (!drag.active) {
+    if (Math.abs(dx) < 10) return;
+    if (Math.abs(dy) > Math.abs(dx)) { drag = null; return; }
+    drag.active = true;
+    drag.card.classList.add('is-dragging');
+    drag.card.setPointerCapture?.(e.pointerId);
+  }
+  drag.dx = dx;
+  drag.card.style.setProperty('--dx', `${dx}px`);
+  drag.card.style.setProperty('--rot', `${Math.max(-12, Math.min(12, dx / 16))}deg`);
+  drag.card.style.setProperty('--like', String(Math.min(1, Math.max(0, dx / 120))));
+  drag.card.style.setProperty('--pass', String(Math.min(1, Math.max(0, -dx / 120))));
+});
+
+function endDrag() {
+  if (!drag) return;
+  const { card, dx, active } = drag;
+  drag = null;
+  if (!active) return;
+  if (dx > 92) { commit('like'); return; }
+  if (dx < -92) { commit('pass'); return; }
+  card.classList.remove('is-dragging');
+  card.style.setProperty('--dx', '0px');
+  card.style.setProperty('--rot', '0deg');
+  card.style.setProperty('--like', '0');
+  card.style.setProperty('--pass', '0');
+}
+deckEl.addEventListener('pointerup', endDrag);
+deckEl.addEventListener('pointercancel', endDrag);
+
+/* 다른 탭과 실시간 동기화 */
+window.addEventListener('storage', (e) => {
+  if (e.key !== STORAGE_KEY) return;
+  state = storage.load();
+  deckSignature = '';
+  threadSignature = '';
+  renderAll();
+});
+
+/* 시계 · 날짜 · 만료 체크 */
+function tick() {
+  const d = new Date();
+  $('#clock').textContent = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+tick();
+setInterval(tick, 30 * 1000);
+$('#todayDate').textContent = todayLabel();
+
+setInterval(() => {
+  const refunded = processExpirations(false);
+  if (refunded) {
+    renderAll();
+    toast(`48시간 동안 답이 없어 매칭권 ${refunded}장이 돌아왔어요.`);
+  } else if (currentMode === 'user' && document.querySelector('[data-view="matches"].is-active')) {
+    renderMatches();
+  }
+}, 60 * 1000);
+
+/* 시작 */
+processExpirations(false);
+fillProfileForm();
+renderAll();
+</script>
+</body>
+</html>
