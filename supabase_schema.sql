@@ -63,7 +63,8 @@ create table if not exists public.profiles (
   priorities      jsonb not null default '{"priorities":[],"mbti":[],"ageMin":30,"ageMax":40,"areas":["서울 전역"],"values":[]}'::jsonb,
   match_tickets   int  not null default 3,
   points          int  not null default 0,
-  verified        boolean not null default false,
+  verified        boolean not null default false,         -- 직장인 인증(회사 메일·서류) 승인 여부
+  height_verified boolean not null default false,          -- 키 인증(건강검진·신체검사서) 승인 여부 — 직장인 인증과 별개
   status          text not null default 'active',         -- 'active' | 'suspended'
   avatar_data     text,                                   -- 사진(data URL) 배열 JSON 문자열
   phone_hash      text,
@@ -104,6 +105,9 @@ begin
   end loop;
 end $$;
 
+-- 키 인증 상태 열 — 직장인 인증(verified)과 완전히 분리해서 관리합니다(재실행 안전).
+alter table public.profiles add column if not exists height_verified boolean not null default false;
+
 create index if not exists profiles_status_idx on public.profiles (status, gender);
 
 -- ============================================================================
@@ -112,7 +116,7 @@ create index if not exists profiles_status_idx on public.profiles (status, gende
 create table if not exists public.verifications (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid not null references public.profiles(id) on delete cascade,
-  method        text not null default 'doc',              -- 'email' | 'doc'
+  method        text not null default 'doc',              -- 'email' | 'doc' (직장인 인증) / 'height' (키 인증)
   company       text default '',
   company_email text,
   doc_name      text,
@@ -253,6 +257,7 @@ language sql stable security definer set search_path = public as $$
     'match_tickets', p.match_tickets,
     'points', p.points,
     'verified', p.verified,
+    'height_verified', p.height_verified,
     'status', p.status,
     'hidden_company', p.hidden_company,
     'blocked_phones', p.blocked_phones,
@@ -552,28 +557,53 @@ end $$;
 create or replace function public.admin_review_verification(p_id uuid, p_approve boolean, p_note text default '')
 returns jsonb
 language plpgsql security definer set search_path = public as $$
-declare v_row public.verifications; v_name text;
+declare v_row public.verifications; v_name text; v_is_height boolean;
 begin
   if not public.is_admin() then raise exception '관리자만 처리할 수 있어요.'; end if;
   select * into v_row from public.verifications where id = p_id for update;
   if v_row.id is null then raise exception '제출 건을 찾을 수 없어요.'; end if;
+
+  v_is_height := coalesce(v_row.method, '') = 'height';
 
   update public.verifications
      set status = case when p_approve then 'approved' else 'rejected' end,
          reviewed_by = 'admin', reviewed_at = now(), note = coalesce(p_note,'')
    where id = p_id;
 
+  -- 승인 결과는 인증 종류별로 따로 기록합니다.
+  --   키 인증(method = 'height')  → height_verified 만 true (verified 는 그대로)
+  --   직장인 인증(email · doc)     → verified 만 true (height_verified 는 그대로)
   if p_approve then
-    update public.profiles set verified = true where id = v_row.user_id;
+    if v_is_height then
+      update public.profiles set height_verified = true where id = v_row.user_id;
+    else
+      update public.profiles set verified = true where id = v_row.user_id;
+    end if;
   end if;
 
   select nickname into v_name from public.profiles where id = v_row.user_id;
   insert into public.admin_logs (action, target_name, actor, detail)
   values (case when p_approve then '인증 승인' else '인증 반려' end,
-          coalesce(v_name, v_row.user_id::text), 'admin', coalesce(p_note, v_row.company, ''));
+          coalesce(v_name, v_row.user_id::text), 'admin',
+          coalesce(p_note, case when v_is_height then '키 인증' else v_row.company end, ''));
 
   return jsonb_build_object('ok', true);
 end $$;
+
+-- (재실행 안전) 이미 승인된 키 인증 제출 건이 있으면 height_verified 를 맞춰 둡니다.
+update public.profiles p set height_verified = true
+ where p.height_verified = false
+   and exists (select 1 from public.verifications v
+                where v.user_id = p.id and v.method = 'height' and v.status = 'approved');
+
+-- (선택 · 필요할 때만 실행) 예전 함수는 키 인증을 승인해도 직장인 인증(verified)을 켰습니다.
+--   키 인증만 받은 회원의 직장인 인증 배지를 정리하려면 아래 주석을 풀고 한 번 실행하세요.
+-- update public.profiles p set verified = false
+--  where p.verified = true
+--    and exists (select 1 from public.verifications v
+--                 where v.user_id = p.id and v.method = 'height' and v.status = 'approved')
+--    and not exists (select 1 from public.verifications v
+--                     where v.user_id = p.id and v.method <> 'height' and v.status = 'approved');
 
 create or replace function public.admin_review_charge(p_id uuid, p_approve boolean, p_note text default '')
 returns jsonb
@@ -761,7 +791,7 @@ create policy admin_logs_select on public.admin_logs for select to authenticated
 -- ============================================================================
 revoke all on public.profiles from anon, authenticated;
 grant select (id, nickname, gender, birth_year, age, job, company, region, mbti,
-              height, bio, priorities, verified, status, avatar_data,
+              height, bio, priorities, verified, height_verified, status, avatar_data,
               hobbies, values_list, photo_captions, dist_km, job_stable,
               nonsmoker, is_demo, created_at)
   on public.profiles to authenticated;
