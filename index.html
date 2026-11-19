@@ -1328,7 +1328,7 @@ body{font-size:14px;line-height:1.5}
               <div class="field field--col"><span>매칭 우선순위</span>
                 <div class="chips-select" id="priorityChips"></div>
                 <p class="priority-summary" id="prioritySummary"></p>
-                <p class="sheet-hint">순서대로 최대 3개 · 궁합과 카드 순서가 바로 바뀝니다<br>외모는 사진을 올린 프로필, 나이는 위의 선호 나이, 키는 178cm 이상을 기준으로 해요.</p>
+                <p class="sheet-hint">순서대로 최대 3개 · 궁합과 카드 순서가 바로 바뀝니다<br>외모는 사진을 올린 프로필, 나이는 위의 선호 나이, 키는 178cm 이상을 기준으로 해요.<br>수락·거절에서 고른 이유가 쌓이면 위 카드의 취향 순위가 스스로 바뀝니다.</p>
               </div>
               <div class="field field--col"><span>중요하게 보는 것</span><div class="chips-select" id="valueChips"></div></div>
               <div class="field field--col"><span>선호 지역 (최대 3곳)</span>
@@ -5158,19 +5158,20 @@ async function adminClaim() {
 
 /* 승인/반려 — 새 파라미터(p_company · p_height)가 없는 예전 스키마에서도 동작하도록 폴백 */
 async function adminReviewVerification(id, approve, note, company, height) {
-  try {
-    return await rpc('admin_review_verification', {
-      p_id: id, p_approve: approve, p_note: note || '',
-      p_company: company || null,
-      p_height: Number.isFinite(height) && height > 0 ? height : null
-    });
-  } catch (err) {
-    const msg = String((err && (err.message || err.details || err.hint)) || err || '');
-    if (/Could not find the function|does not exist|PGRST202|schema cache/i.test(msg)) {
-      return rpc('admin_review_verification', { p_id: id, p_approve: approve, p_note: note || '' });
-    }
-    throw err;
+  const args = {
+    p_id: id, p_approve: approve, p_note: note || '',
+    p_company: company || null,
+    p_height: Number.isFinite(height) && height > 0 ? height : null
+  };
+  const { data, error } = await sb.rpc('admin_review_verification', args);
+  if (!error) return data;
+  const msg = String(error.message || error.details || '');
+  if (/Could not find the function|does not exist|PGRST202/i.test(msg)) {
+    const legacy = await sb.rpc('admin_review_verification', { p_id: id, p_approve: approve, p_note: note || '' });
+    if (legacy.error) throw new Error(errorText(legacy.error));
+    return legacy.data;
   }
+  throw new Error(errorText(error));
 }
 
 async function approveSubmission(id) {
