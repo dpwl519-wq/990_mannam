@@ -1413,6 +1413,98 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
 .row__name .pill{font-size:10px;line-height:1.25;padding:2px 6px;margin-left:1px;flex:0 0 auto}
 .row__name .pill.pill--mint{color:var(--sage-ink)}
 .row__name .pill.pill--key{color:var(--butter-ink)}
+
+/* ==========================================================================
+   사진 기본 비공개 · 매칭권 1장으로 열람
+   ========================================================================== */
+/* 잠긴 사진 자리 — 사진은 한 장도 그리지 않고, 흐린 실루엣과 안내만 보여 줍니다 */
+.photo-locked{
+  position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;
+  width:100%;height:100%;min-height:186px;padding:22px 20px 20px;text-align:center;overflow:hidden;
+  background:linear-gradient(162deg,#FBF4EB 0%,#F5ECE0 56%,#EEF2E9 100%);
+}
+.photo-locked__veil{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.photo-locked__veil::before,
+.photo-locked__veil::after{content:'';position:absolute;left:50%;border-radius:50%;transform:translateX(-50%)}
+.photo-locked__veil::before{top:6px;width:152px;height:152px;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.96) 0%,rgba(255,255,255,.6) 40%,rgba(255,255,255,0) 73%)}
+.photo-locked__veil::after{bottom:-58px;width:236px;height:182px;background:radial-gradient(circle at 50% 40%,rgba(217,155,132,.3) 0%,rgba(217,155,132,.12) 46%,rgba(217,155,132,0) 75%)}
+.photo-locked__inner{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px}
+.photo-locked__lock{
+  display:grid;place-items:center;width:34px;height:34px;border-radius:50%;color:var(--apricot-ink);
+  background:rgba(255,253,251,.82);box-shadow:0 0 0 1px rgba(46,40,37,.07),0 10px 22px -18px rgba(46,40,37,.7);
+}
+.photo-locked__lock svg{width:16px;height:16px;display:block}
+.photo-locked__eyebrow{font-size:10px;letter-spacing:.14em;color:var(--ink-3)}
+.photo-locked__title{font-family:var(--font-title);font-size:14px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
+.photo-locked__hint{font-size:11px;line-height:1.6;color:var(--ink-2)}
+.photo-locked__cta{margin-top:6px;height:38px;font-size:12px;padding:0 15px;white-space:nowrap}
+.photo-locked__note{font-size:10px;color:var(--ink-3);letter-spacing:.01em}
+.detail-gallery--locked{display:block;margin-top:14px}
+.detail-gallery--locked figure{flex:1 1 100%;background:var(--paper-2);border-radius:12px}
+.detail-gallery--locked .photo-locked{min-height:238px}
+
+/* 잠긴 아바타 — 모노그램을 흐리게 두고 가운데 자물쇠 */
+.avatar--locked{position:relative}
+.avatar--locked > svg{opacity:.5}
+.avatar__lock{
+  position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;
+}
+.avatar__lock svg{
+  width:20px;height:20px;padding:4px;box-sizing:border-box;display:block;color:var(--ink-2);
+  background:rgba(255,252,248,.94);border-radius:50%;box-shadow:0 0 0 1px rgba(46,40,37,.07);
+}
+.avatar--sm .avatar__lock svg{width:17px;height:17px;padding:3.5px}
+/* 열린 사진 썸네일 */
+.avatar--photo img{width:100%;height:100%;object-fit:cover;display:block;
+  -webkit-touch-callout:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;pointer-events:none}
+.avatar__art{display:block;width:100%;height:100%}
+.avatar__art svg{width:100%;height:100%;display:block;transform:none !important}
+
+.photo-shield > svg{width:100%;height:100%;display:block}
+.photo-tag{
+  position:absolute;left:8px;top:8px;padding:3px 8px;border-radius:999px;
+  background:rgba(255,252,248,.82);color:var(--ink-2);font-size:9.5px;letter-spacing:.03em;
+  pointer-events:none;user-select:none;
+}
+.thread-head .avatar--locked > svg{opacity:.46}
+
+/* 대화방 — 사진 잠금 줄 */
+.thread-photo{
+  flex:0 0 auto;display:flex;align-items:center;gap:9px;margin:0 14px 8px;padding:9px 12px;
+  border-radius:12px;background:rgba(246,232,221,.6);box-shadow:inset 0 0 0 1px rgba(217,155,132,.22);
+}
+.thread-photo__lock{flex:0 0 auto;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;
+  background:rgba(255,253,251,.9);color:var(--apricot-ink)}
+.thread-photo__lock svg{width:13px;height:13px;display:block}
+.thread-photo__text{flex:1 1 auto;min-width:0;font-size:11px;line-height:1.45;color:var(--ink-2)}
+.thread-photo__text b{font-weight:500;color:var(--ink)}
+.thread-photo .btn{flex:0 0 auto;height:30px;padding:0 11px;font-size:11px}
+
+/* 열람 확인 시트 */
+.unlock-card{display:flex;align-items:center;gap:12px;margin-top:14px;padding:13px 15px;border-radius:14px;
+  background:var(--card);box-shadow:0 0 0 1px var(--line-2)}
+.unlock-card__who{flex:1 1 auto;min-width:0}
+.unlock-card__name{font-family:var(--font-title);font-size:15px;font-weight:700}
+.unlock-card__meta{font-size:11px;color:var(--ink-2);margin-top:2px}
+.unlock-list{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+.unlock-list li{display:flex;gap:7px;font-size:11.5px;line-height:1.6;color:var(--ink-2)}
+.unlock-list li b{font-weight:500;color:var(--ink)}
+.unlock-list li span{flex:0 0 auto;color:var(--apricot-deep)}
+.unlock-balance{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;
+  padding:11px 14px;border-radius:12px;background:rgba(232,239,231,.7);font-size:11.5px;color:var(--sage-ink)}
+.unlock-balance b{font-weight:600;color:var(--ink)}
+
+/* ==========================================================================
+   시트 — 아래로 끌어내려 닫기 (iOS 스타일)
+   ========================================================================== */
+.sheet{-webkit-overflow-scrolling:touch}
+.sheet.is-dragging{transition:none !important;animation:none !important;will-change:transform}
+.sheet.is-settling{transition:transform .3s var(--spring)}
+.sheet.is-closing{transition:transform .24s cubic-bezier(.4,0,.7,1);animation:none !important}
+.sheet__grabber{position:relative;touch-action:none}
+.sheet__grabber::before{content:'';position:absolute;left:-60px;right:-60px;top:-14px;bottom:-12px}
+.sheet-wrap.is-dragging .sheet-backdrop{opacity:.55}
+.sheet-backdrop{transition:opacity .2s linear}
 </style>
 </head>
 <body>
@@ -1549,6 +1641,7 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
                 <svg class="icon"><use href="#i-more"/></svg>
               </button>
             </header>
+            <div class="thread-photo" id="threadPhotoBar" hidden></div>
             <div class="meet-bar" id="meetBar"></div>
             <div class="thread-body" id="threadBody"></div>
             <div class="thread-ended" id="threadEnded" hidden>
@@ -2223,6 +2316,8 @@ function emptyState() {
     deck: [], lastPassed: null, passed: [], verifiedIds: [], heightVerifiedIds: [],
     ticketLedger: [], endedChats: [], endedRemote: [], endedList: [], chatRead: {}, auditLog: [], meetings: {},
     showDemo: true,
+    /* 내가 매칭권으로 연 사진 — { 상대 id: 연 시각 } */
+    photoUnlocks: {},
     sent: [], received: [], matches: [], chats: {}, unread: {},
     verification: { status: 'none', method: null, company: '', email: '', docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: '' },
     heightVerification: { status: 'none', docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: '' },
@@ -2901,9 +2996,11 @@ async function refreshAll() {
     sb.from('charge_requests').select('id,user_id,package_name,tickets,amount_krw,depositor_name,status,note,reviewed_at,created_at').order('created_at', { ascending: false }).limit(200),
     sb.from('reports').select('id,reporter_id,target_user_id,reason,detail,status,reviewed_at,created_at').order('created_at', { ascending: false }).limit(200),
     sb.from('admin_logs').select('id,action,target_name,actor,detail,created_at').order('created_at', { ascending: false }).limit(80),
-    signupReq
+    signupReq,
+    /* 내가 매칭권으로 연 사진 — SQL(photo_unlocks) 실행 전이면 오류만 남고 화면은 기기 기록으로 동작합니다. */
+    sb.from('photo_unlocks').select('target_id,created_at')
   ]);
-  const labels = ['profiles', 'my_state', 'likes', 'messages', 'verifications', 'reviews', 'charges', 'reports', 'logs', 'signups'];
+  const labels = ['profiles', 'my_state', 'likes', 'messages', 'verifications', 'reviews', 'charges', 'reports', 'logs', 'signups', 'photo_unlocks'];
   res.forEach((r, i) => { if (r.error) console.warn('[load]', labels[i], r.error.message); });
   const critical = res[0].error || res[1].error || res[2].error;
   if (critical) throw critical;
@@ -2923,7 +3020,8 @@ async function refreshAll() {
     reports: res[7].data || [],
     logs: res[8].data || [],
     signups: res[9] && !res[9].error && Array.isArray(res[9].data) ? res[9].data : [],
-    signupError: isAdmin && res[9] && res[9].error ? String(res[9].error.message || res[9].error.details || 'error') : ''
+    signupError: isAdmin && res[9] && res[9].error ? String(res[9].error.message || res[9].error.details || 'error') : '',
+    photoUnlocks: res[10] && !res[10].error && Array.isArray(res[10].data) ? res[10].data : []
   });
 }
 
@@ -2963,6 +3061,16 @@ function applyData(d) {
   state.heightVerified = wallet.height_verified === true;
   /* 데모 회원 노출은 운영자 콘솔의 전역 설정입니다 (show_demo) */
   state.showDemo = wallet.show_demo !== false;
+
+  /* 사진 열람 — 서버 기록(photo_unlocks)과 이 기기 기록을 합칩니다.
+     SQL 을 아직 실행하지 않아도 이 기기에서 연 사진은 그대로 보입니다. */
+  const localUnlocks = loadLocalPhotoUnlocks();
+  const serverUnlocks = {};
+  (d.photoUnlocks || []).forEach((r) => {
+    if (r && r.target_id) serverUnlocks[r.target_id] = r.created_at || null;
+  });
+  state.photoUnlocks = Object.assign({}, localUnlocks);
+  Object.keys(serverUnlocks).forEach((k) => { state.photoUnlocks[k] = serverUnlocks[k]; });
 
   state.safety = {
     hideSameCompany: wallet.hidden_company !== false,
@@ -3186,6 +3294,13 @@ function applyData(d) {
   });
   d.charges.filter((c) => c.user_id === meId && c.status === 'approved').forEach((c) => {
     led.push({ kind: 'topup', delta: c.tickets, at: c.reviewed_at || c.created_at, detail: `${c.package_name} · ${c.amount_krw.toLocaleString('ko-KR')}원 입금 확인` });
+  });
+  /* 사진 열람에 매칭권을 쓴 기록 (서버에 시각이 남은 것만 — 차감은 서버에서 일어납니다) */
+  Object.keys(state.photoUnlocks || {}).forEach((tid) => {
+    const at = state.photoUnlocks[tid];
+    if (!at) return;
+    const name = (PROFILE_MAP[tid] || {}).name || '인연';
+    led.push({ kind: 'photo', delta: -1, at, detail: `${name}님 사진 열람` });
   });
   state.ticketLedger = led.sort((a, b) => new Date(b.at) - new Date(a.at));
 
@@ -3545,6 +3660,41 @@ function monogramSVG(name, tone) {
 }
 function avatarSVG(id, name) { return monogramSVG(name, TONE_BY_ID[id] || 'apricot'); }
 
+/* 얇은 자물쇠 그림 — 사진이 잠겨 있을 때만 씁니다 */
+function lockGlyphSVG() {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.4" width="14" height="9.2" rx="2.6"/><path d="M8.5 10.4V8a3.5 3.5 0 0 1 7 0v2.4"/></svg>`;
+}
+
+/* ---------- 사진 열람권 (사진은 기본 비공개 · 매칭권 1장) ----------
+   열람 기록은 서버(photo_unlocks)에 남기고, SQL 실행 전에는 이 기기에만 남깁니다. */
+const PHOTO_PRICE_KRW = 990;
+function photoUnlockKey() {
+  const uid = (session && session.user && session.user.id) || meId || 'guest';
+  return '990.photoUnlocks.' + uid;
+}
+function loadLocalPhotoUnlocks() {
+  const map = {};
+  try {
+    const raw = localStorage.getItem(photoUnlockKey());
+    const list = raw ? JSON.parse(raw) : [];
+    if (Array.isArray(list)) list.forEach((x) => { if (typeof x === 'string' && x) map[x] = map[x] || null; });
+  } catch (e) { /* 저장된 값이 깨졌으면 빈 목록 */ }
+  return map;
+}
+function saveLocalPhotoUnlocks(map) {
+  try { localStorage.setItem(photoUnlockKey(), JSON.stringify(Object.keys(map || {}))); }
+  catch (e) { /* 저장 공간이 없으면 화면 상태만 유지 */ }
+}
+function photoUnlocked(id) {
+  return !!(id && state.photoUnlocks && state.photoUnlocks[id] !== undefined);
+}
+function markPhotoUnlocked(id, at) {
+  if (!id) return;
+  state.photoUnlocks = state.photoUnlocks || {};
+  if (state.photoUnlocks[id] === undefined) state.photoUnlocks[id] = at || new Date().toISOString();
+  saveLocalPhotoUnlocks(state.photoUnlocks);
+}
+
 /* 헤더용 작은 가지 그림 */
 function sprigSVG() {
   return `<svg viewBox="0 0 100 100" aria-hidden="true" fill="none" stroke="#2F2A2B" stroke-opacity=".45"
@@ -3577,6 +3727,7 @@ let deckSignature = '';
 let threadSignature = '';
 let currentMode = 'user';
 const photoState = {};            // 카드별로 보고 있는 사진 인덱스
+let detailProfileId = null;       // 지금 열려 있는 상세 프로필 (사진을 늦게 받아 왔을 때 다시 그리려고)
 
 function photoAt(p, idx) {
   const list = (p.photos && p.photos.length) ? p.photos : [{ caption: p.area }];
@@ -3859,7 +4010,7 @@ function renderMatches() {
         const p = PROFILE_MAP[r.id];
         return `
           <li class="row" data-action="detail-profile" data-id="${p.id}" style="cursor:pointer">
-            <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
+            ${partnerAvatarHTML(p)}
             <div class="row__main">
               <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span>${verifyPillsHTML(p)}</p>
               <p class="row__sub">${esc(p.job)} · ${esc(p.area)} · ${relTime(r.at)}</p>
@@ -3890,7 +4041,7 @@ function renderMatches() {
             : '<span class="status-pill status-pill--wait">답변 대기</span>';
         return `
           <li class="row" data-action="detail-profile" data-id="${p.id}" style="cursor:pointer">
-            <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
+            ${partnerAvatarHTML(p)}
             <div class="row__main">
               <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span>${verifyPillsHTML(p)}</p>
               <p class="row__sub">${sub}</p>
@@ -3913,7 +4064,7 @@ function renderMatches() {
           : '';
         return `
           <li class="row" data-action="${ended ? 'open-chat' : 'detail-profile'}" data-id="${p.id}" style="cursor:pointer">
-            <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
+            ${partnerAvatarHTML(p)}
             <div class="row__main">
               <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span>${verifyPillsHTML(p)}</p>
               <p class="row__sub">${m.via === 'accepted' ? '받은 호감 수락' : '서로 호감'} · ${relTime(m.at)}${meetLabel}</p>
@@ -3926,7 +4077,7 @@ function renderMatches() {
         const p = PROFILE_MAP[x.id];
         return `
           <li class="row row--ended" data-action="open-chat" data-id="${p.id}" style="cursor:pointer">
-            <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
+            ${partnerAvatarHTML(p)}
             <div class="row__main">
               <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span>${verifyPillsHTML(p)}</p>
               <p class="row__sub">대화 종료 · ${relTime(x.at)}</p>
@@ -4008,7 +4159,7 @@ function renderChatList() {
         const unread = state.unread[m.id] || 0;
         return `
           <li class="row" data-action="open-chat" data-id="${p.id}" style="cursor:pointer">
-            <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
+            ${partnerAvatarHTML(p)}
             <div class="row__main">
               <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span>${verifyPillsHTML(p)}</p>
               <p class="row__sub">${last ? esc(last.text) : '첫 대화를 기다리고 있어요'}</p>
@@ -4794,6 +4945,7 @@ function reportCardHTML(r, isOpen) {
       </div>
       ${r.detail ? `<p class="sub-card__email">“${esc(r.detail)}”</p>` : ''}
       <div class="sub-card__actions">
+        <button class="btn btn--ghost btn--sm" data-action="admin-photo" data-id="${r.targetId}">프로필·사진</button>
         <button class="btn btn--ghost btn--sm" data-action="dismiss-report" data-id="${r.id}">기각</button>
         <button class="btn btn--primary btn--sm" data-action="suspend-report" data-id="${r.id}">이용 정지</button>
       </div>
@@ -4817,8 +4969,126 @@ let chargePack = null;
 let chargeName = '';
 
 /* ---------- 공통 UI ---------- */
-function openSheet(html) { $('#sheet').innerHTML = html; $('#sheetWrap').hidden = false; }
-function closeSheet() { $('#sheetWrap').hidden = true; reasonDraft = null; }
+/* ---------- 하단 시트 — 열기 · 닫기 · 아래로 끌어내려 닫기 ----------
+   헤더(그립)와 내용 양쪽 모두에서, 내용이 맨 위(scrollTop 0)일 때만 아래로 끌어 닫힙니다.
+   내용이 길어 위아래로 스크롤하는 중에는 끌어내리기가 시작되지 않습니다. */
+const SHEET_CLOSE_DISTANCE = 85;
+let sheetDrag = null;
+
+function sheetEl() { return document.getElementById('sheet'); }
+function sheetWrapEl() { return document.getElementById('sheetWrap'); }
+
+function resetSheetDrag() {
+  sheetDrag = null;
+  const sheet = sheetEl();
+  const wrap = sheetWrapEl();
+  if (sheet) {
+    sheet.classList.remove('is-dragging', 'is-settling', 'is-closing');
+    sheet.style.transform = '';
+    sheet.style.transition = '';
+  }
+  if (wrap) wrap.classList.remove('is-dragging');
+}
+
+function openSheet(html) {
+  const sheet = sheetEl();
+  const wrap = sheetWrapEl();
+  if (!sheet || !wrap) return;
+  resetSheetDrag();
+  sheet.innerHTML = html;
+  /* 모든 시트에 iOS 스타일 손잡이를 하나 둡니다 (이미 있으면 그대로) */
+  if (!sheet.querySelector('.sheet__grabber')) {
+    sheet.insertAdjacentHTML('afterbegin', '<div class="sheet__grabber" aria-hidden="true"></div>');
+  }
+  sheet.scrollTop = 0;
+  wrap.hidden = false;
+}
+
+function closeSheet() {
+  resetSheetDrag();
+  const wrap = sheetWrapEl();
+  if (wrap) wrap.hidden = true;
+  reasonDraft = null;
+}
+
+/* 끌어내리는 중에는 손가락을 따라 내려가고, 놓을 때 거리·속도로 닫을지 정합니다 */
+function sheetDragBegin(y, x, target) {
+  const sheet = sheetEl();
+  const wrap = sheetWrapEl();
+  if (!sheet || !wrap || wrap.hidden) return false;
+  if (target && target.closest && target.closest('input, textarea, select, [contenteditable="true"]')) return false;
+  sheetDrag = { y0: y, x0: x, t0: Date.now(), dy: 0, active: false, fromTop: sheet.scrollTop <= 0 };
+  return true;
+}
+
+function sheetDragMove(y, x, ev) {
+  if (!sheetDrag) return false;
+  const sheet = sheetEl();
+  if (!sheet) { sheetDrag = null; return false; }
+  const dy = y - sheetDrag.y0;
+  const dx = x - sheetDrag.x0;
+  if (!sheetDrag.active) {
+    if (dy <= 0 || Math.abs(dy) < 7) return false;
+    if (Math.abs(dx) > Math.abs(dy)) { sheetDrag = null; return false; }
+    if (!sheetDrag.fromTop || sheet.scrollTop > 0) { sheetDrag = null; return false; }
+    sheetDrag.active = true;
+    sheet.classList.remove('is-settling', 'is-closing');
+    sheet.classList.add('is-dragging');
+    const wrap = sheetWrapEl();
+    if (wrap) wrap.classList.add('is-dragging');
+  }
+  if (ev && ev.cancelable) ev.preventDefault();
+  const eased = dy > 210 ? 210 + (dy - 210) * 0.5 : dy;
+  sheetDrag.dy = dy;
+  sheet.style.transform = `translateY(${Math.round(eased)}px)`;
+  return true;
+}
+
+function sheetDragEnd(t) {
+  const sheet = sheetEl();
+  const drag = sheetDrag;
+  sheetDrag = null;
+  const wrap = sheetWrapEl();
+  if (wrap) wrap.classList.remove('is-dragging');
+  if (!sheet) return false;
+  if (!drag || !drag.active) { sheet.classList.remove('is-dragging'); return false; }
+  const dt = Math.max(1, (t || Date.now()) - drag.t0);
+  const fast = drag.dy > 36 && (drag.dy / dt) > 0.55;   // 빠르게 아래로 튕기기
+  sheet.classList.remove('is-dragging');
+  if (drag.dy > SHEET_CLOSE_DISTANCE || fast) { closeSheetAnimated(); return true; }
+  sheet.classList.add('is-settling');
+  sheet.style.transform = 'translateY(0px)';
+  const settle = () => {
+    if (!sheet.classList.contains('is-settling')) return;
+    sheet.classList.remove('is-settling');
+    sheet.style.transform = '';
+    sheet.removeEventListener('transitionend', settle);
+  };
+  sheet.addEventListener('transitionend', settle);
+  setTimeout(settle, 340);
+  return false;
+}
+
+/* 아래로 내려가며 사라지는 닫기 (× 버튼은 바로 닫힙니다) */
+function closeSheetAnimated() {
+  const sheet = sheetEl();
+  const wrap = sheetWrapEl();
+  if (!sheet || !wrap) return;
+  sheet.classList.remove('is-settling', 'is-dragging');
+  sheet.classList.add('is-closing');
+  sheet.style.transform = 'translateY(100%)';
+  const finish = () => {
+    if (!sheet.classList.contains('is-closing')) return;
+    sheet.classList.remove('is-closing');
+    sheet.style.transform = '';
+    sheet.style.transition = '';
+    wrap.hidden = true;
+    reasonDraft = null;
+    sheet.removeEventListener('transitionend', finish);
+  };
+  sheet.addEventListener('transitionend', finish);
+  setTimeout(finish, 300);
+}
 
 function toast(message, opts = {}) {
   const el = $('#toast');
@@ -5103,11 +5373,12 @@ function artFor(id, idx) {
   return ART[motif] ? motif : FALLBACK_MOTIFS[(h + (idx || 0) * 3) % FALLBACK_MOTIFS.length];
 }
 
-/* 데모 프로필은 사진을 보여주지 않습니다 — 같은 파스텔 톤의 자리 표시 */
-function demoPhotoMarkup(p) {
-  return `<div class="demo-photo">
-      <div class="demo-photo__avatar">${avatarSVG(p.id, p.name)}</div>
-      <p class="demo-photo__label">데모 프로필은 사진 비공개예요</p>
+/* 데모 프로필 — 사진 대신 같은 파스텔 톤의 예시 그림 (열람한 뒤에만 보입니다) */
+function demoPhotoMarkup(p, idx) {
+  return `<div class="photo-shield photo-shield--demo">
+      ${plateSVG(artFor(p.id, idx))}
+      <span class="photo-tag">데모 · 예시 이미지</span>
+      <span class="photo-shield__mark" aria-hidden="true">${photoShieldMark()}</span>
     </div>`;
 }
 
@@ -5117,8 +5388,63 @@ function photoShieldMark() {
   return `990 인연${who ? ` · ${esc(who)}` : ''}`;
 }
 
+/* 운영자는 운영자 화면에서만 사진을 바로 확인합니다 (회원 화면에서는 똑같이 잠깁니다) */
+function adminPhotoBypass() { return isAdmin === true && currentMode === 'admin'; }
+function photoRevealed(id) { return photoUnlocked(id) || adminPhotoBypass(); }
+
+/* 사진이 있는 상대인지 (데모 프로필은 열람하면 예시 그림을 보여 줍니다) */
+function hasPhotoSource(p) {
+  return !!p && (p.isDemo === true || (p.photos || []).some((x) => x && x.src));
+}
+
+/* 잠긴 사진 자리 — 사진은 한 장도 그리지 않습니다 */
+function lockedPhotoCard(p) {
+  return `<div class="photo-locked">
+      <div class="photo-locked__veil" aria-hidden="true"></div>
+      <div class="photo-locked__inner">
+        <span class="photo-locked__lock" aria-hidden="true">${lockGlyphSVG()}</span>
+        <p class="photo-locked__eyebrow">사진은 기본 비공개예요</p>
+        <p class="photo-locked__title">열람권으로 볼 수 있어요</p>
+        <p class="photo-locked__hint">인적사항과 소개를 먼저 보고,<br>마음이 닿으면 사진을 열어 보세요.</p>
+        <button type="button" class="btn btn--primary photo-locked__cta" data-action="unlock-photo" data-id="${esc(p.id)}">사진 열람하기 · 매칭권 1장</button>
+        <p class="photo-locked__note">1장 ${PHOTO_PRICE_KRW}원 · 한 번 열면 계속 볼 수 있어요</p>
+      </div>
+    </div>`;
+}
+
+/* 목록·대화 헤더용 아바타 내용 — 사진을 열기 전에는 모노그램 + 자물쇠,
+   연 뒤에는 실제 사진(데모는 예시 그림) */
+function partnerAvatarInner(p) {
+  const open = photoRevealed(p.id);
+  const photo = open ? photoAt(p, 0) : null;
+  if (photo && photo.src) return `<img src="${esc(photo.src)}" alt="" draggable="false">`;
+  if (open && p.isDemo) return `<span class="avatar__art">${plateSVG(artFor(p.id, 0))}</span>`;
+  return `${avatarSVG(p.id, p.name)}<span class="avatar__lock" aria-hidden="true">${lockGlyphSVG()}</span>`;
+}
+function partnerAvatarStateClass(p) {
+  const open = photoRevealed(p.id);
+  const photo = open ? photoAt(p, 0) : null;
+  if (photo && photo.src) return 'avatar--photo';
+  if (open && p.isDemo) return 'avatar--art';
+  return 'avatar--locked';
+}
+
+function partnerAvatarHTML(p, opts) {
+  if (!p) return '';
+  const o = opts || {};
+  const stateCls = partnerAvatarStateClass(p);
+  const cls = ['avatar', o.cls || '', stateCls].filter(Boolean).join(' ');
+  const inner = partnerAvatarInner(p);
+  if (o.action) {
+    return `<button type="button" class="${cls} avatar--tap" data-action="detail-profile" data-id="${esc(p.id)}" aria-label="${esc((p.name || '') + ' 프로필 보기')}">${inner}</button>`;
+  }
+  return `<div class="${cls}" aria-hidden="true">${inner}</div>`;
+}
+
 function photoMarkup(p, idx) {
-  if (p && p.isDemo) return demoPhotoMarkup(p);
+  if (!p) return '';
+  if (!photoRevealed(p.id) && hasPhotoSource(p)) return lockedPhotoCard(p);
+  if (p.isDemo) return demoPhotoMarkup(p, idx);
   const photo = photoAt(p, idx);
   if (photo && photo.src) {
     return `<div class="photo-shield">
@@ -5198,6 +5524,8 @@ function cardHTML(p, depth) {
 function openProfileDetail(id) {
   const p = PROFILE_MAP[id];
   if (!p) return;
+  detailProfileId = id;
+  const revealed = photoRevealed(id);
   const reasons = matchReasons(p);
   const y = yearOf(p.age, p.birthYear);
   const age = parseInt(p.age, 10);
@@ -5217,9 +5545,9 @@ function openProfileDetail(id) {
     <p class="sheet__sub"><b>${head}</b></p>
     <p class="sheet__sub">${esc(p.job || '')} · ${esc(p.area || '')} · ${esc(p.mbti || '—')}${p.isDemo ? ' · 데모 프로필' : ''}</p>
     ${verifyPillsHTML(p) ? `<p class="sheet__verify">${verifyPillsHTML(p)}</p>` : ''}
-    ${p.isDemo
-      ? `<div class="detail-gallery detail-gallery--demo"><figure>${demoPhotoMarkup(p)}</figure></div>`
-      : `<div class="detail-gallery">${(p.photos || []).map((photo, i) => `<figure>${photoMarkup(p, i)}<figcaption>${esc(photo.caption || '')}</figcaption></figure>`).join('')}</div>`}
+    ${revealed
+      ? `<div class="detail-gallery">${(p.photos || []).map((photo, i) => `<figure>${photoMarkup(p, i)}<figcaption>${esc(photo.caption || (p.isDemo ? p.area : ''))}</figcaption></figure>`).join('')}</div>`
+      : `<div class="detail-gallery--locked"><figure>${lockedPhotoCard(p)}</figure></div>`}
     <div class="detail-sec"><h3>소개</h3><p class="detail-bio">${esc((p.bio || '').trim() || '아직 소개가 없어요.')}</p></div>
     <div class="detail-sec"><h3>기본 정보</h3><dl class="detail-info">${info.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>
     <div class="detail-sec"><h3>취미 · 가치관</h3>
@@ -5231,6 +5559,121 @@ function openProfileDetail(id) {
     <p class="demo-limits">추천 조건은 상대 프로필과 내가 고른 설정의 단순 비교입니다. 점수나 실제 관계 궁합을 보증하지 않아요.${p.isDemo ? ' 데모 프로필의 우선순위는 화면 확인을 위한 예시 값이에요.' : ''}</p>
     <button class="detail-report" data-action="report" data-id="${id}">이 프로필 신고하기</button>
     <div class="detail-actions"><button class="btn btn--ghost" data-action="close-sheet">닫기</button><button class="btn btn--primary" data-action="detail-like" data-id="${id}" ${front && front.id === id ? '' : 'disabled'}>호감 보내기</button></div>`);
+  if (revealed) ensurePhotos(id);
+}
+
+/* 열람한 사진이 아직 화면에 없을 때(사진 열을 따로 잠근 DB) 서버에서 한 번 받아 옵니다.
+   지금 스키마는 사진을 이미 함께 불러오므로 대부분은 그대로 지나갑니다. */
+async function ensurePhotos(id) {
+  const p = PROFILE_MAP[id];
+  if (!p || p.photosLoaded) return;
+  p.photosLoaded = true;
+  if ((p.photos || []).some((x) => x && x.src)) return;
+  try {
+    const r = await rpc('photo_view', { p_target: id });
+    if (!r || r.locked || !Array.isArray(r.photos) || !r.photos.length) return;
+    const caps = Array.isArray(r.captions) ? r.captions : [];
+    p.photos = r.photos.map((src, i) => ({ src, caption: caps[i] || (i === 0 ? '대표 사진' : `사진 ${i + 1}`) }));
+    if (detailProfileId === id) openProfileDetail(id);
+    if (activeChatId === id) { threadSignature = ''; renderThread(); }
+  } catch (e) { /* SQL 실행 전이거나 사진이 없는 프로필 — 예시 그림으로 둡니다 */ }
+}
+
+/* 대화방 — 인적사항만 보고 대화하는 중이라는 안내 + 사진 보기 버튼 (Path B) */
+function renderThreadPhotoBar() {
+  const bar = $('#threadPhotoBar');
+  if (!bar) return;
+  const id = activeChatId;
+  const p = id ? PROFILE_MAP[id] : null;
+  if (!id || !p || photoRevealed(id) || !hasPhotoSource(p)) {
+    bar.hidden = true;
+    bar.innerHTML = '';
+    return;
+  }
+  bar.hidden = false;
+  bar.innerHTML = `<span class="thread-photo__lock" aria-hidden="true">${lockGlyphSVG()}</span>
+    <span class="thread-photo__text"><b>사진 비공개</b></span>
+    <button type="button" class="btn btn--sm btn--primary" data-action="unlock-photo" data-id="${esc(id)}">사진 보기 · 매칭권 1장</button>`;
+}
+
+/* ---------- 사진 열람 (매칭권 1장) ----------
+   결제 · 차감 · 기록은 서버 함수(unlock_photo)가 한 번에 처리합니다.
+   SQL 을 아직 실행하지 않은 DB 에서는 이 기기에만 열람으로 남기고 차감하지 않습니다. */
+let unlockBusy = false;
+function openPhotoUnlockSheet(id) {
+  const p = PROFILE_MAP[id];
+  if (!p) return;
+  if (photoRevealed(id)) { openProfileDetail(id); return; }
+  const tickets = Number(state.tickets || 0);
+  const short = tickets < TICKET_COST;
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head"><h2>사진 열람</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button></div>
+    <div class="unlock-card">
+      ${partnerAvatarHTML(p, { cls: 'avatar--sm' })}
+      <div class="unlock-card__who">
+        <p class="unlock-card__name">${esc(p.name)}</p>
+        <p class="unlock-card__meta">${esc(p.job || '')} · ${esc(p.area || '')}</p>
+      </div>
+      <span class="status-pill">사진 비공개</span>
+    </div>
+    <p class="sheet__sub">${p.isDemo ? '데모 프로필은 사진 대신 예시 이미지가 열립니다.' : `${esc(p.name)}님의 사진을 매칭권 1장으로 볼 수 있어요.`}</p>
+    <ul class="unlock-list">
+      <li><span aria-hidden="true">·</span><div>매칭권 <b>1장(${PHOTO_PRICE_KRW}원)</b>이 차감돼요.</div></li>
+      <li><span aria-hidden="true">·</span><div>한 번 열면 <b>내 계정에 계속</b> 남아 다시 결제하지 않아요.</div></li>
+      <li><span aria-hidden="true">·</span><div>열람한 사진에는 옅은 워터마크가 올라가고 저장은 막혀요.</div></li>
+    </ul>
+    <div class="unlock-balance"><span>보유 매칭권</span><b>${tickets}장</b></div>
+    ${short ? '<p class="sheet__notice">매칭권이 모자라요. 충전한 뒤 다시 열어 주세요.</p>' : ''}
+    <div class="sheet__actions">
+      <button class="btn btn--ghost" data-action="close-sheet">취소</button>
+      ${short
+        ? '<button class="btn btn--primary" data-action="open-topup">매칭권 충전하기</button>'
+        : `<button class="btn btn--primary" data-action="confirm-photo-unlock" data-id="${esc(id)}">매칭권 1장으로 열기</button>`}
+    </div>`);
+}
+
+async function unlockPhoto(id) {
+  if (unlockBusy) return;
+  const p = PROFILE_MAP[id];
+  if (!p) return;
+  if (photoUnlocked(id)) { closeSheet(); openProfileDetail(id); return; }
+  if (Number(state.tickets || 0) < TICKET_COST) { closeSheet(); openTopUp('insufficient'); return; }
+  unlockBusy = true;
+  const stayInChat = activeChatId === id && $('#thread') && !$('#thread').hidden;
+  try {
+    const res = await rpc('unlock_photo', { p_target: id });
+    const already = !!(res && res.already === true);
+    markPhotoUnlocked(id);
+    if (res && typeof res.tickets === 'number') state.tickets = res.tickets;
+    await refreshAll().catch(() => {});
+    renderAll();
+    closeSheet();
+    if (stayInChat) { threadSignature = ''; renderThread(); } else { openProfileDetail(id); }
+    toast(already
+      ? '이미 열어 둔 사진이에요.'
+      : `${p.name}님의 사진을 열었어요.${p.isDemo ? ' 데모 예시 이미지가 보여요.' : ''}`,
+      { label: '사진 보기', action: () => openProfileDetail(id) });
+  } catch (err) {
+    const m = errorText(err);
+    if (/매칭권이 없어요/.test(m)) {
+      await refreshAll().catch(() => {});
+      renderAll();
+      closeSheet();
+      openTopUp('insufficient');
+      return;
+    }
+    if (/찾을 수 없|지금은 사진을 열 수 없는|로그인이 필요/.test(m)) { toast(m); return; }
+    /* 사진 열람권 SQL 을 아직 실행하지 않은 DB — 이 기기에서만 열람으로 표시합니다 (차감 없음) */
+    markPhotoUnlocked(id);
+    await refreshAll().catch(() => {});
+    renderAll();
+    closeSheet();
+    if (stayInChat) { threadSignature = ''; renderThread(); } else { openProfileDetail(id); }
+    toast('사진을 열었어요. (서버 기록 전 — 이 기기에만 저장돼요)');
+  } finally {
+    unlockBusy = false;
+  }
 }
 
 function renderMeetBar() {
@@ -5320,7 +5763,7 @@ function renderChatList() {
         const unread = state.unread[m.id] || 0;
         return `
           <li class="row" data-action="open-chat" data-id="${p.id}" style="cursor:pointer">
-            <button class="avatar avatar--tap" data-action="detail-profile" data-id="${p.id}" aria-label="${esc(p.name)} 프로필 보기">${avatarSVG(p.id, p.name)}</button>
+            ${partnerAvatarHTML(p, { cls: 'avatar--tap', action: true })}
             <div class="row__main">
               <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span>${verifyPillsHTML(p)}</p>
               <p class="row__sub">${last ? esc(last.text) : '첫 대화를 기다리고 있어요'}</p>
@@ -5342,17 +5785,22 @@ function renderThread() {
   syncThreadEnded(ended);
   const msgs = state.chats[activeChatId] || [];
   const match = state.matches.find((m) => m.id === activeChatId);
-  const signature = activeChatId + '|' + msgs.length + '|' + (state.chatRead[activeChatId] || '');
+  const signature = activeChatId + '|' + msgs.length + '|' + (state.chatRead[activeChatId] || '') + '|' + (photoRevealed(activeChatId) ? 'photo' : 'locked');
   if (signature === threadSignature) return;
   threadSignature = signature;
 
   const tAvatar = $('#threadAvatar');
-  tAvatar.innerHTML = avatarSVG(p.id, p.name);
+  const stateCls = partnerAvatarStateClass(p);
+  tAvatar.innerHTML = partnerAvatarInner(p);
+  tAvatar.classList.toggle('avatar--photo', stateCls === 'avatar--photo');
+  tAvatar.classList.toggle('avatar--art', stateCls === 'avatar--art');
+  tAvatar.classList.toggle('avatar--locked', stateCls === 'avatar--locked');
   tAvatar.dataset.id = activeChatId;
   const tWho = $('#threadWho');
   if (tWho) tWho.dataset.id = activeChatId;
   $('#threadName').textContent = p.name;
   $('#threadSub').textContent = `${match ? relTime(match.at) + ' 매칭' : '매칭'} · ${p.job} · ${p.mbti}`;
+  renderThreadPhotoBar();
   const moreBtn = $('#threadMoreBtn');
   if (moreBtn) moreBtn.dataset.id = activeChatId;
   const endedProfileBtn = $('#threadEndedProfile');
@@ -6739,7 +7187,7 @@ async function adminSetDemo(next) {
 
 /* ---------- 매칭권 이용내역 · 운영자 보조 ---------- */
 function showTicketHistory() {
-  const labels = { initial: '초기 지급', use: '호감 전송', refund: '무응답 반환', topup: '입금 충전' };
+  const labels = { initial: '초기 지급', use: '호감 전송', refund: '무응답 반환', topup: '입금 충전', photo: '사진 열람' };
   openSheet(`<div class="sheet__grabber"></div><div class="sheet__head"><h2>매칭권 이용내역</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기">✕</button></div>
     <p class="sheet__sub">현재 <b>${state.tickets}장</b> · 충전 / 사용 / 반환 기록</p>
     <div>${state.ticketLedger.length ? state.ticketLedger.map((x) => `<div class="ledger-item"><div class="ledger-item__top"><span class="ledger-item__title">${esc(labels[x.kind] || x.kind)}</span><b class="ledger-item__delta ${x.delta > 0 ? 'is-plus' : ''}">${x.delta > 0 ? '+' : ''}${x.delta}장</b></div><p class="ledger-item__detail">${esc(x.detail)}</p><p class="ledger-item__time">${esc(new Date(x.at).toLocaleString('ko-KR'))}</p></div>`).join('') : '<p class="sheet__sub">아직 내역이 없어요.</p>'}</div>
@@ -7078,6 +7526,9 @@ document.addEventListener('click', (e) => {
     case 'undo-pass': undoPass(); break;
     case 'tune-prefs': e.stopPropagation(); openPrioritySection(); break;
     case 'detail-profile': openProfileDetail(id); break;
+    case 'unlock-photo': openPhotoUnlockSheet(id); break;
+    case 'confirm-photo-unlock': unlockPhoto(id); break;
+    case 'admin-photo': openProfileDetail(id); break;
     case 'detail-like': {
       closeSheet();
       const top = dailyQueue()[0];
@@ -7354,6 +7805,51 @@ window.addEventListener('focus', () => {
     refreshAll().then(() => { renderAll(); }).catch(() => {});
   }
 });
+
+/* 하단 시트 — 손가락·마우스로 아래로 끌어내려 닫기 */
+(function wireSheetDrag() {
+  const sheet = document.getElementById('sheet');
+  if (!sheet) return;
+
+  sheet.addEventListener('touchstart', (e) => {
+    const t = e.touches && e.touches[0];
+    if (!t) return;
+    sheetDragBegin(t.clientY, t.clientX, e.target);
+  }, { passive: true });
+
+  sheet.addEventListener('touchmove', (e) => {
+    const t = e.touches && e.touches[0];
+    if (!t) return;
+    sheetDragMove(t.clientY, t.clientX, e);
+  }, { passive: false });
+
+  sheet.addEventListener('touchend', () => { sheetDragEnd(Date.now()); }, { passive: true });
+
+  sheet.addEventListener('touchcancel', () => {
+    const drag = sheetDrag;
+    sheetDrag = null;
+    const wrap = sheetWrapEl();
+    if (wrap) wrap.classList.remove('is-dragging');
+    if (drag && drag.active) sheetDragEnd(Date.now());
+    else sheet.classList.remove('is-dragging');
+  }, { passive: true });
+
+  /* 데스크톱·미리보기용 마우스 드래그 (같은 동작) */
+  let mouseDragging = false;
+  sheet.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    mouseDragging = sheetDragBegin(e.clientY, e.clientX, e.target);
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!mouseDragging) return;
+    if (sheetDragMove(e.clientY, e.clientX, null)) e.preventDefault();
+  });
+  window.addEventListener('mouseup', () => {
+    if (!mouseDragging) return;
+    mouseDragging = false;
+    sheetDragEnd(Date.now());
+  });
+})();
 
 /* ==========================================================================
    6. 시작
