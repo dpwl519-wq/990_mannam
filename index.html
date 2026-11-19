@@ -4396,20 +4396,42 @@ function fillProfileForm() {
   syncVerifiedFieldLocks();
 }
 
-/* 다시 그리면서 화면이 튀지 않도록 — 스크롤 위치와 포커스를 그대로 돌려놓습니다 */
+/* 다시 그리면서 화면이 튀지 않도록 — 보던 자리(포커스 또는 화면에 보이는 첫 요소)를 그대로 지킵니다 */
+function pickViewportAnchor(view) {
+  if (!view) return null;
+  const active = document.activeElement;
+  if (active && active.id && view.contains(active)) return active;
+  const ids = ['verifySection', 'photoManage', 'fNickname', 'fAge', 'fJob', 'fCompanyView', 'fMbti',
+    'fHeight', 'fProvince', 'fDistrict', 'fBio', 'profileSaveBtn'];
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    if (!el || !view.contains(el)) continue;
+    const r = el.getBoundingClientRect();
+    if (r.bottom > 0 && r.top < innerHeight) return el;
+  }
+  return null;
+}
+
 function withViewportStable(fn) {
   const view = document.querySelector('.view.is-active') || document.querySelector('.view[data-view="profile"]');
   const top = view ? view.scrollTop : 0;
-  const active = document.activeElement;
-  const activeId = active && active.id ? active.id : '';
+  const anchor = pickViewportAnchor(view);
+  const anchorTop = anchor ? anchor.getBoundingClientRect().top : null;
+  const anchorId = anchor && anchor.id ? anchor.id : '';
   fn();
-  if (view) view.scrollTop = top;
-  if (activeId) {
-    const el = document.getElementById(activeId);
-    if (el && el !== document.activeElement && !el.disabled) {
-      try { el.focus({ preventScroll: true }); } catch (e) { try { el.focus(); } catch (e2) { /* 무시 */ } }
+  if (!view) return;
+  if (anchorId && anchorTop !== null) {
+    const el = document.getElementById(anchorId);
+    if (el) {
+      const delta = el.getBoundingClientRect().top - anchorTop;
+      if (Math.abs(delta) >= 1) view.scrollTop = Math.max(0, view.scrollTop + delta);
+      if (document.activeElement !== el && !el.disabled && el.tagName !== 'DIV') {
+        try { el.focus({ preventScroll: true }); } catch (e) { /* 무시 */ }
+      }
+      return;
     }
   }
+  view.scrollTop = top;
 }
 
 async function saveProfile() {
