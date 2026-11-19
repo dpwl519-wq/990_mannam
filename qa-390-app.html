@@ -4703,7 +4703,7 @@ async function checkSignupApproval() {
   } finally {
     checkingApproval = false;
     const again = document.querySelector('[data-action="check-approval"]');
-    if (again) again.disabled = false;
+    if (again) { again.disabled = false; again.textContent = '새로고침 (승인 확인)'; }
   }
 }
 
@@ -7046,9 +7046,12 @@ window.addEventListener('focus', () => {
 </script>
 
 <script>
-/* QA 전용: 가입 승인 대기 화면을 390x844 에서 확인하기 위한 임시 주입 (배포 전 삭제) */
+/* QA 전용: 390x844 화면 확인 + 오류 수집 (배포 전 삭제) */
+window.__errs = [];
+window.addEventListener('error', function(e){ window.__errs.push(String(e.message || e.error)); });
+window.addEventListener('unhandledrejection', function(e){ window.__errs.push('promise: ' + String(e.reason && e.reason.message || e.reason)); });
 (function(){
-  var t = setInterval(function(){
+  setInterval(function(){
     try {
       if (typeof state !== 'undefined' && session && state.user && state.user.nickname) {
         state.accessStatus = 'pending';
@@ -7056,7 +7059,7 @@ window.addEventListener('focus', () => {
         wallet.email = 'yeji.sample@naver.com';
         applySignupGate(false);
       }
-    } catch (e) {}
+    } catch (e) { window.__errs.push('inject: ' + e.message); }
   }, 300);
 })();
 </script>
