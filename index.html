@@ -243,7 +243,8 @@ img{display:block;max-width:100%}
 .card.fly-like{transform:translate3d(132%,-3%,0) rotate(11deg);opacity:0;transition:transform .52s cubic-bezier(.34,.04,.3,1),opacity .48s ease-in}
 .card.fly-pass{transform:translate3d(-132%,-3%,0) rotate(-11deg);opacity:0;transition:transform .52s cubic-bezier(.34,.04,.3,1),opacity .48s ease-in}
 
-.card-photo{position:relative;flex:0 0 auto;height:clamp(158px,23vh,198px);overflow:hidden;background:var(--paper-2)}
+.card-photo{position:relative;flex:0 1 auto;height:clamp(158px,23vh,198px);min-height:72px;overflow:hidden;background:var(--paper-2)}
+@media(max-height:720px){.card-photo{height:clamp(112px,17vh,158px)}}
 .card-art{position:absolute;inset:0;overflow:hidden;animation:artIn .9s var(--ease) both}
 .card-art svg{width:100%;height:100%;display:block;transform:scale(1.16);transform-origin:50% 44%}
 @keyframes artIn{from{opacity:0}}
@@ -276,9 +277,10 @@ img{display:block;max-width:100%}
 .card-badge--hit{background:rgba(201,214,201,.45);color:var(--sage-ink)}
 .card-name{
   font-family:var(--font-title);font-size:20px;font-weight:700;letter-spacing:-.02em;
-  display:flex;align-items:baseline;gap:7px;line-height:1.3;
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:7px;line-height:1.3;
+  min-width:0;overflow-wrap:anywhere;word-break:keep-all;
 }
-.card-name span{font-size:12px;font-weight:400;color:var(--ink-3);letter-spacing:.02em}
+.card-name span{font-size:12px;font-weight:400;color:var(--ink-3);letter-spacing:.02em;flex:0 0 auto}
 .card-meta{margin-top:4px;font-size:11px;font-weight:400;color:var(--ink-2);letter-spacing:.02em}
 
 .swipe-label{
@@ -551,6 +553,14 @@ img{display:block;max-width:100%}
   font-size:11.5px;letter-spacing:.02em;
 }
 .phone-add .btn{flex:0 0 auto}
+.text-btn--sm{font-size:10px;padding:7px 12px}
+.contact-sync{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:9px}
+.lock-banner{
+  display:flex;flex-direction:column;gap:5px;margin:2px 0 14px;padding:12px 14px;border-radius:12px;
+  background:rgba(230,217,200,.4);color:#6B5A3E;font-size:11px;line-height:1.7;letter-spacing:.01em;
+}
+.lock-banner b{font-family:var(--font-title);font-size:12px;letter-spacing:-.01em;color:#5C4B32}
+.lock-banner span{color:#7A6A50}
 .blocked-item{
   display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px;padding:9px 12px;
   border-radius:9px;background:rgba(46,40,37,.025);font-size:10px;color:var(--ink-2);letter-spacing:.02em;
@@ -619,6 +629,10 @@ img{display:block;max-width:100%}
 }
 .tab.is-active{color:var(--ink)}
 .tab.is-active::after{width:14px}
+.tab.is-locked{opacity:.42}
+.tab.is-locked::before{
+  content:'🔒';position:absolute;top:6px;right:calc(50% - 24px);font-size:8px;opacity:.7;
+}
 .tab:active svg{transform:scale(.92)}
 .tab__badge{
   position:absolute;top:8px;right:calc(50% - 18px);min-width:15px;height:15px;padding:0 4px;border-radius:8px;
@@ -1115,6 +1129,8 @@ body.mode-admin .toast{bottom:24px}
           </header>
           <svg class="wave" viewBox="0 0 320 8" preserveAspectRatio="none" aria-hidden="true"><path d="M0 4 q20 -4 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
 
+          <div class="lock-banner" id="profileLockBanner" hidden></div>
+
           <div class="profile-card">
             <div class="avatar avatar--lg" id="meAvatar"></div>
             <div class="profile-card__text">
@@ -1184,7 +1200,7 @@ body.mode-admin .toast{bottom:24px}
               <div class="field field--col"><span>매칭 우선순위</span>
                 <div class="chips-select" id="priorityChips"></div>
                 <p class="priority-summary" id="prioritySummary"></p>
-                <p class="sheet-hint">순서대로 최대 3개 · 궁합과 카드 순서가 바로 바뀝니다</p>
+                <p class="sheet-hint">순서대로 최대 3개 · 궁합과 카드 순서가 바로 바뀝니다<br>외모는 사진을 올린 프로필, 나이는 위의 선호 나이, 키는 178cm 이상을 기준으로 해요.</p>
               </div>
               <div class="field field--col"><span>선호 지역</span><div class="chips-select" id="areaChips"></div></div>
               <div class="field field--col"><span>중요하게 보는 것</span><div class="chips-select" id="valueChips"></div></div>
@@ -1210,7 +1226,13 @@ body.mode-admin .toast{bottom:24px}
                   <input id="blockPhone" placeholder="010-0000-0000" inputmode="numeric" maxlength="15" aria-label="차단할 번호">
                   <button class="btn btn--sm btn--primary" data-action="add-block">추가</button>
                 </div>
+                <div class="contact-sync">
+                  <button type="button" class="text-btn text-btn--sm" data-action="pick-contacts" id="contactPickBtn">연락처에서 불러오기</button>
+                  <button type="button" class="text-btn text-btn--sm" data-action="vcf-upload">연락처 파일(.vcf)</button>
+                  <input type="file" id="vcfInput" accept=".vcf,text/vcard,text/x-vcard,text/plain" hidden>
+                </div>
                 <p class="sheet-hint">번호는 <b>마스킹과 해시</b>로만 저장하고 원본은 남기지 않아요.</p>
+                <p class="sheet-hint" id="contactSyncHint"></p>
                 <ul id="blockedList"></ul>
                 <p class="safety-note-inline" id="safetySummary"></p>
               </div>
@@ -1519,12 +1541,14 @@ const AREA_OPTIONS = ['성수·성동', '망원·마포', '판교·분당', '일
 const VALUE_OPTIONS = ['다정한 대화', '진솔함', '유머 코드', '안정적인 생활', '같은 취미'];
 const MBTI_TYPES = ['ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
 const PRIORITY_OPTIONS = [
+  { key: 'looks', label: '외모' },
+  { key: 'job', label: '직장' },
+  { key: 'style', label: '키' },
+  { key: 'age', label: '나이' },
   { key: 'personality', label: 'MBTI·성격' },
-  { key: 'job', label: '직장·안정감' },
   { key: 'area', label: '동네·거리' },
   { key: 'hobby', label: '취미·가치관' },
-  { key: 'habit', label: '비흡연·음주' },
-  { key: 'style', label: '키·스타일' }
+  { key: 'habit', label: '비흡연·음주' }
 ];
 const PRIORITY_LABEL = Object.fromEntries(PRIORITY_OPTIONS.map((o) => [o.key, o.label]));
 const REPORT_REASONS = ['불쾌한 대화·메시지', '허위 프로필 의심', '부적절한 사진·내용', '광고·사기 의심', '기타'];
@@ -1993,10 +2017,14 @@ async function afterLogin() {
     await refreshAll();
     fillProfileForm();
     renderAll();
+    const missingParts = refreshProfileLock();
     if (adminTry) {
       switchMode('admin');
       switchAdminTab('verify');
       toast('운영자 콘솔에 들어왔어요.');
+    } else if (missingParts.length) {
+      switchView('profile');
+      toast('프로필 등록을 먼저 마쳐 주세요. 사진 1장과 모든 항목이 필요해요.');
     } else {
       switchView('today');
       toast(`안녕하세요, ${state.user.nickname || '예지'}님. 오늘의 인연을 준비했어요.`);
@@ -2343,8 +2371,11 @@ function myVerified() { return state.verification.status === 'verified'; }
 function matchesPriority(p, key) {
   const prefs = state.user.prefs;
   switch (key) {
+    case 'looks': return (p.photos || []).some((ph) => ph && ph.src) ? true : null;   // 사진을 올린 프로필을 먼저
     case 'personality': return prefs.mbti && prefs.mbti.length ? prefs.mbti.includes(p.mbti) : null;
     case 'job': return Boolean(p.jobStable);
+    case 'age': return Number.isFinite(p.age)
+      ? (p.age >= Number(prefs.ageMin) && p.age <= Number(prefs.ageMax)) : null;
     case 'area': return (p.distKm || 99) <= 7;
     case 'hobby': return (p.hobbyMatch || 0) >= 2;
     case 'habit': return Boolean(p.nonsmoker);
@@ -2361,8 +2392,9 @@ function matchReasons(p) {
   if ((prefs.areas || []).includes('서울 전역') && ['성수동','망원동','연남동'].includes(p.area)) reasons.push(`선호 지역 서울 · ${p.area}`);
   if ((prefs.areas || []).some(a => (a.startsWith('성수') && p.area === '성수동') || (a.startsWith('망원') && p.area === '망원동') || (a.startsWith('판교') && p.area === '판교') || (a === p.area))) reasons.push(`선호 지역 ${p.area} 일치`);
   (prefs.priorities || []).forEach(key => { if (matchesPriority(p,key) === true) {
-    const criterion = {personality:`성격 우선: ${p.mbti}`,job:'직장·안정감 우선 조건 충족 (샘플)',area:`거리 우선 조건 충족 (샘플 ${p.distKm}km)`,hobby:'취미 우선 조건 충족 (샘플)',habit:'비흡연 조건 충족',style:`키 조건 충족 (${p.height}cm)`};
-    if (!reasons.includes(criterion[key])) reasons.push(criterion[key]);
+    const criterion = {looks:'외모 우선: 사진 등록 프로필',job:'직장 우선 조건 충족 (샘플)',age:`나이 우선 조건 충족 (${p.age}세)`,personality:`성격 우선: ${p.mbti}`,area:`거리 우선 조건 충족 (샘플 ${p.distKm}km)`,hobby:'취미 우선 조건 충족 (샘플)',habit:'비흡연 조건 충족',style:`키 우선 조건 충족 (${p.height}cm)`};
+    const text = criterion[key];
+    if (text && !reasons.includes(text)) reasons.push(text);
   }});
   return [...new Set(reasons)];
 }
@@ -3335,6 +3367,7 @@ function renderSafety() {
   $('#safetySummary').textContent = hidden
     ? `지금 오늘의 인연에서 ${hidden}분이 숨겨져 있어요.`
     : '지금 숨겨진 인연은 없어요.';
+  renderContactSync();
 }
 
 /* ---------- 4-6. 탭 배지 ---------- */
@@ -3580,6 +3613,7 @@ function toast(message, opts = {}) {
 }
 
 function switchView(name) {
+  if (profileLocked && name && name !== 'profile') name = 'profile';
   $$('.view').forEach((v) => v.classList.toggle('is-active', v.dataset.view === name));
   $$('.tab').forEach((t) => {
     const on = t.dataset.view === name;
@@ -3619,6 +3653,7 @@ function switchAdminTab(tab) {
 }
 
 function renderAll() {
+  refreshProfileLock();
   renderDeck();
   renderMatches();
   renderChatList();
@@ -3628,6 +3663,60 @@ function renderAll() {
   renderNav();
   renderAccountSection();
   if (currentMode === 'admin') renderAdmin();
+}
+
+/* ---------- 프로필 등록 잠금 ----------
+   사진 1장과 모든 항목을 채우기 전에는 다른 탭을 열지 않습니다.
+   (운영자 계정·운영자로 승인된 계정은 제외)
+   --------------------------------------------------------------------- */
+const PROFILE_REQUIRED_FIELDS = [
+  { key: 'nickname', label: '닉네임', sel: '#fNickname' },
+  { key: 'age', label: '나이', sel: '#fAge' },
+  { key: 'job', label: '직업', sel: '#fJob' },
+  { key: 'company', label: '회사', sel: '#fCompany' },
+  { key: 'region', label: '지역', sel: '#fRegion' },
+  { key: 'mbti', label: 'MBTI', sel: '#fMbti' },
+  { key: 'height', label: '키', sel: '#fHeight' },
+  { key: 'bio', label: '한 줄 소개', sel: '#fBio' },
+  { key: 'photo', label: '프로필 사진', sel: '#photoManage' }
+];
+let profileLocked = false;
+
+function profileFilled() {
+  const u = state.user || {};
+  return {
+    nickname: Boolean((u.nickname || '').trim()),
+    age: Number(u.age) > 0 || Number(u.birthYear) > 0,
+    job: Boolean((u.job || '').trim()),
+    company: Boolean((u.company || '').trim()),
+    region: Boolean((u.region || '').trim()),
+    mbti: Boolean((u.mbti || '').trim()),
+    height: Number(u.height) > 0,
+    bio: Boolean((u.bio || '').trim()),
+    photo: (u.photos || []).length > 0
+  };
+}
+function missingProfileParts() {
+  const filled = profileFilled();
+  return PROFILE_REQUIRED_FIELDS.filter((f) => !filled[f.key]);
+}
+function refreshProfileLock() {
+  const missing = missingProfileParts();
+  profileLocked = !isAdmin && missing.length > 0;
+  const banner = $('#profileLockBanner');
+  if (banner) {
+    banner.hidden = !profileLocked;
+    if (profileLocked) {
+      banner.innerHTML = `<b>프로필 등록을 먼저 마쳐 주세요</b>
+        <span>사진 1장과 모든 항목을 채우면 다른 화면을 볼 수 있어요.<br>빠진 항목 · ${esc(missing.map((f) => f.label).join(', '))}</span>`;
+    }
+  }
+  $$('.tab').forEach((t) => {
+    const locked = profileLocked && t.dataset.view !== 'profile';
+    t.classList.toggle('is-locked', locked);
+    t.setAttribute('aria-disabled', String(locked));
+  });
+  return missing;
 }
 
 /* ---------- v0.5 함수 덮어쓰기 (서버 상태 기준) ---------- */
@@ -3910,6 +3999,24 @@ async function saveProfile() {
 
   if (!nickname) { toast('닉네임을 입력해 주세요.'); $('#fNickname').focus(); return; }
   if (!Number.isFinite(age) || age < 19 || age > 99) { toast('나이는 19~99세 사이로 입력해 주세요'); $('#fAge').focus(); return; }
+  /* 프로필 등록 — 사진 1장과 모든 항목이 필요합니다 */
+  const missing = [];
+  if (!job) missing.push(PROFILE_REQUIRED_FIELDS[2]);
+  if (!company) missing.push(PROFILE_REQUIRED_FIELDS[3]);
+  if (!region) missing.push(PROFILE_REQUIRED_FIELDS[4]);
+  if (!mbti) missing.push(PROFILE_REQUIRED_FIELDS[5]);
+  if (!Number.isFinite(height) || height <= 0) missing.push(PROFILE_REQUIRED_FIELDS[6]);
+  if (!bio) missing.push(PROFILE_REQUIRED_FIELDS[7]);
+  if (!(state.user.photos || []).length) missing.push(PROFILE_REQUIRED_FIELDS[8]);
+  if (missing.length) {
+    toast(`프로필을 마치려면 ${missing.map((m) => m.label).join(', ')}을(를) 채워 주세요.`);
+    const el = $(missing[0].sel);
+    if (el) {
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      if (el.focus && el.tagName !== 'DIV') el.focus();
+    }
+    return;
+  }
   if (Number.isFinite(ageMin) && Number.isFinite(ageMax) && ageMin > ageMax) { const t = ageMin; ageMin = ageMax; ageMax = t; }
 
   const prefs = {
@@ -3928,7 +4035,13 @@ async function saveProfile() {
     if (error) throw error;
     await refreshAll();
     fillProfileForm(); renderAll();
-    toast('프로필을 저장했어요.');
+    const stillMissing = refreshProfileLock();
+    if (stillMissing.length) {
+      toast('프로필을 저장했어요.');
+    } else {
+      toast('프로필 등록을 마쳤어요. 이제 오늘의 인연을 볼 수 있어요.');
+      switchView('today');
+    }
   } catch (err) { toast(errorText(err)); }
 }
 
@@ -4024,6 +4137,100 @@ function removeBlockedNumber(hash) {
   toast('차단을 해제했어요');
 }
 
+/* ---------- 연락처 동기화 · .vcf 불러오기 (번호는 기기 안에서 해시로만) ---------- */
+const MAX_BLOCKED_PHONES = 500;
+
+function canPickContacts() {
+  return !!(navigator.contacts && typeof navigator.contacts.select === 'function');
+}
+
+function renderContactSync() {
+  const hint = $('#contactSyncHint');
+  if (!hint) return;
+  const btn = $('#contactPickBtn');
+  const ok = canPickContacts();
+  if (btn) btn.setAttribute('aria-disabled', String(!ok));
+  hint.innerHTML = ok
+    ? '연락처에서 <b>번호만</b> 골라 기기 안에서 해시로 바꿔 저장해요. 이름은 가져오거나 저장하지 않아요.'
+    : '이 브라우저는 연락처 자동 불러오기를 지원하지 않아요(iOS Safari). 아이폰은 연락처 앱 → 연락처 내보내기(.vcf) 후 파일로 올리거나, 번호를 직접 입력해 주세요.';
+}
+
+/* 여러 번호 → 해시만 골라 차단 목록에 추가 */
+async function blockPhoneNumbers(rawList, source) {
+  const current = state.safety.blockedNumbers || [];
+  const seen = new Set(current.map((b) => b.hash));
+  const room = Math.max(0, MAX_BLOCKED_PHONES - current.length);
+  const added = [];
+  let dup = 0, bad = 0;
+  (rawList || []).forEach((raw) => {
+    const digits = normPhone(raw);
+    if (digits.length < 10 || digits.length > 11) { bad++; return; }
+    const hash = hashPhone(digits);
+    if (seen.has(hash)) { dup++; return; }
+    if (added.length >= room) return;
+    seen.add(hash);
+    added.push({ hash, masked: maskPhone(digits), at: new Date().toISOString() });
+  });
+  if (!added.length) {
+    toast(room === 0 ? `차단 목록은 ${MAX_BLOCKED_PHONES}개까지 담을 수 있어요.`
+      : (dup ? '이미 차단된 번호뿐이에요.' : '차단할 번호를 찾지 못했어요.'));
+    return 0;
+  }
+  await saveSafety({ blockedNumbers: [...current, ...added] });
+  const extra = [];
+  if (dup) extra.push(`이미 차단 ${dup}개`);
+  if (bad) extra.push(`번호 아님 ${bad}개`);
+  if (!room || added.length === room) extra.push(`한도 ${MAX_BLOCKED_PHONES}개`);
+  toast(`${source}에서 ${added.length}개 번호를 차단했어요${extra.length ? ` (${extra.join(' · ')})` : ''}.`);
+  return added.length;
+}
+
+async function pickContacts() {
+  if (!canPickContacts()) {
+    toast('이 브라우저는 연락처 불러오기를 지원하지 않아요. 연락처 파일(.vcf)이나 직접 입력을 이용해 주세요.');
+    return;
+  }
+  try {
+    const picked = await navigator.contacts.select(['tel'], { multiple: true });
+    const numbers = [];
+    (picked || []).forEach((c) => (c.tel || []).forEach((t) => numbers.push(t)));
+    if (!numbers.length) { toast('고른 연락처에 번호가 없어요.'); return; }
+    await blockPhoneNumbers(numbers, '연락처');
+  } catch (err) {
+    console.warn('[contacts]', err);
+    if (err && (err.name === 'AbortError' || err.name === 'NotAllowedError')) return;
+    toast('연락처를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.');
+  }
+}
+
+function parseVcf(text) {
+  const out = [];
+  String(text || '')
+    .replace(/\r/g, '')
+    .replace(/\n[ \t]/g, '')            // 접힌 줄 이어붙이기
+    .split('\n')
+    .forEach((line) => {
+      const m = /^TEL[^:]*:(.+)$/i.exec(line.trim());
+      if (!m) return;
+      const raw = m[1].replace(/^tel:/i, '').split(';')[0].trim();
+      if (raw) out.push(raw);
+    });
+  return out;
+}
+
+async function onVcfFile(file) {
+  if (!file) return;
+  if (file.size > 8 * 1024 * 1024) { toast('파일이 너무 커요. 8MB 이하 파일로 올려 주세요.'); return; }
+  try {
+    const numbers = parseVcf(await file.text());
+    if (!numbers.length) { toast('이 파일에서 번호를 찾지 못했어요. .vcf 연락처 파일인지 확인해 주세요.'); return; }
+    await blockPhoneNumbers(numbers, '연락처 파일');
+  } catch (err) {
+    console.warn('[vcf]', err);
+    toast('파일을 읽지 못했어요. 다른 파일로 시도해 주세요.');
+  }
+}
+
 /* ---------- 사진 ---------- */
 function readImageFile(file, max = 760, quality = 0.72) {
   return new Promise((resolve, reject) => {
@@ -4053,6 +4260,7 @@ async function savePhotos(list) {
     if (error) throw error;
     state.user.photos = list;
     renderProfileChrome();
+    refreshProfileLock();
     toast('사진을 저장했어요. 첫 사진이 대표 사진이 돼요.');
   } catch (err) { toast(errorText(err)); }
 }
@@ -4870,10 +5078,15 @@ document.addEventListener('click', (e) => {
     case 'admin-open': openAdminPanel(''); break;
     case 'admin-close': closeAdminPanel(true); break;
     case 'admin-create': doAdminCreate(); break;
+    case 'pick-contacts': pickContacts(); break;
+    case 'vcf-upload': { const f = $('#vcfInput'); if (f) f.click(); break; }
     case 'logout': doLogout(); break;
     /* 화면 */
     case 'mode': switchMode(el.dataset.mode); break;
-    case 'tab': switchView(el.dataset.view); break;
+    case 'tab':
+      if (profileLocked && el.dataset.view !== 'profile') toast('프로필 등록을 완료해야 다른 화면을 볼 수 있어요.');
+      switchView(el.dataset.view);
+      break;
     case 'close-sheet': closeSheet(); break;
     case 'toast-action': {
       const fn = toastAction;
@@ -4990,6 +5203,7 @@ document.addEventListener('input', (e) => {
 });
 
 document.addEventListener('change', async (e) => {
+  if (e.target.id === 'vcfInput') { const f = e.target.files && e.target.files[0]; e.target.value = ''; onVcfFile(f); return; }
   if (!e.target.matches('[data-photo-upload]')) return;
   const file = e.target.files && e.target.files[0];
   if (!file) return;
@@ -5104,9 +5318,11 @@ window.addEventListener('focus', () => {
   const loginForm = $('#loginForm');
   const signupForm = $('#signupForm');
   const adminEntryForm = $('#adminEntryForm');
+  const profileForm = $('#profileForm');
   if (loginForm) loginForm.addEventListener('submit', doLogin);
   if (signupForm) signupForm.addEventListener('submit', doSignup);
   if (adminEntryForm) adminEntryForm.addEventListener('submit', doAdminEntry);
+  if (profileForm) profileForm.addEventListener('submit', (e) => { e.preventDefault(); saveProfile(); });
   prefillNickname(false);
 
   if (!initSupabase()) return;
