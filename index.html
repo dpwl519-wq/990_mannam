@@ -1662,6 +1662,7 @@ async function doLogin(e) {
   setAuthMsg('로그인 중…', 'login');
   const { error } = await sb.auth.signInWithPassword({ email, password: pass });
   if (error) {
+    if (/Database error|relation .* does not exist|schema cache/i.test(error.message)) schemaBanner();
     const m = /Invalid login credentials/i.test(error.message) ? '이메일 또는 비밀번호가 맞지 않아요.'
       : /Email not confirmed/i.test(error.message) ? '이메일 인증이 아직 안 됐어요. 메일함의 인증 링크를 먼저 눌러 주세요.'
       : error.message;
@@ -1693,6 +1694,11 @@ async function doSignup(e) {
     }
   });
   if (error) {
+    if (/Database error|relation .* does not exist|schema cache/i.test(error.message)) {
+      schemaBanner();
+      setAuthMsg('Supabase 테이블이 아직 없어요. supabase_schema.sql 을 SQL Editor 에서 먼저 실행해 주세요.', 'signup');
+      return;
+    }
     const m = /already registered|already been registered/i.test(error.message)
       ? '이미 가입된 이메일이에요. 로그인해 주세요.' : error.message;
     setAuthMsg(m, 'signup');
@@ -4684,8 +4690,15 @@ window.addEventListener('focus', () => {
     if (s && !had) setTimeout(() => afterLogin(), 0);
   });
 
-  if (session) await afterLogin();
-  else showAuth();
+  if (session) {
+    await afterLogin();
+  } else {
+    showAuth();
+    try {
+      const ok = await ensureSchema();
+      if (!ok) schemaBanner();
+    } catch (err) { /* 무시 */ }
+  }
 })();
 </script>
 </body>
