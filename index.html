@@ -937,6 +937,11 @@ body.mode-admin .toast{bottom:24px}
 .admin-gate h1{font-family:var(--font-title);font-size:23px;font-weight:700;letter-spacing:-.02em;margin:4px 0 0}
 .admin-gate .admin-sub{font-size:12px;color:var(--ink-2);line-height:1.75;margin:0 0 4px}
 .admin-gate .sheet-hint{text-align:left;line-height:1.7}
+/* ── 채팅방: 하단 탭바 위로 입력창이 오도록 ────────────────────── */
+.thread{inset:0 0 var(--nav-h) 0}
+.thread-head__text{min-width:0}
+.thread-head__sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thread-head .btn{white-space:nowrap;flex:0 0 auto}
 </style>
 </head>
 <body>
@@ -1196,7 +1201,7 @@ body.mode-admin .toast{bottom:24px}
                   <input id="blockPhone" placeholder="010-0000-0000" inputmode="numeric" maxlength="15" aria-label="차단할 번호">
                   <button class="btn btn--sm btn--primary" data-action="add-block">추가</button>
                 </div>
-                <p class="sheet-hint">번호는 <b>마스킹과 해시</b>로만 저장하고 원본은 남기지 않아요. 데모 예시: <b>010-5555-1234</b></p>
+                <p class="sheet-hint">번호는 <b>마스킹과 해시</b>로만 저장하고 원본은 남기지 않아요.</p>
                 <ul id="blockedList"></ul>
                 <p class="safety-note-inline" id="safetySummary"></p>
               </div>
@@ -1209,7 +1214,7 @@ body.mode-admin .toast{bottom:24px}
                 <p class="ticket-card__label">매칭권</p>
                 <p class="ticket-card__value"><b id="ticketBalance">3</b>장 남음</p>
                 <p class="ticket-card__hint">1장 990원 · 48시간 무응답이면 자동 반환</p>
-                <p class="ticket-card__hint">보유 포인트 <b id="profilePoints">0</b>P · 결제에 사용할 수 있어요</p>
+                <p class="ticket-card__hint">보유 포인트 <b id="profilePoints">0</b>P · 990P면 매칭권 1장</p>
               </div>
               <button class="btn btn--white" data-action="open-topup">충전하기</button>
             </div>
@@ -2599,7 +2604,6 @@ function renderMatches() {
       <div class="section__head"><h2 class="section__title">보낸 호감</h2><span class="section__count">${state.sent.length}건</span></div>
       <div class="refund-banner">
         <span>48시간 안에 답이 없으면 <b>990원 매칭권이 자동으로 돌아와요</b></span>
-        <button data-action="demo-expire">환불 데모</button>
       </div>
       <ul class="list">${sentHTML}</ul>
     </section>
@@ -2790,7 +2794,7 @@ function openMeetSheet(id, step) {
         <button class="btn btn--ghost" data-action="close-sheet">나중에</button>
         <button class="btn btn--primary" data-action="confirm-plan" data-id="${id}" id="confirmPlanBtn" ${planDraft ? '' : 'disabled'}>약속 저장</button>
       </div>
-      <p class="sheet__note">데모 약속이에요. 실제 캘린더 연동은 다음 단계에서 붙일 수 있어요.</p>`);
+      <p class="sheet__note">약속 날짜는 두 사람의 대화방에만 기록돼요. 캘린더 연동은 다음 단계예요.</p>`);
     return;
   }
 
@@ -3435,7 +3439,7 @@ function cardHTML(p, depth) {
       <div class="card-photo">
         <div class="card-art">${photoMarkup(p, photoIndex)}</div>
         ${isVerified(p.id) ? '<span class="card-sticker card-sticker--verified">직장인 인증</span>' : ''}
-        ${p.isDemo ? '<span class="card-sticker" style="top:14px;left:14px;color:#8C5B4A">데모 프로필</span>' : ''}
+        ${p.isDemo ? '<span class="card-sticker" style="top:46px;left:14px;color:#8C5B4A">데모 프로필</span>' : ''}
         <span class="card-sticker card-sticker--score"><b>${reasons.length}개</b> 추천 조건 일치</span>
         <div class="swipe-label swipe-label--like">호감</div>
         <div class="swipe-label swipe-label--pass">건너뛰기</div>
@@ -4035,9 +4039,12 @@ async function openTopUp(reason) {
         </li>`).join('')}
     </ul>
     <div class="form-card" style="margin-top:14px">
-      <p class="sheet__sub" style="margin:0 0 6px"><b>입금 계좌</b> · ${esc(info.bank_name || '카카오뱅크')} ${esc(info.bank_account || '')} (예금주 ${esc(info.account_holder || '')})</p>
-      <p class="sheet__hint" style="margin:0 0 10px">카카오페이 송금 ID · <b>${esc(info.kakaopay_id || '-')}</b><br>
-      위 계좌로 <b>${chargePack.price.toLocaleString('ko-KR')}원</b>을 입금하신 뒤 아래에 <b>입금자명</b>을 적어 주세요. 운영자가 확인하면 매칭권이 바로 충전됩니다.</p>
+      ${info.bank_account
+        ? `<p class="sheet__sub" style="margin:0 0 6px"><b>입금 계좌</b> · ${esc(info.bank_name || '')} ${esc(info.bank_account)} (예금주 ${esc(info.account_holder || '')})</p>
+           <p class="sheet__hint" style="margin:0 0 10px">카카오페이 송금 ID · <b>${esc(info.kakaopay_id || '-')}</b><br>
+           위 계좌로 <b>${chargePack.price.toLocaleString('ko-KR')}원</b>을 입금하신 뒤 아래에 <b>입금자명</b>을 적어 주세요. 운영자가 확인하면 매칭권이 바로 충전됩니다.</p>`
+        : `<p class="sheet__notice" style="margin:0 0 8px">입금 계좌가 아직 등록되지 않았어요. 운영자 콘솔 → 입금 계좌 설정에서 계좌를 먼저 저장해 주세요.</p>
+           <p class="sheet__hint" style="margin:0 0 10px">계좌를 등록하면 이 화면에 바로 표시됩니다.</p>`}
       <label class="field field--col"><span>입금자명</span>
         <input id="depositorName" maxlength="20" placeholder="예: 김예지" autocomplete="name" value="${esc(chargeName)}">
       </label>
