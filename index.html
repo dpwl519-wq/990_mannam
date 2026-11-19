@@ -3386,6 +3386,7 @@ function renderAll() {
 function isVerified(id) { return Boolean(PROFILE_MAP[id] && PROFILE_MAP[id].verified); }
 function myVerified() { return state.verified === true; }
 function ledger() { /* 매칭권 내역은 서버 기록에서 계산합니다 */ }
+function save() { /* 저장은 각 액션이 서버에 직접 반영합니다 */ }
 function audit() { /* 운영 이력은 admin_logs 에 남습니다 */ }
 function processExpirations() { rpc('expire_likes').catch(() => {}); return 0; }
 
@@ -4434,6 +4435,172 @@ function previewDoc(id) {
       ? `<div class="doc-preview" style="margin-top:12px"><img src="${s.docPreview}" alt="제출 서류"></div>`
       : '<div class="admin-empty" style="margin-top:12px">이미지가 없는 예시 데이터예요.</div>'}
     <div class="sheet__actions"><button class="btn btn--ghost" data-action="close-sheet">닫기</button></div>`);
+}
+
+
+/* ---------- 직장인 인증 제출 서류 ---------- */
+function openEmailSheet() {
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head">
+      <h2>회사 메일 인증</h2>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <p class="sheet__sub">회사 도메인 메일로 인증을 요청해요. 개인 메일(gmail 등)은 서류 인증을 이용해 주세요.</p>
+    <div class="sheet-field">
+      <label for="emailCompany">회사명</label>
+      <input id="emailCompany" placeholder="예: 성수건축" value="${esc(emailDraft.company || state.user.company || '')}" maxlength="30">
+    </div>
+    <div class="sheet-field">
+      <label for="emailAddr">회사 이메일</label>
+      <input id="emailAddr" type="email" placeholder="name@company.com" value="${esc(emailDraft.email)}" inputmode="email" autocomplete="off">
+      <p class="sheet-hint">지금은 화면에서 인증번호를 확인하는 방식이에요. 실제 메일 발송은 아직 연결하지 않았습니다.</p>
+    </div>
+    <div class="sheet__actions">
+      <button class="btn btn--ghost" data-action="close-sheet">취소</button>
+      <button class="btn btn--primary" data-action="send-code">인증번호 받기</button>
+    </div>`);
+}
+
+function sendCode() {
+  const company = ($('#emailCompany')?.value || '').trim();
+  const email = ($('#emailAddr')?.value || '').trim();
+  const domain = (email.split('@')[1] || '').toLowerCase();
+
+  if (!company) { toast('회사명을 적어주세요.'); $('#emailCompany')?.focus(); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('이메일 형식을 확인해 주세요.'); $('#emailAddr')?.focus(); return; }
+  if (FREE_MAIL.includes(domain)) { toast('회사 도메인 메일이 필요해요. 개인 메일은 서류 인증을 이용해 주세요.'); return; }
+
+  emailDraft = { company, email };
+  emailCode = String(Math.floor(100000 + Math.random() * 900000));
+
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head">
+      <h2>인증번호 입력</h2>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <p class="sheet__sub"><b>${esc(email)}</b> 인증번호를 확인해 주세요.<br>6자리 숫자를 입력하면 운영자 심사로 넘어가요.</p>
+    <div class="sheet-field">
+      <input id="codeInput" class="code-input" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+    </div>
+    <div class="demo-code">
+      <span>화면 인증번호 · <b>${emailCode}</b></span>
+      <button data-action="fill-demo-code">자동 입력</button>
+    </div>
+    <div class="sheet__actions">
+      <button class="btn btn--ghost" data-action="open-email-verify">이전</button>
+      <button class="btn btn--primary" data-action="verify-code">확인</button>
+    </div>
+    <p class="sheet__note">확인 후 운영자 승인만 남아요.</p>`);
+  setTimeout(() => $('#codeInput')?.focus(), 120);
+}
+
+function verifyCode() {
+  const code = ($('#codeInput')?.value || '').trim();
+  if (code.length !== 6) { toast('6자리 인증번호를 입력해 주세요'); return; }
+  if (code !== emailCode) { toast('인증번호가 일치하지 않아요. 다시 확인해 주세요.'); return; }
+  submitVerification({
+    method: 'email', company: emailDraft.company, email: emailDraft.email,
+    docName: '', docPreview: ''
+  });
+}
+
+function openDocSheet() {
+  docDraft = null;
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head">
+      <h2>명함·재직증명서 인증</h2>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <p class="sheet__sub">명함이나 재직증명서 사진을 올려주세요. 운영자가 확인하면 인증 마크가 붙어요.</p>
+    <div class="sheet-field">
+      <label for="docCompany">회사명</label>
+      <input id="docCompany" placeholder="예: 늘봄초등학교" maxlength="30" value="${esc(state.user.company || '')}">
+    </div>
+    <label class="upload-box" for="docFile" id="uploadBox">
+      <span class="upload-box__emoji"><svg><use href="#i-clip"/></svg></span>
+      <span class="upload-box__text">사진 선택하기</span>
+      <span class="upload-box__hint">JPG · PNG · 화면 캡처도 괜찮아요</span>
+    </label>
+    <input id="docFile" type="file" accept="image/*" hidden>
+    <div id="docPreviewArea"></div>
+    <div class="sheet__actions">
+      <button class="btn btn--ghost" data-action="close-sheet">취소</button>
+      <button class="btn btn--primary" data-action="submit-doc" id="submitDocBtn" disabled>제출하기</button>
+    </div>
+    <p class="sheet__note">서류는 축소된 이미지로 저장되며 운영자만 확인합니다.</p>`);
+
+  const input = $('#docFile');
+  if (!input) return;
+  input.addEventListener('change', async () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast('이미지 파일만 올릴 수 있어요.'); return; }
+    try {
+      docDraft = await readImageFile(file, 760, 0.7);
+      $('#docPreviewArea').innerHTML = `
+        <div class="doc-preview">
+          <img src="${docDraft.dataUrl}" alt="업로드한 서류 미리보기">
+          <div class="doc-preview__meta">
+            <span>${esc(docDraft.name)} · ${Math.round(docDraft.bytes / 1024)}KB</span>
+            <button data-action="open-doc-verify">다시 선택</button>
+          </div>
+        </div>`;
+      $('#uploadBox').hidden = true;
+      $('#submitDocBtn').disabled = !($('#docCompany')?.value || '').trim();
+    } catch (err) {
+      toast('이미지를 읽지 못했어요. 다른 파일로 시도해 주세요.');
+    }
+  });
+}
+
+function submitDoc() {
+  const company = ($('#docCompany')?.value || '').trim();
+  if (!company) { toast('회사명을 적어주세요.'); $('#docCompany')?.focus(); return; }
+  if (!docDraft) { toast('서류 사진을 올려주세요.'); return; }
+  submitVerification({
+    method: 'doc', company, email: '',
+    docName: docDraft.name, docPreview: docDraft.dataUrl
+  });
+}
+
+/* ---------- 신고 ---------- */
+function openReportSheet(targetId) {
+  const p = PROFILE_MAP[targetId];
+  if (!p) return;
+  reportDraft = { targetId, reason: '' };
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head">
+      <h2>신고하기</h2>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <p class="sheet__sub"><b>${esc(p.name)}</b>님을 신고하는 이유를 골라주세요. 운영자가 확인하고 조치해요.</p>
+    <div class="reason-pick" id="reportReasons">
+      ${REPORT_REASONS.map((r) =>
+        `<button class="reason-chip" data-action="pick-report-reason" data-value="${esc(r)}" aria-pressed="false">${esc(r)}</button>`).join('')}
+    </div>
+    <div class="sheet-field">
+      <label for="reportDetail">자세한 내용 (선택)</label>
+      <input id="reportDetail" placeholder="상황을 적어주시면 더 정확히 확인할 수 있어요" maxlength="120">
+    </div>
+    <label class="check-row">
+      <input type="checkbox" id="reportBlock" checked>
+      <span>이 사람 다시 보지 않기 (차단)</span>
+    </label>
+    <div class="sheet__actions">
+      <button class="btn btn--ghost" data-action="close-sheet">취소</button>
+      <button class="btn btn--primary" data-action="submit-report">신고 접수</button>
+    </div>
+    <p class="sheet__note">허위 신고는 서비스 이용에 제한이 있을 수 있어요. 접수된 내용은 운영자만 볼 수 있습니다.</p>`);
+}
+
+function pickReportReason(value, el) {
+  if (!reportDraft) return;
+  reportDraft.reason = value;
+  $$('#reportReasons .reason-chip').forEach((c) => c.setAttribute('aria-pressed', String(c === el)));
 }
 
 /* ==========================================================================
