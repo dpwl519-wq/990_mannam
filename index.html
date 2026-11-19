@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
-<title>990 인연 · 직장인 소개팅 (UX 개선 데모 v0.5)</title>
+<title>990 인연 · 직장인 소개팅</title>
 <style>
 /* ==========================================================================
    0. 디자인 토큰 — 조용한 파스텔 에디토리얼 (calm editorial pastel)
@@ -909,6 +909,35 @@ body.mode-admin .toast{bottom:24px}
 .demo-limits{margin-top:16px;padding:12px;border:1px solid var(--line-2);border-radius:10px;font-size:11.5px;line-height:1.8;color:var(--ink-2)}
 @media(max-width:370px){.view--today{padding-left:13px;padding-right:13px}.card-head{padding-left:16px;padding-right:16px}.card-body{padding-left:16px;padding-right:16px}.deck-actions{padding-top:8px}.undo-row span{display:none}}
 </style>
+<style id="app-ui">
+/* ── 로그인 · 가입 ──────────────────────────────────────────────── */
+.auth{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:22px;overflow-y:auto;
+  background-color:var(--paper);
+  background-image:radial-gradient(80% 50% at 0% -10%, rgba(217,155,132,.18) 0%, rgba(217,155,132,0) 60%),radial-gradient(70% 46% at 102% 0%, rgba(230,217,200,.2) 0%, rgba(230,217,200,0) 64%),radial-gradient(90% 54% at 50% 110%, rgba(201,214,201,.22) 0%, rgba(201,214,201,0) 70%)}
+.auth__card{width:100%;max-width:400px;margin:auto;background:var(--card);border-radius:24px;padding:26px 22px 22px;box-shadow:var(--shadow-3);animation:authIn .5s var(--ease) both}
+@keyframes authIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.auth__brand{font-family:var(--font-title);font-size:14px;font-weight:700;letter-spacing:-.01em}
+.auth__brand span{font-family:var(--font-body);font-size:9.5px;font-weight:300;color:var(--ink-3);margin-left:7px;letter-spacing:.02em}
+.auth__title{font-family:var(--font-title);font-size:24px;font-weight:700;line-height:1.42;letter-spacing:-.02em;margin-top:16px}
+.auth__sub{font-size:12px;color:var(--ink-2);line-height:1.75;margin-top:9px}
+.auth__seg{margin:18px 0 15px;width:fit-content}
+.auth__form{display:flex;flex-direction:column;gap:9px}
+.auth__form .btn{margin-top:7px}
+.auth__row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.auth__msg{margin-top:5px;font-size:11.5px;line-height:1.65;color:var(--apricot-ink);background:var(--apricot-soft);padding:9px 11px;border-radius:10px}
+.auth__note{margin-top:16px;font-size:10.5px;color:var(--ink-3);line-height:1.75;text-align:center}
+.field__select{appearance:none;-webkit-appearance:none;width:100%;background:#fff;border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line-2);background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);background-position:calc(100% - 16px) 55%,calc(100% - 11px) 55%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+/* ── 설정 안내 배너 ──────────────────────────────────────────── */
+.setup-banner{position:fixed;left:0;right:0;top:0;z-index:400;display:flex;flex-wrap:wrap;gap:5px 10px;align-items:center;padding:11px 16px;background:#FBEEDF;color:#7A4A35;font-size:12px;line-height:1.6;box-shadow:0 8px 20px -16px rgba(46,40,37,.7)}
+.setup-banner b{font-family:var(--font-title);font-size:12.5px;letter-spacing:-.01em}
+.setup-banner a{color:#8C5B4A;text-decoration:underline;white-space:nowrap}
+.setup-banner.is-error{background:#F7E4E4;color:#7A3535}
+/* ── 운영자 PIN ㄱ이트 ────────────────────────────────────── */
+.admin-gate{max-width:380px;margin:10vh auto 0;display:flex;flex-direction:column;gap:11px;text-align:left}
+.admin-gate h1{font-family:var(--font-title);font-size:23px;font-weight:700;letter-spacing:-.02em;margin:4px 0 0}
+.admin-gate .admin-sub{font-size:12px;color:var(--ink-2);line-height:1.75;margin:0 0 4px}
+.admin-gate .sheet-hint{text-align:left;line-height:1.7}
+</style>
 </head>
 <body>
 
@@ -937,7 +966,7 @@ body.mode-admin .toast{bottom:24px}
   <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M12 20.4c0-5.6 0-9.6 1.4-12.4"/><path d="M12.6 12.6c-3.4-.4-5.8-2.6-6.4-6 3.4.4 5.8 2.6 6.4 6Z"/><path d="M13.4 9.4c2.8-.8 4.8-2.8 5.4-5.8-2.8.8-4.8 2.8-5.4 5.8Z"/></symbol>
 </svg>
 
-<div class="stage" id="stage">
+<div class="stage" id="appShell">
 
   <!-- 상단 모드 전환 -->
   <div class="mode-bar">
@@ -948,7 +977,7 @@ body.mode-admin .toast{bottom:24px}
         <path d="M54 52 C66 48 73 38 75 25 C63 27 55 38 54 52Z"/>
         <path d="M53 80 C44 78 37 70 35 60 C45 61 51 69 53 80Z"/>
       </svg>
-      990 인연 <span>직장인 소개팅 · 프로토타입</span>
+      990 인연 <span>직장인 소개팅</span>
     </p>
     <div class="seg" role="tablist" aria-label="화면 전환">
       <button class="seg__btn is-on" data-action="mode" data-mode="user" role="tab" aria-selected="true">사용자</button>
@@ -1092,6 +1121,29 @@ body.mode-admin .toast{bottom:24px}
               <label class="field"><span>나이</span><input id="fAge" type="number" min="19" max="99" inputmode="numeric" placeholder="나이"></label>
               <label class="field"><span>직업</span><input id="fJob" maxlength="20" placeholder="직업"></label>
               <label class="field"><span>회사</span><input id="fCompany" maxlength="24" placeholder="회사명"></label>
+              <label class="field"><span>MBTI</span>
+                <select id="fMbti" class="field__select">
+                  <option value="">선택 안 함</option>
+                  <option value="ISTJ">ISTJ</option>
+                  <option value="ISFJ">ISFJ</option>
+                  <option value="INFJ">INFJ</option>
+                  <option value="INTJ">INTJ</option>
+                  <option value="ISTP">ISTP</option>
+                  <option value="ISFP">ISFP</option>
+                  <option value="INFP">INFP</option>
+                  <option value="INTP">INTP</option>
+                  <option value="ESTP">ESTP</option>
+                  <option value="ESFP">ESFP</option>
+                  <option value="ENFP">ENFP</option>
+                  <option value="ENTP">ENTP</option>
+                  <option value="ESTJ">ESTJ</option>
+                  <option value="ESFJ">ESFJ</option>
+                  <option value="ENFJ">ENFJ</option>
+                  <option value="ENTJ">ENTJ</option>
+                </select>
+              </label>
+              <label class="field"><span>키</span><input id="fHeight" type="number" min="140" max="210" inputmode="numeric" placeholder="cm"></label>
+              <label class="field"><span>지역</span><input id="fRegion" maxlength="20" placeholder="성수동"></label>
               <label class="field field--col"><span>한 줄 소개</span>
                 <textarea id="fBio" rows="3" maxlength="120" placeholder="어떤 사람인지 소개해 주세요"></textarea>
               </label>
@@ -1164,12 +1216,10 @@ body.mode-admin .toast{bottom:24px}
             <button class="ledger-entry" data-action="ticket-history">매칭권 이용내역 · 반환 기준 보기 <span>›</span></button>
           </section>
 
+          <section class="section" id="accountSection"></section>
+
           <section class="section">
-            <button class="reset-btn" data-action="ask-reset">
-              <svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg>
-              데모 데이터 초기화
-            </button>
-            <p class="footnote">프로토타입 v0.5 · 모든 기록은 브라우저에만 저장됩니다 · 실제 결제·인증·채팅 아님</p>
+            <p class="footnote">v1.0 · Supabase 연동 · 프로필·호감·대화·인증이 서버에 저장됩니다<br>결제는 계좌이체 입금 확인 방식이며 자동 결제가 아닙니다</p>
           </section>
         </section>
       </main>
@@ -1196,64 +1246,113 @@ body.mode-admin .toast{bottom:24px}
 
     <!-- ═══════════════════════════ 운영자 화면 ═══════════════════════════ -->
     <section class="admin" id="adminView" hidden aria-label="운영자">
-      <div class="admin-head">
-        <div>
-          <p class="eyebrow">운영자 화면 · 예지님</p>
-          <h1>운영 콘솔</h1>
-          <p class="admin-sub">인증과 신고를 처리하면 사용자 화면에 <b>바로</b> 반영돼요. 같은 브라우저의 다른 탭에도 실시간으로 동기화돼요.</p>
-        </div>
-        <div class="admin-head__right">
-          <div class="admin-stats">
-            <span class="admin-stat">인증 대기 <b id="adminPending">0</b></span>
-            <span class="admin-stat">신고 접수 <b id="adminReports">0</b></span>
-            <span class="admin-stat">승인 <b id="adminApproved">0</b></span>
-          </div>
-          <button class="btn btn--ghost btn--sm" data-action="mode" data-mode="user">사용자 화면으로</button>
-        </div>
+
+      <!-- 운영자 PIN 게이트 -->
+      <div class="admin-gate" id="adminGate">
+        <p class="eyebrow">운영자 전용</p>
+        <h1>운영 콘솔</h1>
+        <p class="admin-sub">PIN을 입력하면 직장인 인증 심사 · 입금 확인 · 신고 처리를 할 수 있어요.<br>처리 결과는 서버에 바로 반영되고 사용자 화면에 나타납니다.</p>
+        <label class="field"><span>운영자 PIN</span><input id="adminPin" type="password" inputmode="numeric" maxlength="12" placeholder="PIN"></label>
+        <button class="btn btn--primary" data-action="admin-claim">운영자로 들어가기</button>
+        <p class="sheet-hint">PIN은 supabase_schema.sql 의 <b>admin_config</b> 기본값(990418)이거나, 대시보드에서 바꾼 값이에요.</p>
       </div>
 
-      <div class="admin-tabs" role="tablist">
-        <button class="admin-tab is-on" data-action="admin-tab" data-tab="verify" role="tab" aria-selected="true">
-          직장인 인증 심사 <b id="tabVerifyCount">0</b>
-        </button>
-        <button class="admin-tab" data-action="admin-tab" data-tab="reports" role="tab" aria-selected="false">
-          신고 내역 <b id="tabReportCount">0</b>
-        </button>
-      </div>
-
-      <div class="admin-audit-intro">데모 관리자: 역할 기반 권한 검증이 없으며 처리 기록은 이 브라우저에만 저장됩니다.</div>
-      <section class="audit-panel"><div class="section__head"><h2 class="section__title">운영 처리 이력</h2><span class="section__hint">담당자 · 시각 · 대상 · 결과</span></div><div id="adminAuditList"></div></section>
-      <div id="adminVerifyPanel">
-        <div class="admin-grid">
+      <div id="adminConsole" hidden>
+        <div class="admin-head">
           <div>
-            <p class="admin-col__title">심사 대기 <span id="pendingLabel">0건</span></p>
-            <div id="adminPendingList"></div>
+            <p class="eyebrow">운영자 화면</p>
+            <h1>운영 콘솔</h1>
+            <p class="admin-sub">승인·반려·정지가 서버에 바로 반영되고 사용자 화면에 나타납니다.</p>
           </div>
-          <div>
-            <p class="admin-col__title">처리 완료 <span id="doneLabel">0건</span></p>
-            <div id="adminDoneList"></div>
-            <p class="admin-tip"><b>데모 팁</b> — 사용자 화면의 내 프로필에서 직장인 인증 서류를 제출한 뒤, 여기서 승인해 보세요. 마크가 바로 붙어요.</p>
+          <div class="admin-head__right">
+            <div class="admin-stats">
+              <span class="admin-stat">인증 대기 <b id="adminPending">0</b></span>
+              <span class="admin-stat">충전 요청 <b id="adminCharges">0</b></span>
+              <span class="admin-stat">신고 접수 <b id="adminReports">0</b></span>
+              <span class="admin-stat">승인 <b id="adminApproved">0</b></span>
+            </div>
+            <button class="btn btn--ghost btn--sm" data-action="mode" data-mode="user">사용자 화면으로</button>
           </div>
         </div>
-      </div>
 
-      <div id="adminReportsPanel" hidden>
-        <div class="admin-grid">
-          <div>
-            <p class="admin-col__title">접수된 신고 <span id="reportLabel">0건</span></p>
-            <div id="adminReportList"></div>
+        <div class="admin-tabs" role="tablist">
+          <button class="admin-tab is-on" data-action="admin-tab" data-tab="verify" role="tab" aria-selected="true">
+            직장인 인증 심사 <b id="tabVerifyCount">0</b>
+          </button>
+          <button class="admin-tab" data-action="admin-tab" data-tab="charges" role="tab" aria-selected="false">
+            충전 확인 <b id="tabChargeCount">0</b>
+          </button>
+          <button class="admin-tab" data-action="admin-tab" data-tab="reports" role="tab" aria-selected="false">
+            신고 내역 <b id="tabReportCount">0</b>
+          </button>
+          <button class="admin-tab" data-action="admin-tab" data-tab="settings" role="tab" aria-selected="false">
+            입금 계좌 설정
+          </button>
+        </div>
+
+        <div class="admin-audit-intro">모든 처리는 admin_logs 에 기록됩니다. 승인은 매칭권 지급·인증 마크를 서버에서 한 번에 처리해요.</div>
+        <section class="audit-panel"><div class="section__head"><h2 class="section__title">운영 처리 이력</h2><span class="section__hint">담당자 · 시각 · 대상 · 결과</span></div><div id="adminAuditList"></div></section>
+
+        <div id="adminVerifyPanel">
+          <div class="admin-grid">
+            <div>
+              <p class="admin-col__title">심사 대기 <span id="pendingLabel">0건</span></p>
+              <div id="adminPendingList"></div>
+            </div>
+            <div>
+              <p class="admin-col__title">처리 완료 <span id="doneLabel">0건</span></p>
+              <div id="adminDoneList"></div>
+              <p class="admin-tip"><b>팁</b> — 사용자 화면의 내 프로필에서 직장인 인증을 제출한 뒤 여기서 승인해 보세요. 마크가 바로 붙어요.</p>
+            </div>
           </div>
-          <div>
-            <p class="admin-col__title">이용 정지 회원 <span id="suspendLabel">0명</span></p>
-            <div id="adminSuspendedList"></div>
-            <p class="admin-tip"><b>데모 팁</b> — 신고를 이용 정지하면 오늘의 인연과 받은 호감에서 즉시 사라집니다. 잘못 처리했다면 복구할 수 있어요.</p>
+        </div>
+
+        <div id="adminChargePanel" hidden>
+          <p class="admin-col__title">입금 확인 대기 <span id="chargeLabel">0건</span></p>
+          <div class="admin-grid">
+            <div id="adminChargeList"></div>
+            <div>
+              <p class="admin-tip"><b>입금 확인 방법</b> — 입금자명과 금액이 아래 계좌 입금 내역과 일치하면 승인하세요. 승인하면 매칭권이 서버에서 바로 지급됩니다.<br>
+              계좌 정보는 <b>입금 계좌 설정</b> 탭에서 바꿀 수 있어요.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="adminReportsPanel" hidden>
+          <div class="admin-grid">
+            <div>
+              <p class="admin-col__title">접수된 신고 <span id="reportLabel">0건</span></p>
+              <div id="adminReportList"></div>
+            </div>
+            <div>
+              <p class="admin-col__title">이용 정지 회원 <span id="suspendLabel">0명</span></p>
+              <div id="adminSuspendedList"></div>
+              <p class="admin-tip"><b>팁</b> — 신고를 이용 정지하면 오늘의 인연·받은 호감에서 즉시 사라집니다. 잘못 처리했다면 복구할 수 있어요.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="adminSettingsPanel" hidden>
+          <div class="admin-grid">
+            <div class="form-card" id="payFields">
+              <p class="section__title" style="font-family:var(--font-title);font-size:16px;margin-bottom:6px">입금 계좌 안내</p>
+              <p class="sheet-hint" style="margin-bottom:12px">사용자 충전 화면에 그대로 표시됩니다.</p>
+              <label class="field"><span>은행</span><input id="payBank" maxlength="20" placeholder="카카오뱅크"></label>
+              <label class="field"><span>계좌번호</span><input id="payAccount" maxlength="30" placeholder="3333-00-0000000"></label>
+              <label class="field"><span>예금주</span><input id="payHolder" maxlength="20" placeholder="예지"></label>
+              <label class="field"><span>카카오페이 ID</span><input id="payKakao" maxlength="30" placeholder="990yeonin"></label>
+              <button class="btn btn--primary btn--block" data-action="save-payment" style="margin-top:10px">저장</button>
+            </div>
+            <div>
+              <p class="admin-tip"><b>상품</b> — 첫 체험 1장 990원 · 3장 묶음 2,500원 · 5장 묶음 4,900원. 금액은 서버 함수에서 검증되므로 앱을 고쳐도 임의 금액을 넣을 수 없어요.</p>
+            </div>
           </div>
         </div>
       </div>
     </section>
   </div>
 
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <div class="sheet-wrap" id="sheetWrap" hidden>
     <div class="sheet-backdrop" data-action="close-sheet"></div>
@@ -1262,114 +1361,88 @@ body.mode-admin .toast{bottom:24px}
 </div>
 
 
+
+<!-- ═══════════════════════════ 로그인 / 가입 ═══════════════════════════ -->
+<div class="auth" id="authGate" hidden>
+  <div class="auth__card">
+    <p class="auth__brand">990 인연 <span>직장인 소개팅</span></p>
+    <h1 class="auth__title">천천히, 진짜로<br>이어지는 인연</h1>
+    <p class="auth__sub">직장인 인증을 마친 사람들만 만나는 자리예요.<br>매칭권 한 장이면 충분합니다.</p>
+
+    <div class="seg auth__seg" role="tablist" aria-label="로그인 또는 회원가입">
+      <button class="seg__btn is-on" data-action="auth-tab" data-tab="login" role="tab" aria-selected="true">로그인</button>
+      <button class="seg__btn" data-action="auth-tab" data-tab="signup" role="tab" aria-selected="false">회원가입</button>
+    </div>
+
+    <form id="loginForm" class="auth__form" autocomplete="on">
+      <label class="field"><span>이메일</span><input id="loginEmail" type="email" inputmode="email" autocomplete="email" placeholder="name@example.com" required></label>
+      <label class="field"><span>비밀번호</span><input id="loginPass" type="password" autocomplete="current-password" placeholder="6자 이상" required></label>
+      <button class="btn btn--primary btn--block" type="submit">로그인</button>
+      <p class="auth__msg" id="loginMsg" hidden></p>
+    </form>
+
+    <form id="signupForm" class="auth__form" autocomplete="on" hidden>
+      <label class="field"><span>이메일</span><input id="suEmail" type="email" inputmode="email" autocomplete="email" placeholder="name@example.com" required></label>
+      <label class="field"><span>비밀번호</span><input id="suPass" type="password" autocomplete="new-password" placeholder="6자 이상" required></label>
+      <div class="auth__row">
+        <label class="field"><span>닉네임</span><input id="suNick" maxlength="12" placeholder="예지" required></label>
+        <label class="field"><span>성별</span>
+          <select id="suGender" class="field__select">
+            <option value="female">여성</option>
+            <option value="male">남성</option>
+          </select>
+        </label>
+      </div>
+      <label class="field"><span>출생연도</span><input id="suYear" type="number" min="1950" max="2010" inputmode="numeric" placeholder="1991" required></label>
+      <button class="btn btn--primary btn--block" type="submit">회원가입</button>
+      <p class="auth__msg" id="signupMsg" hidden></p>
+    </form>
+
+    <p class="auth__note">가입하면 프로필이 만들어지고 매칭권 3장이 지급돼요.<br>비밀번호는 Supabase 인증으로만 저장됩니다.</p>
+  </div>
+</div>
+
+<div class="setup-banner" id="setupBanner" hidden></div>
+
+<script>window.__errs=[];window.addEventListener('error',function(e){window.__errs.push(String((e&&e.message)||e));});window.addEventListener('unhandledrejection',function(e){window.__errs.push('promise: '+String((e.reason&&e.reason.message)||e.reason));});</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 'use strict';
 /* ==========================================================================
-   990 인연 · 직장인 소개팅 프로토타입
+   990 인연 · 직장인 소개팅 — Supabase 연동판 v1.0
    ---------------------------------------------------------------------------
-     1. 샘플 데이터
-     2. 상태 & 저장소 (localStorage — 백엔드 연결 지점)
-     3. 유틸 & 안전 필터
-     4. 렌더러 (유저)
-     5. 렌더러 (관리자)
-     6. 액션
-     7. 이벤트 & 초기화
+     0. 설정 (CFG)
+     1. 상태 · 데이터 매핑
+     2. Supabase 연결 · 인증
+     3. 데이터 새로고침
+     4. (아래) v0.5 디자인 렌더러 · 유틸   ← 기존 v0.5 화면 코드 그대로
+     5. 서버 액션 (매칭권 · 매칭 · 대화 · 인증 · 신고 · 운영자)
    ========================================================================== */
 
 /* ==========================================================================
-   1. 샘플 데이터
+   0. 설정 — 여기 값만 고치면 됩니다
    ========================================================================== */
+const CFG = {
+  SUPABASE_URL: 'https://pyelrhjhsvltayheqgbj.supabase.co',
+  /* publishable(anon) 키만 사용합니다. service_role 같은 비밀키는 절대 넣지 마세요. */
+  SUPABASE_KEY: 'sb_publishable_vCXWj93Xtgs5POQB1hMSoA_GIy1smbp',
+  SITE_URL: 'https://dpwl519-wq.github.io/990_mannam/',
+  RESPONSE_HOURS: 48,        // 무응답 시 매칭권 자동 반환 기준
+  TICKET_PRICE: 990,
+  POINTS_PER_TICKET: 990,    // 990P → 매칭권 1장
+  POLL_MS: 7000              // 새 메시지·호감 확인 주기
+};
+
 const MIN = 60 * 1000, HOUR = 60 * MIN, DAY = 24 * HOUR;
-const RESPONSE_HOURS = 48;   // 무응답 시 매칭권 반환 기준
-const TICKET_PRICE = 990;
-const ago = (ms) => new Date(Date.now() - ms).toISOString();
+const RESPONSE_HOURS = CFG.RESPONSE_HOURS;
+const TICKET_PRICE = CFG.TICKET_PRICE;
+const TICKET_COST = 1;
 
-/* 데모용 재직증명서 이미지 */
-const SAMPLE_DOC = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="560" viewBox="0 0 420 560">
-    <rect width="420" height="560" fill="#FFFDF6"/>
-    <rect x="10" y="10" width="400" height="540" fill="none" stroke="#E7D3C2" stroke-width="6"/>
-    <text x="210" y="92" text-anchor="middle" font-family="sans-serif" font-size="30" font-weight="700" fill="#3F3230">재 직 증 명 서</text>
-    <line x1="96" y1="118" x2="324" y2="118" stroke="#3F3230" stroke-width="2.5"/>
-    <text x="60" y="180" font-family="sans-serif" font-size="17" fill="#4A3B36">성명 : 박지훈</text>
-    <text x="60" y="222" font-family="sans-serif" font-size="17" fill="#4A3B36">소속 : 늘봄초등학교</text>
-    <text x="60" y="264" font-family="sans-serif" font-size="17" fill="#4A3B36">직위 : 교사</text>
-    <text x="60" y="306" font-family="sans-serif" font-size="17" fill="#4A3B36">재직기간 : 2019.03 ~ 현재</text>
-    <text x="60" y="390" font-family="sans-serif" font-size="15" fill="#6B5754">위 사람은 본교에 재직 중임을 증명합니다.</text>
-    <text x="210" y="470" text-anchor="middle" font-family="sans-serif" font-size="17" font-weight="700" fill="#3F3230">늘봄초등학교장</text>
-    <circle cx="330" cy="468" r="38" fill="none" stroke="#E0577A" stroke-width="3"/>
-    <text x="330" y="474" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#E0577A">직인</text>
-  </svg>`
-);
-
-const PROFILES = [
-  {
-    id: 'dohyun', name: '김도현', age: 36, job: '건축가', company: '성수건축',
-    phone: '010-2345-6789', area: '성수동', mbti: 'ENFJ',
-    jobStable: true, distKm: 1.2, hobbyMatch: 2, valueMatch: 2, nonsmoker: true, height: 182,
-    bio: '주말엔 전시 보러 가고, 집에서는 커피 내려 마셔요. 말이 잘 통하는 사람이면 좋겠어요.',
-    hobbies: ['전시·건축', '홈카페', '러닝'], values: ['다정한 대화', '꾸준함'],
-    reason: '대화 스타일과 생활 리듬이 비슷해요',
-    photos: [
-      { caption: '성수동 작업실' },
-      { caption: '주말 홈카페' },
-      { caption: '전시 보러 가는 날' }
-    ]
-  },
-  {
-    id: 'junho', name: '이준호', age: 34, job: '프로덕트 디자이너', company: '스튜디오 모노',
-    phone: '010-3456-7890', area: '망원동', mbti: 'INFP',
-    jobStable: true, distKm: 8.4, hobbyMatch: 3, valueMatch: 3, nonsmoker: true, height: 178,
-    bio: '필름카메라 들고 동네를 자주 걸어요. 조용한 데서 오래 이야기하는 걸 좋아합니다.',
-    hobbies: ['필름카메라', '망원시장', '재즈'], values: ['진솔함', '존중'],
-    reason: '좋아하는 동네와 취향이 겹쳐요',
-    photos: [
-      { caption: '망원동 산책' },
-      { caption: '필름 스캔하는 밤' },
-      { caption: '단골 재즈바' }
-    ]
-  },
-  {
-    id: 'jihoon', name: '박지훈', age: 33, job: '초등 교사', company: '늘봄초등학교',
-    phone: '010-5555-1234', area: '일산', mbti: 'ISFJ',
-    jobStable: true, distKm: 24, hobbyMatch: 2, valueMatch: 2, nonsmoker: true, height: 176,
-    bio: '아이들을 가르쳐요. 주말엔 등산이나 요리로 쉬어요. 편안한 사람이 좋습니다.',
-    hobbies: ['등산', '요리', '독서'], values: ['편안함', '성실함'],
-    reason: '라이프스타일이 안정적이에요',
-    photos: [
-      { caption: '교실 풍경' },
-      { caption: '주말 등산' },
-      { caption: '요리하는 밤' }
-    ]
-  },
-  {
-    id: 'woojin', name: '정우진', age: 37, job: '데이터 엔지니어', company: '데이터브릿지',
-    phone: '010-7777-2468', area: '판교', mbti: 'ISTJ',
-    jobStable: true, distKm: 19, hobbyMatch: 2, valueMatch: 3, nonsmoker: false, height: 180,
-    bio: '클라이밍과 위스키를 좋아해요. 계획한 건 끝까지 해내는 편입니다.',
-    hobbies: ['클라이밍', '위스키', '독서'], values: ['신뢰', '계획성'],
-    reason: '가치관 항목이 잘 맞아요',
-    photos: [
-      { caption: '퇴근 후 클라이밍' },
-      { caption: '위스키 한 잔' },
-      { caption: '독서하는 주말' }
-    ]
-  },
-  {
-    id: 'jihoo', name: '서지후', age: 35, job: '사진작가', company: '프레임워크 스튜디오',
-    phone: '010-8888-1357', area: '연남동', mbti: 'ENTJ',
-    jobStable: false, distKm: 6, hobbyMatch: 3, valueMatch: 3, nonsmoker: false, height: 179,
-    bio: '빛이 좋은 시간에 사진을 찍어요. 대화는 솔직한 쪽이 좋습니다.',
-    hobbies: ['필름카메라', '전시·출사', '재즈바'], values: ['진솔함', '자유로움'],
-    reason: '취향과 대화 방식이 잘 맞아요',
-    photos: [
-      { caption: '연남동 스냅' },
-      { caption: '작업실 한 컷' },
-      { caption: '노을 출사' }
-    ]
-  }
+const PACKS = [
+  { n: 1, price: 990,  name: '첫 체험 1장', tag: '가볍게' },
+  { n: 3, price: 2500, name: '3장 묶음',   tag: '인기' },
+  { n: 5, price: 4900, name: '5장 묶음',   tag: '꿀혜택' }
 ];
-const PROFILE_MAP = Object.fromEntries(PROFILES.map((p) => [p.id, p]));
 
 const AREA_OPTIONS = ['성수·성동', '망원·마포', '판교·분당', '일산', '서울 전역'];
 const VALUE_OPTIONS = ['다정한 대화', '진솔함', '유머 코드', '안정적인 생활', '같은 취미'];
@@ -1384,7 +1457,6 @@ const PRIORITY_OPTIONS = [
 ];
 const PRIORITY_LABEL = Object.fromEntries(PRIORITY_OPTIONS.map((o) => [o.key, o.label]));
 const REPORT_REASONS = ['불쾌한 대화·메시지', '허위 프로필 의심', '부적절한 사진·내용', '광고·사기 의심', '기타'];
-
 const ICEBREAKERS = [
   '주말엔 보통 어떻게 보내세요?',
   '요즘 푹 빠진 취미가 있나요?',
@@ -1392,173 +1464,589 @@ const ICEBREAKERS = [
   '커피파인가요, 차파인가요?',
   '이번 주에 기대되는 일이 있나요?'
 ];
-
-/* 데모용 자동 응답 — 실제 상대/서버가 붙으면 이 블록을 제거 */
-const MOCK_REPLIES = [
-  '좋아요 :) 저도 그런 편이에요. 조금 더 이야기해 주실래요?',
-  '하하 공감돼요. 요즘 주말엔 전시나 산책을 자주 해요.',
-  '반가워요! 천천히 알아가는 게 좋더라고요. 편하게 말씀해 주세요.',
-  '그럼 이번 주에 커피 한잔 어떠세요? 되는 날 알려주시면 맞춰볼게요.'
-];
-
 const FREE_MAIL = ['gmail.com', 'naver.com', 'daum.net', 'hanmail.net', 'nate.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com', 'kakao.com'];
 
-/* ==========================================================================
-   2. 상태 & 저장소
-   ========================================================================== */
-const STORAGE_KEY = 'blind-date-mvp/v3';
-const TICKET_COST = 1;
-
-function defaultState() {
-  return {
-    version: 3,
-    user: {
-      nickname: '예지', age: 35, job: '콘텐츠 기획', company: '성수건축',
-      bio: '전시랑 산책, 오래 하는 대화를 좋아해요.',
-      photos: [],
-      prefs: {
-        ageMin: 32, ageMax: 40,
-        mbti: ['ENFJ', 'INFP', 'ENFP'],
-        priorities: ['personality', 'job', 'area'],
-        areas: ['서울 전역'], values: ['다정한 대화', '진솔함']
-      }
-    },
-    safety: {
-      hideSameCompany: true,
-      blockedNumbers: [],     // { hash, masked, at } — 원본 번호는 저장하지 않음
-      blockedProfiles: []
-    },
-    tickets: 3,
-    lastPassed: null,
-    ticketLedger: [{kind:"initial",delta:3,at:ago(4*DAY),detail:"데모 시작 잔액"}],
-    endedChats: [],
-    chatRead: {},
-    auditLog: [],
-    points: 0,
-    meetings: {},          // { [profileId]: { status, plannedAt, metAt, review } }
-    deck: ['dohyun', 'junho', 'jihoon', 'woojin'],
-    passed: [],
-    sent: [],                 // { id, at, status: pending | matched | refunded }
-    received: [
-      { id: 'junho', at: ago(2 * HOUR), status: 'pending' },
-      { id: 'woojin', at: ago(1 * DAY), status: 'pending' }
-    ],
-    matches: [{ id: 'jihoo', at: ago(3 * DAY), via: 'mutual' }],
-    chats: {
-      jihoo: [
-        { from: 'them', text: '안녕하세요 :) 프로필 잘 봤어요. 사진 좋아하신다길래 반가웠어요.', at: ago(3 * DAY) },
-        { from: 'me', text: '반가워요! 요즘은 필름카메라로 동네 사진을 찍고 있어요.', at: ago(3 * DAY - 40 * MIN) },
-        { from: 'them', text: '오, 그거 궁금하네요. 다음에 한 장 보여주실 수 있어요?', at: ago(1 * DAY) }
-      ]
-    },
-    unread: { jihoo: 1 },
-    verification: {
-      status: 'none', method: null, company: '', email: '',
-      docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: ''
-    },
-    submissions: [
-      {
-        id: 'sub_dohyun', owner: 'dohyun', ownerName: '김도현', method: 'email',
-        company: '성수건축', email: 'dohyun@seongsu-arch.com', docName: '', docPreview: '',
-        at: ago(3 * HOUR), status: 'pending', reason: '', decidedAt: null
-      },
-      {
-        id: 'sub_jihoon', owner: 'jihoon', ownerName: '박지훈', method: 'doc',
-        company: '늘봄초등학교', email: '', docName: '재직증명서.jpg', docPreview: SAMPLE_DOC,
-        at: ago(5 * HOUR), status: 'pending', reason: '', decidedAt: null
-      },
-      {
-        id: 'sub_junho', owner: 'junho', ownerName: '이준호', method: 'email',
-        company: '스튜디오 모노', email: 'junho@studio-mono.kr', docName: '', docPreview: '',
-        at: ago(2 * DAY), status: 'approved', reason: '', decidedAt: ago(2 * DAY - 2 * HOUR)
-      },
-      {
-        id: 'sub_yuna', owner: '', ownerName: '최유나', method: 'doc',
-        company: '한빛상사', email: '', docName: '명함.jpg', docPreview: '',
-        at: ago(1 * DAY), status: 'rejected', reason: '제출한 서류가 흐려서 재직 여부를 확인할 수 없어요.', decidedAt: ago(20 * HOUR)
-      }
-    ],
-    verifiedIds: ['junho'],
-    reports: [
-      {
-        id: 'rep_1', targetId: 'woojin', targetName: '정우진', reporter: '이수민', reporterId: 'user_sumin',
-        reason: '허위 프로필 의심', detail: '직장인 인증 배지가 있는데 회사에 그런 사람이 없다고 해요.',
-        at: ago(4 * HOUR), status: 'open', decidedAt: null
-      },
-      {
-        id: 'rep_2', targetId: 'jihoon', targetName: '박지훈', reporter: '김하늘', reporterId: 'user_haneul',
-        reason: '불쾌한 대화·메시지', detail: '',
-        at: ago(1 * DAY), status: 'dismissed', decidedAt: ago(20 * HOUR)
-      }
-    ],
-    suspendedIds: []
-  };
-}
-
-/* 저장소 어댑터 — 백엔드 연결 시 이 두 함수만 교체하면 됩니다 */
-const storage = {
-  load() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return defaultState();
-      return normalize(JSON.parse(raw));
-    } catch (err) {
-      console.warn('[storage] 불러오기 실패', err);
-      return defaultState();
-    }
-  },
-  save(s) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
-    catch (err) { console.warn('[storage] 저장 실패', err); }
-  }
+/* 시드 데모 프로필 (supabase_schema.sql 14번 블록과 같은 uuid) */
+const DEMO_IDS = {
+  dohyun: 'a0000000-0000-4000-8000-000000000001',
+  junho:  'a0000000-0000-4000-8000-000000000002',
+  jihoon: 'a0000000-0000-4000-8000-000000000003',
+  woojin: 'a0000000-0000-4000-8000-000000000004',
+  jihoo:  'a0000000-0000-4000-8000-000000000005',
+  yuna:   'a0000000-0000-4000-8000-000000000006'
 };
+const ART_KEY_BY_ID = {
+  [DEMO_IDS.dohyun]: 'dohyun', [DEMO_IDS.junho]: 'junho', [DEMO_IDS.jihoon]: 'jihoon',
+  [DEMO_IDS.woojin]: 'woojin', [DEMO_IDS.jihoo]: 'jihoo', [DEMO_IDS.yuna]: 'yuna'
+};
+const FALLBACK_MOTIFS = ['letter', 'coffee', 'book', 'plant', 'tulip', 'glass', 'moon', 'arch'];
+const UI_KEY = '990yeonin/ui/v1';
 
-function normalize(s) {
-  const base = defaultState();
-  if (!s || typeof s !== 'object') return base;
+/* ==========================================================================
+   1. 상태 · 데이터 매핑
+   ========================================================================== */
+function emptyState() {
   return {
-    version: 3,
-    user: (() => {
-      const prefs = { ...base.user.prefs, ...((s.user && s.user.prefs) || {}) };
-      prefs.mbti = Array.isArray(prefs.mbti) ? prefs.mbti.filter((t) => MBTI_TYPES.includes(t)) : [];
-      prefs.priorities = Array.isArray(prefs.priorities)
-        ? prefs.priorities.filter((k) => PRIORITY_LABEL[k]).slice(0, 3) : [];
-      prefs.areas = Array.isArray(prefs.areas) && prefs.areas.length ? prefs.areas : ['서울 전역'];
-      prefs.values = Array.isArray(prefs.values) ? prefs.values : [];
-      const user = { ...base.user, ...(s.user || {}), prefs };
-      user.photos = Array.isArray(user.photos) ? user.photos.slice(0, 3) : [];
-      return user;
-    })(),
-    safety: {
-      hideSameCompany: s.safety ? Boolean(s.safety.hideSameCompany) : base.safety.hideSameCompany,
-      blockedNumbers: Array.isArray(s.safety?.blockedNumbers) ? s.safety.blockedNumbers : [],
-      blockedProfiles: Array.isArray(s.safety?.blockedProfiles) ? s.safety.blockedProfiles : []
+    version: 4,
+    user: {
+      nickname: '', age: null, job: '', company: '', bio: '', mbti: '', height: null,
+      region: '', gender: null, birthYear: null, photos: [],
+      prefs: { ageMin: 30, ageMax: 40, mbti: [], priorities: [], areas: ['서울 전역'], values: [] }
     },
-    tickets: Number.isFinite(s.tickets) ? s.tickets : base.tickets,
-    lastPassed: typeof s.lastPassed === "string" ? s.lastPassed : null,
-    ticketLedger: Array.isArray(s.ticketLedger) ? s.ticketLedger : base.ticketLedger,
-    endedChats: Array.isArray(s.endedChats) ? s.endedChats : [],
-    chatRead: s.chatRead && typeof s.chatRead === "object" ? s.chatRead : {},
-    auditLog: Array.isArray(s.auditLog) ? s.auditLog : [],
-    points: Number.isFinite(s.points) ? s.points : 0,
-    meetings: s.meetings && typeof s.meetings === 'object' ? s.meetings : {},
-    deck: Array.isArray(s.deck) ? s.deck.filter((id) => PROFILE_MAP[id]) : base.deck,
-    passed: Array.isArray(s.passed) ? s.passed : [],
-    sent: Array.isArray(s.sent) ? s.sent : [],
-    received: Array.isArray(s.received) ? s.received : base.received,
-    matches: Array.isArray(s.matches) ? s.matches : base.matches,
-    chats: s.chats && typeof s.chats === 'object' ? s.chats : {},
-    unread: s.unread && typeof s.unread === 'object' ? s.unread : {},
-    verification: { ...base.verification, ...(s.verification || {}) },
-    submissions: Array.isArray(s.submissions) ? s.submissions : base.submissions,
-    verifiedIds: Array.isArray(s.verifiedIds) ? s.verifiedIds : [],
-    reports: Array.isArray(s.reports) ? s.reports : base.reports,
-    suspendedIds: Array.isArray(s.suspendedIds) ? s.suspendedIds : []
+    safety: { hideSameCompany: true, blockedNumbers: [], blockedProfiles: [] },
+    tickets: 0, points: 0, verified: false,
+    deck: [], lastPassed: null, passed: [], verifiedIds: [],
+    ticketLedger: [], endedChats: [], chatRead: {}, auditLog: [], meetings: {},
+    sent: [], received: [], matches: [], chats: {}, unread: {},
+    verification: { status: 'none', method: null, company: '', email: '', docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: '' },
+    submissions: [], reports: [], charges: [], suspendedIds: []
   };
 }
 
-let state = storage.load();
-function save() { storage.save(state); }
+let state = emptyState();
+let PROFILES = [];
+const PROFILE_MAP = {};
+
+let sb = null;
+let session = null;
+let meId = null;
+let wallet = {};
+let isAdmin = false;
+let afterLoginDone = false;
+let polling = null;
+let payInfo = null;
+let uiPrefs = { showDemo: true };
+
+/* ---------- 작은 유틸 ---------- */
+function parseJsonArray(v) {
+  if (Array.isArray(v)) return v;
+  if (typeof v === 'string' && v.trim()) {
+    try { const a = JSON.parse(v); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+  }
+  return [];
+}
+function parsePhotos(v) {
+  if (!v) return [];
+  const s = String(v).trim();
+  if (s.startsWith('[')) {
+    try { return parseJsonArray(s).filter((x) => typeof x === 'string' && x.startsWith('data:image')); }
+    catch (e) { return []; }
+  }
+  return s.startsWith('data:image') ? [s] : [];
+}
+function ageFromYear(y) {
+  const n = parseInt(y, 10);
+  if (!Number.isFinite(n)) return null;
+  return new Date().getFullYear() - n;
+}
+function normalizePrefs(raw) {
+  let p = raw;
+  if (typeof p === 'string') { try { p = JSON.parse(p); } catch (e) { p = {}; } }
+  p = p && typeof p === 'object' ? p : {};
+  const prefs = {
+    ageMin: Number(p.ageMin) || 30,
+    ageMax: Number(p.ageMax) || 40,
+    mbti: (Array.isArray(p.mbti) ? p.mbti : []).filter((t) => MBTI_TYPES.includes(t)),
+    priorities: (Array.isArray(p.priorities) ? p.priorities : []).filter((k) => PRIORITY_LABEL[k]).slice(0, 3),
+    areas: (Array.isArray(p.areas) && p.areas.length) ? p.areas : ['서울 전역'],
+    values: Array.isArray(p.values) ? p.values : []
+  };
+  if (prefs.ageMin > prefs.ageMax) { const t = prefs.ageMin; prefs.ageMin = prefs.ageMax; prefs.ageMax = t; }
+  return prefs;
+}
+function photoList(r) {
+  const srcs = parsePhotos(r.avatar_data);
+  const caps = parseJsonArray(r.photo_captions);
+  if (!srcs.length) {
+    return [{ caption: r.region || '일상' }, { caption: '주말' }, { caption: '취미' }];
+  }
+  return srcs.map((src, i) => ({ src, caption: caps[i] || (i === 0 ? '대표 사진' : `사진 ${i + 1}`) }));
+}
+function toProfile(r) {
+  const hobbies = parseJsonArray(r.hobbies);
+  const vals = parseJsonArray(r.values_list);
+  const myVals = (state.user.prefs.values || []);
+  const valueHit = vals.filter((v) => myVals.includes(v)).length;
+  return {
+    id: r.id,
+    name: r.nickname || '인연',
+    age: r.age || ageFromYear(r.birth_year) || '-',
+    job: r.job || '직장인',
+    company: r.company || '',
+    phone: '',
+    area: r.region || '서울',
+    mbti: r.mbti || '—',
+    jobStable: !!r.job_stable,
+    distKm: r.dist_km === null || r.dist_km === undefined ? null : Number(r.dist_km),
+    hobbyMatch: Math.min(3, hobbies.length),
+    valueMatch: Math.min(3, valueHit),
+    nonsmoker: r.nonsmoker === true,
+    height: r.height || null,
+    bio: r.bio || '',
+    hobbies: hobbies.length ? hobbies : ['일상'],
+    values: vals.length ? vals : ['—'],
+    reason: '',
+    photos: photoList(r),
+    isDemo: !!r.is_demo,
+    verified: !!r.verified,
+    status: r.status,
+    artKey: ART_KEY_BY_ID[r.id] || r.id
+  };
+}
+
+/* ==========================================================================
+   2. Supabase 연결 · 인증
+   ========================================================================== */
+function initSupabase() {
+  if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+    fatalBanner('Supabase 라이브러리를 불러오지 못했어요. 네트워크를 확인한 뒤 새로고침해 주세요.');
+    return false;
+  }
+  sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
+  return true;
+}
+
+function fatalBanner(text) {
+  const el = document.getElementById('setupBanner');
+  if (!el) return;
+  el.hidden = false;
+  el.classList.add('is-error');
+  el.innerHTML = `<b>연결 오류</b><span>${esc(text)}</span>`;
+}
+function schemaBanner() {
+  const el = document.getElementById('setupBanner');
+  if (!el) return;
+  el.hidden = false;
+  el.innerHTML = `<b>Supabase 준비가 필요해요</b>
+    <span>아직 테이블이 없어요. 저장소의 <b>supabase_schema.sql</b> 전체를 Supabase → SQL Editor 에 붙여넣고 한 번 실행해 주세요.</span>
+    <a href="https://supabase.com/dashboard/project/pyelrhjhsvltayheqgbj/sql/new" target="_blank" rel="noopener">SQL Editor 열기</a>`;
+}
+
+function showAuth() {
+  const gate = document.getElementById('authGate');
+  if (gate) gate.hidden = false;
+  document.getElementById('appShell').hidden = true;
+  setAuthMsg('', 'login'); setAuthMsg('', 'signup');
+  const b = document.getElementById('setupBanner');
+  if (b) b.hidden = true;
+}
+function hideAuth() {
+  const gate = document.getElementById('authGate');
+  if (gate) gate.hidden = true;
+  document.getElementById('appShell').hidden = false;
+}
+function setAuthMsg(text, form) {
+  const el = document.getElementById(form === 'signup' ? 'signupMsg' : 'loginMsg');
+  if (!el) return;
+  el.hidden = !text;
+  el.textContent = text || '';
+}
+function authTab(tab) {
+  document.querySelectorAll('#authGate .seg__btn').forEach((b) => {
+    const on = b.dataset.tab === tab;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-selected', String(on));
+  });
+  document.getElementById('loginForm').hidden = tab !== 'login';
+  document.getElementById('signupForm').hidden = tab !== 'signup';
+}
+
+async function doLogin(e) {
+  e.preventDefault();
+  const email = (document.getElementById('loginEmail').value || '').trim();
+  const pass = document.getElementById('loginPass').value || '';
+  if (!/^\S+@\S+\.\S+$/.test(email)) return setAuthMsg('이메일 형식을 확인해 주세요.', 'login');
+  if (pass.length < 6) return setAuthMsg('비밀번호는 6자 이상이에요.', 'login');
+  setAuthMsg('로그인 중…', 'login');
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) {
+    const m = /Invalid login credentials/i.test(error.message) ? '이메일 또는 비밀번호가 맞지 않아요.'
+      : /Email not confirmed/i.test(error.message) ? '이메일 인증이 아직 안 됐어요. 메일함의 인증 링크를 먼저 눌러 주세요.'
+      : error.message;
+    setAuthMsg(m, 'login');
+    return;
+  }
+  setAuthMsg('', 'login');
+}
+
+async function doSignup(e) {
+  e.preventDefault();
+  const email = (document.getElementById('suEmail').value || '').trim();
+  const pass = document.getElementById('suPass').value || '';
+  const nick = (document.getElementById('suNick').value || '').trim();
+  const gender = document.getElementById('suGender').value;
+  const year = parseInt(document.getElementById('suYear').value, 10);
+
+  if (!/^\S+@\S+\.\S+$/.test(email)) return setAuthMsg('이메일 형식을 확인해 주세요.', 'signup');
+  if (pass.length < 6) return setAuthMsg('비밀번호는 6자 이상으로 정해 주세요.', 'signup');
+  if (!nick) return setAuthMsg('닉네임을 적어 주세요.', 'signup');
+  if (!Number.isFinite(year) || year < 1950 || year > 2010) return setAuthMsg('출생연도를 확인해 주세요.', 'signup');
+
+  setAuthMsg('가입 중…', 'signup');
+  const { data, error } = await sb.auth.signUp({
+    email, password: pass,
+    options: {
+      data: { nickname: nick, gender, birth_year: year, age: new Date().getFullYear() - year },
+      emailRedirectTo: CFG.SITE_URL
+    }
+  });
+  if (error) {
+    const m = /already registered|already been registered/i.test(error.message)
+      ? '이미 가입된 이메일이에요. 로그인해 주세요.' : error.message;
+    setAuthMsg(m, 'signup');
+    return;
+  }
+  if (!data.session) {
+    setAuthMsg(`확인 메일을 ${email} 로 보냈어요. 메일함에서 인증 링크를 누른 뒤 로그인해 주세요.`, 'signup');
+    return;
+  }
+  setAuthMsg('', 'signup');
+}
+
+async function doLogout() {
+  if (polling) { clearInterval(polling); polling = null; }
+  try { await sb.auth.signOut(); } catch (e) { console.warn(e); }
+  session = null; meId = null; afterLoginDone = false;
+  state = emptyState(); PROFILES = [];
+  Object.keys(PROFILE_MAP).forEach((k) => delete PROFILE_MAP[k]);
+  showAuth();
+  toast('로그아웃했어요.');
+}
+
+/* ---------- 로그인 후 ---------- */
+async function afterLogin() {
+  if (afterLoginDone) return;
+  afterLoginDone = true;
+  hideAuth();
+  const banner = document.getElementById('setupBanner');
+  if (banner) banner.hidden = true;
+
+  const { data: u } = await sb.auth.getUser();
+  if (!u || !u.user) { showAuth(); return; }
+  meId = u.user.id;
+
+  try {
+    const schemaOk = await ensureSchema();
+    if (!schemaOk) { showAuth(); schemaBanner(); return; }
+
+    await ensureProfile(u.user);
+
+    let w = await rpc('my_state');
+    if (!w) { await ensureProfile(u.user); w = await rpc('my_state'); }
+    wallet = w || {};
+    if (wallet.demo_seeded !== true) {
+      try { await rpc('seed_demo_for_me'); } catch (err) { console.warn('[seed]', err); }
+    }
+    try { payInfo = await rpc('get_payment_info'); } catch (err) { console.warn('[pay]', err); }
+
+    await refreshAll();
+    fillProfileForm();
+    renderAll();
+    switchView('today');
+    startPolling();
+    toast(`안녕하세요, ${state.user.nickname || '예지'}님. 오늘의 인연을 준비했어요.`);
+  } catch (err) {
+    console.error('[boot]', err);
+    fatalBanner(errorText(err));
+  }
+}
+
+function errorText(err) {
+  const m = (err && (err.message || err.error_description || err.details)) || String(err || '알 수 없는 오류');
+  if (/relation .* does not exist|Could not find the table|schema cache/i.test(m)) {
+    return 'Supabase 테이블이 아직 없어요. supabase_schema.sql 을 SQL Editor 에서 실행해 주세요.';
+  }
+  if (/permission denied/i.test(m)) {
+    return '권한 설정이 필요해요. supabase_schema.sql 을 다시 한 번 실행해 주세요.';
+  }
+  return m;
+}
+async function rpc(name, args) {
+  const { data, error } = await sb.rpc(name, args || {});
+  if (error) throw new Error(errorText(error));
+  return data;
+}
+
+async function ensureSchema() {
+  const { error } = await sb.from('profiles').select('id').limit(1);
+  if (!error) return true;
+  const m = error.message || '';
+  if (error.code === 'PGRST205' || /does not exist|Could not find the table|schema cache/i.test(m)) return false;
+  throw error;
+}
+
+async function ensureProfile(user) {
+  const { data, error } = await sb.from('profiles').select('id').eq('id', user.id).maybeSingle();
+  if (error) throw error;
+  if (data) return;
+  const meta = user.user_metadata || {};
+  const year = parseInt(meta.birth_year, 10);
+  await sb.from('profiles').upsert({
+    id: user.id,
+    nickname: meta.nickname || (user.email || '회원').split('@')[0],
+    gender: meta.gender || null,
+    birth_year: Number.isFinite(year) ? year : null,
+    age: Number.isFinite(year) ? new Date().getFullYear() - year : null
+  }, { onConflict: 'id' });
+}
+
+/* ==========================================================================
+   3. 데이터 새로고침
+   ========================================================================== */
+const PROFILE_COLS = 'id,nickname,gender,birth_year,age,job,company,region,mbti,height,bio,priorities,verified,status,avatar_data,hobbies,values_list,photo_captions,dist_km,job_stable,nonsmoker,is_demo,created_at';
+
+async function refreshAll() {
+  if (!sb || !session) return;
+  const res = await Promise.all([
+    sb.from('profiles').select(PROFILE_COLS),
+    sb.rpc('my_state'),
+    sb.from('likes_matches').select('id,from_user,to_user,status,matched_at,expires_at,met_confirmed_by_from,met_confirmed_by_to,planned_at,created_at'),
+    sb.from('messages').select('id,match_id,sender_id,body,read_at,created_at').order('created_at', { ascending: true }).limit(1000),
+    sb.from('verifications').select('id,user_id,method,company,company_email,doc_name,doc_preview,status,reviewed_at,note,created_at').order('created_at', { ascending: false }).limit(200),
+    sb.from('reviews').select('id,match_id,author_id,rating,content,points_awarded,created_at'),
+    sb.from('charge_requests').select('id,user_id,package_name,tickets,amount_krw,depositor_name,status,note,reviewed_at,created_at').order('created_at', { ascending: false }).limit(200),
+    sb.from('reports').select('id,reporter_id,target_user_id,reason,detail,status,reviewed_at,created_at').order('created_at', { ascending: false }).limit(200),
+    sb.from('admin_logs').select('id,action,target_name,actor,detail,created_at').order('created_at', { ascending: false }).limit(80)
+  ]);
+  const labels = ['profiles', 'my_state', 'likes', 'messages', 'verifications', 'reviews', 'charges', 'reports', 'logs'];
+  res.forEach((r, i) => { if (r.error) console.warn('[load]', labels[i], r.error.message); });
+  const critical = res[0].error || res[1].error || res[2].error;
+  if (critical) throw critical;
+
+  applyData({
+    profiles: res[0].data || [],
+    wallet: res[1].data || {},
+    likes: res[2].data || [],
+    messages: res[3].data || [],
+    verifications: res[4].data || [],
+    reviews: res[5].data || [],
+    charges: res[6].data || [],
+    reports: res[7].data || [],
+    logs: res[8].data || []
+  });
+}
+
+function applyData(d) {
+  meId = (session && session.user && session.user.id) || meId;
+  wallet = d.wallet || {};
+  isAdmin = wallet.is_admin === true;
+
+  const meRow = d.profiles.find((p) => p.id === meId) || {};
+
+  /* 내 프로필 */
+  state.user = {
+    nickname: meRow.nickname || '',
+    age: meRow.age || ageFromYear(meRow.birth_year),
+    job: meRow.job || '',
+    company: meRow.company || '',
+    bio: meRow.bio || '',
+    mbti: meRow.mbti || '',
+    height: meRow.height || null,
+    region: meRow.region || '',
+    gender: meRow.gender || null,
+    birthYear: meRow.birth_year || null,
+    photos: parsePhotos(meRow.avatar_data),
+    prefs: normalizePrefs(meRow.priorities)
+  };
+  state.tickets = Number(wallet.match_tickets ?? meRow.match_tickets ?? 0);
+  state.points = Number(wallet.points ?? 0);
+  state.verified = wallet.verified === true;
+
+  state.safety = {
+    hideSameCompany: wallet.hidden_company !== false,
+    blockedNumbers: parseJsonArray(wallet.blocked_phones),
+    blockedProfiles: parseJsonArray(wallet.blocked_profiles)
+  };
+
+  /* 프로필 사전 */
+  state.verifiedIds = d.profiles.filter((p) => p.verified).map((p) => p.id);
+  PROFILES = d.profiles;
+  Object.keys(PROFILE_MAP).forEach((k) => delete PROFILE_MAP[k]);
+  d.profiles.forEach((r) => { PROFILE_MAP[r.id] = toProfile(r); });
+
+  /* 호감 · 매칭 */
+  const mine = d.likes.filter((l) => l.from_user === meId);
+  const theirs = d.likes.filter((l) => l.to_user === meId);
+  const matched = d.likes.filter((l) => l.status === 'matched');
+
+  state.sent = mine
+    .filter((l) => l.status !== 'passed')
+    .map((l) => ({
+      id: l.to_user, at: l.created_at, matchId: l.id,
+      status: l.status === 'expired_refunded' ? 'refunded' : (l.status === 'matched' ? 'matched' : 'pending')
+    }))
+    .sort((a, b) => new Date(a.at) - new Date(b.at));
+
+  state.received = theirs
+    .filter((l) => l.status === 'liked')
+    .map((l) => ({ id: l.from_user, at: l.created_at, matchId: l.id, status: 'pending' }))
+    .sort((a, b) => new Date(b.at) - new Date(a.at));
+
+  state.matches = matched
+    .map((l) => {
+      const partner = l.from_user === meId ? l.to_user : l.from_user;
+      return { id: partner, matchId: l.id, at: l.matched_at || l.created_at, via: l.from_user === meId ? 'mutual' : 'accepted', row: l };
+    })
+    .filter((m) => PROFILE_MAP[m.id]);
+
+  const passRows = mine.filter((l) => l.status === 'passed')
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  state.passed = [...new Set(passRows.map((l) => l.to_user))];
+  state.lastPassed = passRows.length ? passRows[0].to_user : null;
+
+  /* 대화 */
+  state.chats = {}; state.unread = {}; state.chatRead = {};
+  state.matches.forEach((m) => {
+    const msgs = d.messages.filter((x) => x.match_id === m.matchId);
+    state.chats[m.id] = msgs.map((x) => ({
+      from: x.sender_id === meId ? 'me' : 'them', text: x.body, at: x.created_at, read: !!x.read_at
+    }));
+    state.unread[m.id] = msgs.filter((x) => x.sender_id !== meId && !x.read_at).length;
+    const reads = msgs.filter((x) => x.sender_id === meId && x.read_at).map((x) => x.read_at).sort();
+    if (reads.length) state.chatRead[m.id] = reads[reads.length - 1];
+  });
+
+  /* 만남 · 후기 */
+  state.meetings = {};
+  state.matches.forEach((m) => {
+    const l = m.row;
+    const iAmFrom = l.from_user === meId;
+    const iMet = iAmFrom ? l.met_confirmed_by_from : l.met_confirmed_by_to;
+    const rv = d.reviews.find((r) => r.match_id === m.matchId && r.author_id === meId);
+    state.meetings[m.id] = {
+      status: rv ? 'reviewed' : (iMet ? 'met' : (l.planned_at ? 'planned' : 'none')),
+      plannedAt: l.planned_at,
+      metAt: iMet ? (l.matched_at || null) : null,
+      review: rv ? { rating: rv.rating, note: rv.content || '', at: rv.created_at, points: rv.points_awarded } : null
+    };
+  });
+
+  /* 인증 */
+  const myVer = d.verifications.find((v) => v.user_id === meId);
+  state.verification = myVer ? {
+    status: myVer.status === 'approved' ? 'verified' : (myVer.status === 'rejected' ? 'rejected' : 'pending'),
+    method: myVer.method,
+    company: myVer.company || '',
+    email: myVer.company_email || '',
+    docName: myVer.doc_name || '',
+    docPreview: myVer.doc_preview || '',
+    submittedAt: myVer.created_at,
+    decidedAt: myVer.reviewed_at,
+    reason: myVer.note || ''
+  } : { status: 'none', method: null, company: '', email: '', docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: '' };
+  if (state.verified && state.verification.status !== 'verified') state.verification.status = 'verified';
+
+  state.submissions = d.verifications.map((v) => {
+    const isMine = v.user_id === meId;
+    const p = PROFILE_MAP[v.user_id];
+    return {
+      id: v.id,
+      owner: isMine ? 'me' : v.user_id,
+      ownerId: v.user_id,
+      ownerName: isMine ? (state.user.nickname || '나') : (p ? p.name : (v.company || '회원')),
+      method: v.method,
+      company: v.company || '',
+      email: v.company_email || '',
+      docName: v.doc_name || '',
+      docPreview: v.doc_preview || '',
+      at: v.created_at,
+      status: v.status === 'approved' ? 'approved' : (v.status === 'rejected' ? 'rejected' : 'pending'),
+      reason: v.note || '',
+      decidedAt: v.reviewed_at
+    };
+  });
+
+  /* 신고 */
+  state.reports = d.reports.map((r) => ({
+    id: r.id,
+    targetId: r.target_user_id,
+    targetName: (PROFILE_MAP[r.target_user_id] || {}).name || '회원',
+    reporter: r.reporter_id === meId ? 'me' : ((PROFILE_MAP[r.reporter_id] || {}).name || '회원'),
+    reporterId: r.reporter_id,
+    reason: r.reason,
+    detail: r.detail || '',
+    at: r.created_at,
+    status: r.status,
+    decidedAt: r.reviewed_at
+  }));
+
+  /* 충전 요청 */
+  state.charges = d.charges.map((c) => ({
+    id: c.id,
+    userId: c.user_id,
+    userName: c.user_id === meId ? (state.user.nickname || '나') : ((PROFILE_MAP[c.user_id] || {}).name || '회원'),
+    packageName: c.package_name,
+    tickets: c.tickets,
+    amount: c.amount_krw,
+    depositor: c.depositor_name,
+    status: c.status,
+    note: c.note || '',
+    at: c.created_at,
+    decidedAt: c.reviewed_at
+  }));
+
+  state.suspendedIds = d.profiles.filter((p) => p.status !== 'active').map((p) => p.id);
+  state.auditLog = d.logs.map((l) => ({ action: l.action, target: l.target_name, detail: l.detail, actor: l.actor, at: l.created_at }));
+
+  /* 매칭권 이용내역 (서버 기록에서 계산) */
+  const led = [];
+  if (meRow.created_at) led.push({ kind: 'initial', delta: 3, at: meRow.created_at, detail: '가입 시 지급' });
+  mine.forEach((l) => {
+    const name = (PROFILE_MAP[l.to_user] || {}).name || '인연';
+    if (l.status === 'expired_refunded') {
+      led.push({ kind: 'refund', delta: 1, at: l.expires_at || l.created_at, detail: `${name}님 48시간 무응답` });
+    } else {
+      led.push({ kind: 'use', delta: -1, at: l.created_at, detail: `${name}님에게 호감 전송` });
+    }
+  });
+  d.charges.filter((c) => c.user_id === meId && c.status === 'approved').forEach((c) => {
+    led.push({ kind: 'topup', delta: c.tickets, at: c.reviewed_at || c.created_at, detail: `${c.package_name} · ${c.amount_krw.toLocaleString('ko-KR')}원 입금 확인` });
+  });
+  state.ticketLedger = led.sort((a, b) => new Date(b.at) - new Date(a.at));
+
+  /* 오늘의 인연 (아직 아무것도 하지 않은 활성 프로필) */
+  const interacted = new Set(mine.map((l) => l.to_user));
+  const myGender = state.user.gender;
+  state.deck = d.profiles
+    .filter((r) => r.id !== meId && r.status === 'active' && !interacted.has(r.id))
+    .filter((r) => !myGender || !r.gender || r.gender !== myGender)
+    .filter((r) => uiPrefs.showDemo || !r.is_demo)
+    .map((r) => r.id);
+
+  deckSignature = '';
+  threadSignature = '';
+}
+
+/* ---------- 폴링 ---------- */
+function startPolling() {
+  if (polling) clearInterval(polling);
+  polling = setInterval(async () => {
+    if (!session || !sb || document.hidden) return;
+    try {
+      await refreshAll();
+      renderNav();
+      if (currentMode === 'user') {
+        const active = document.querySelector('.view.is-active');
+        if (active && active.dataset.view === 'chat') { renderChatList(); renderThread(); renderMeetBar(); }
+        if (active && active.dataset.view === 'matches') renderMatches();
+      }
+    } catch (err) { console.warn('[poll]', err); }
+  }, CFG.POLL_MS);
+  setInterval(async () => {
+    if (!session || document.hidden) return;
+    try {
+      const n = await rpc('expire_likes');
+      if (n > 0) {
+        await refreshAll();
+        renderAll();
+        toast(`48시간 동안 답이 없어 매칭권 ${n}장이 돌아왔어요.`);
+      }
+    } catch (err) { /* 조용히 */ }
+  }, 3 * 60 * 1000);
+}
+
 
 /* ==========================================================================
    3. 유틸 & 안전 필터
@@ -2805,16 +3293,519 @@ function reportCardHTML(r, isOpen) {
     </article>`;
 }
 
+
 /* ==========================================================================
-   6. 액션
+   5. 서버 액션 — 매칭권 · 매칭 · 대화 · 인증 · 신고 · 운영자
+   (위 v0.5 렌더러가 부르는 함수를 서버 버전으로 덮어씁니다)
    ========================================================================== */
-let busy = false;
-let toastAction = null;
-let toastTimer = null;
+let busy = false, toastAction = null, toastTimer = null;
 const typingChats = new Set();
 const replyTimers = new Map();
+let emailDraft = { company: '', email: '' };
+let emailCode = '';
+let docDraft = null;
+let reportDraft = null;
+let chargePack = null;
+let chargeName = '';
 
-/* ---------- 6-1. 카드 ---------- */
+/* ---------- 공통 UI ---------- */
+function openSheet(html) { $('#sheet').innerHTML = html; $('#sheetWrap').hidden = false; }
+function closeSheet() { $('#sheetWrap').hidden = true; }
+
+function toast(message, opts = {}) {
+  const el = $('#toast');
+  el.innerHTML = `<span>${esc(message)}</span>` + (opts.label ? `<button data-action="toast-action">${esc(opts.label)}</button>` : '');
+  el.classList.add('is-on');
+  toastAction = opts.action || null;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.classList.remove('is-on'); toastAction = null; }, opts.label ? 6500 : 3200);
+}
+
+function switchView(name) {
+  $$('.view').forEach((v) => v.classList.toggle('is-active', v.dataset.view === name));
+  $$('.tab').forEach((t) => {
+    const on = t.dataset.view === name;
+    t.classList.toggle('is-active', on);
+    t.setAttribute('aria-selected', String(on));
+  });
+  if (name !== 'chat') closeThread();
+  if (name === 'matches') renderMatches();
+  if (name === 'chat') renderChatList();
+  if (name === 'today') renderDeck();
+  if (name === 'profile') { renderVerifyCard(); renderSafety(); renderAccountSection(); }
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  document.body.classList.toggle('mode-admin', mode === 'admin');
+  $('#userMode').hidden = mode !== 'user';
+  $('#adminView').hidden = mode !== 'admin';
+  $$('.mode-bar .seg__btn').forEach((b) => {
+    const on = b.dataset.mode === mode;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-selected', String(on));
+  });
+  if (mode === 'admin') renderAdmin();
+}
+
+function switchAdminTab(tab) {
+  adminTab = tab;
+  const panels = { verify: 'adminVerifyPanel', charges: 'adminChargePanel', reports: 'adminReportsPanel', settings: 'adminSettingsPanel' };
+  Object.entries(panels).forEach(([k, id]) => { const el = document.getElementById(id); if (el) el.hidden = k !== tab; });
+  $$('.admin-tab').forEach((b) => {
+    const on = b.dataset.tab === tab;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-selected', String(on));
+  });
+  renderAdmin();
+}
+
+function renderAll() {
+  renderDeck();
+  renderMatches();
+  renderChatList();
+  renderThread();
+  renderMeetBar();
+  renderProfileChrome();
+  renderNav();
+  renderAccountSection();
+  if (currentMode === 'admin') renderAdmin();
+}
+
+/* ---------- v0.5 함수 덮어쓰기 (서버 상태 기준) ---------- */
+function isVerified(id) { return Boolean(PROFILE_MAP[id] && PROFILE_MAP[id].verified); }
+function myVerified() { return state.verified === true; }
+function ledger() { /* 매칭권 내역은 서버 기록에서 계산합니다 */ }
+function audit() { /* 운영 이력은 admin_logs 에 남습니다 */ }
+function processExpirations() { rpc('expire_likes').catch(() => {}); return 0; }
+
+function artFor(id, idx) {
+  const key = (PROFILE_MAP[id] && PROFILE_MAP[id].artKey) || id;
+  const list = PROFILE_ART[key] || FALLBACK_MOTIFS;
+  const h = hashPhone(String(key)) ? parseInt(hashPhone(String(key)), 16) : 0;
+  const motif = list[Math.min(Math.max(idx || 0, 0), list.length - 1)];
+  return ART[motif] ? motif : FALLBACK_MOTIFS[(h + (idx || 0) * 3) % FALLBACK_MOTIFS.length];
+}
+
+function photoMarkup(p, idx) {
+  const photo = photoAt(p, idx);
+  if (photo && photo.src) {
+    return `<img src="${photo.src}" alt="${esc(p.name)} 사진" style="width:100%;height:100%;object-fit:cover">`;
+  }
+  return plateSVG(artFor(p.id, idx));
+}
+
+function setCardPhoto(id, idx) {
+  const p = PROFILE_MAP[id];
+  const card = document.querySelector(`.card[data-id="${id}"]`);
+  if (!p || !card) return;
+  photoState[id] = idx;
+  const photo = photoAt(p, idx);
+  const art = card.querySelector('.card-art');
+  if (art) art.innerHTML = photoMarkup(p, idx);
+  const cap = card.querySelector('.photo-caption');
+  if (cap) cap.textContent = photo.caption || p.area;
+  card.querySelectorAll('.photo-dot').forEach((d, i) => d.classList.toggle('is-on', i === idx));
+}
+
+function cardHTML(p, depth) {
+  const prefs = state.user.prefs;
+  const prios = prefs.priorities || [];
+  const hit = priorityHitIndex(p);
+  const badgeText = hit >= 0
+    ? `내 ${hit + 1}순위 ${PRIORITY_LABEL[prios[hit]]} · 잘 맞는 인연`
+    : '오늘의 추천';
+  const photoIndex = photoState[p.id] || 0;
+  const photo = photoAt(p, photoIndex);
+  const photoCount = (p.photos || []).length || 1;
+  const reasons = matchReasons(p);
+  return `
+    <article class="card" data-id="${p.id}" data-depth="${depth}" style="--depth:${depth}" aria-label="${esc(p.name)} 프로필">
+      <div class="card-photo">
+        <div class="card-art">${photoMarkup(p, photoIndex)}</div>
+        ${isVerified(p.id) ? '<span class="card-sticker card-sticker--verified">직장인 인증</span>' : ''}
+        ${p.isDemo ? '<span class="card-sticker" style="top:14px;left:14px;color:#8C5B4A">데모 프로필</span>' : ''}
+        <span class="card-sticker card-sticker--score"><b>${reasons.length}개</b> 추천 조건 일치</span>
+        <div class="swipe-label swipe-label--like">호감</div>
+        <div class="swipe-label swipe-label--pass">건너뛰기</div>
+        <span class="photo-caption">${esc(photo.caption || p.area)}</span>
+        ${photoCount > 1 ? `<div class="photo-dots">${Array.from({ length: photoCount }, (_, i) =>
+          `<button class="photo-dot${i === photoIndex ? ' is-on' : ''}" data-action="photo" data-id="${p.id}" data-index="${i}" aria-label="사진 ${i + 1}"></button>`).join('')}</div>` : ''}
+      </div>
+      <div class="card-head">
+        <span class="card-badge ${hit >= 0 ? 'card-badge--hit' : ''}">${badgeText}</span>
+        <h2 class="card-name">${esc(p.name)} <span>${p.age}</span></h2>
+        <p class="card-meta">${esc(p.job)} · ${esc(p.area)} · ${p.mbti}</p>
+      </div>
+      <div class="card-body">
+        <p class="card-bio">${esc(p.bio || '아직 소개를 작성하지 않았어요.')}</p>
+        <div class="tag-row"><span class="tag-label">취미</span>
+          ${p.hobbies.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}
+        </div>
+        <div class="tag-row"><span class="tag-label">가치관</span>
+          ${p.values.map((t) => `<span class="tag tag--value">${esc(t)}</span>`).join('')}
+        </div>
+        <p class="match-reason"><span>${esc(reasons.slice(0, 2).join(' · ') || '설정한 조건과 일치하는 항목이 아직 없어요')}</span></p>
+        <button class="btn btn--ghost btn--sm" data-action="detail-profile" data-id="${p.id}" style="margin-top:9px">상세 프로필 · 추천 근거 보기</button>
+        <button class="report-link" data-action="report" data-id="${p.id}">이 프로필 신고하기</button>
+      </div>
+    </article>`;
+}
+
+function openProfileDetail(id) {
+  const p = PROFILE_MAP[id];
+  if (!p) return;
+  const reasons = matchReasons(p);
+  openSheet(`<div class="sheet__grabber"></div><div class="sheet__head"><h2>${esc(p.name)}님의 상세 프로필</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기">✕</button></div>
+    <p class="sheet__sub">${p.age}세 · ${esc(p.job)} · ${esc(p.area)} · ${esc(p.mbti)} ${isVerified(id) ? '· 직장인 인증 완료' : ''}${p.isDemo ? ' · 데모 프로필' : ''}</p>
+    <div class="detail-gallery">${(p.photos || []).map((photo, i) => `<figure>${photoMarkup(p, i)}<figcaption>${esc(photo.caption || '')}</figcaption></figure>`).join('')}</div>
+    <p class="sheet__sub">${esc(p.bio || '아직 소개가 없어요.')}</p>
+    <p class="sheet__sub">취미: ${p.hobbies.map(esc).join(', ')}<br>가치관: ${p.values.map(esc).join(', ')}<br>흡연: ${p.nonsmoker ? '비흡연' : '미기재'}${p.height ? ' · 키: ' + p.height + 'cm' : ''}${p.distKm !== null ? ' · 거리: ' + p.distKm + 'km' : ''}</p>
+    <div class="reason-list"><strong>추천 조건 ${reasons.length}개 일치</strong>${reasons.length ? `<ul>${reasons.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>` : '<p>현재 설정된 조건에서 확인된 일치 항목이 없습니다.</p>'}</div>
+    <p class="demo-limits">추천 조건은 상대 프로필과 내가 고른 설정의 단순 비교입니다. 점수나 실제 관계 궁합을 보증하지 않아요.</p>
+    <div class="detail-actions"><button class="btn btn--ghost" data-action="close-sheet">닫기</button><button class="btn btn--primary" data-action="detail-like" data-id="${id}" ${state.deck.includes(id) ? '' : 'disabled'}>호감 보내기</button></div>`);
+}
+
+function renderMeetBar() {
+  const bar = $('#meetBar');
+  if (!bar) return;
+  if (!activeChatId) { bar.innerHTML = ''; bar.hidden = true; return; }
+  bar.hidden = false;
+  const id = activeChatId;
+  const m = meetingOf(id);
+  const p = PROFILE_MAP[id] || { name: '상대' };
+
+  if (m.status === 'reviewed') {
+    bar.className = 'meet-bar is-reviewed';
+    bar.innerHTML = `
+      <div class="meet-bar__text">
+        <p class="meet-bar__title">만남 후기 완료 · ${m.review?.points || 300}P 적립</p>
+        <p class="meet-bar__sub">${esc((m.review?.note || '').slice(0, 70))}</p>
+      </div>`;
+    return;
+  }
+  if (m.status === 'met') {
+    bar.className = 'meet-bar is-met';
+    bar.innerHTML = `
+      <div class="meet-bar__text">
+        <p class="meet-bar__title">만남을 기록했어요</p>
+        <p class="meet-bar__sub">후기를 남기면 300P를 드려요 (990P = 매칭권 1장)</p>
+      </div>
+      <div class="meet-bar__actions">
+        <button class="btn btn--sm btn--primary" data-action="meet-review" data-id="${id}">후기 남기기</button>
+      </div>`;
+    return;
+  }
+  if (m.status === 'planned') {
+    bar.className = 'meet-bar';
+    bar.innerHTML = `
+      <div class="meet-bar__text">
+        <p class="meet-bar__title">약속 · ${m.plannedAt ? dateLabel(m.plannedAt) : ''}</p>
+        <p class="meet-bar__sub">만난 뒤 기록하면 후기 포인트 300P</p>
+      </div>
+      <div class="meet-bar__actions">
+        <button class="btn btn--sm btn--ghost" data-action="meet-plan" data-id="${id}">변경</button>
+        <button class="btn btn--sm btn--primary" data-action="meet-done" data-id="${id}">만났어요</button>
+      </div>`;
+    return;
+  }
+  bar.className = 'meet-bar';
+  bar.innerHTML = `
+    <div class="meet-bar__text">
+      <p class="meet-bar__title">${esc(p.name)}님과 만나셨나요?</p>
+      <p class="meet-bar__sub">만남을 기록하고 후기를 남기면 300P 적립</p>
+    </div>
+    <div class="meet-bar__actions">
+      <button class="btn btn--sm btn--ghost" data-action="meet-plan" data-id="${id}">약속 잡기</button>
+      <button class="btn btn--sm btn--primary" data-action="meet-done" data-id="${id}">만났어요</button>
+    </div>`;
+}
+
+function renderChatList() {
+  const wrap = $('#chatList');
+  if (!state.matches.length) {
+    wrap.innerHTML = `
+      <div class="empty" style="height:auto;padding-top:48px">
+        ${emptyArt('duo')}
+        <h3>아직 대화가 없어요</h3>
+        <p>매칭이 성사되면 여기에서<br>첫 대화를 시작할 수 있어요</p>
+        <button class="btn btn--ghost" data-action="tab" data-view="matches">매칭 현황 보기</button>
+      </div>`;
+    return;
+  }
+  const rows = state.matches
+    .filter((m) => safeProfile(m.id) && !state.endedChats.includes(m.id))
+    .slice()
+    .sort((a, b) => {
+      const la = lastMessage(a.id), lb = lastMessage(b.id);
+      return new Date(lb ? lb.at : b.at) - new Date(la ? la.at : a.at);
+    });
+
+  if (!rows.length) {
+    wrap.innerHTML = `<div class="empty" style="height:auto;padding-top:48px"><h3>진행 중인 대화가 없어요</h3><p>차단하거나 종료한 채팅은 목록에서 숨겨집니다.<br>안전 설정은 내 프로필에서 확인할 수 있어요.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <ul class="list">
+      ${rows.map((m) => {
+        const p = PROFILE_MAP[m.id];
+        const last = lastMessage(m.id);
+        const unread = state.unread[m.id] || 0;
+        return `
+          <li class="row" data-action="open-chat" data-id="${p.id}" style="cursor:pointer">
+            <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
+            <div class="row__main">
+              <p class="row__name">${esc(p.name)} <span>${p.age}</span></p>
+              <p class="row__sub">${last ? esc(last.text) : '첫 대화를 기다리고 있어요'}</p>
+            </div>
+            ${unread
+              ? `<span class="status-pill status-pill--done">${unread}</span>`
+              : `<span class="status-pill">${last ? relTime(last.at) : relTime(m.at)}</span>`}
+          </li>`;
+      }).join('')}
+    </ul>
+    <p class="footnote" style="margin-top:18px">매칭된 상대와만 대화할 수 있어요 · 새 메시지는 몇 초 안에 도착해요</p>`;
+}
+
+function renderThread() {
+  if (!activeChatId) return;
+  const p = PROFILE_MAP[activeChatId];
+  if (!p || !safeProfile(activeChatId) || state.endedChats.includes(activeChatId)) { closeThread(); return; }
+  const msgs = state.chats[activeChatId] || [];
+  const match = state.matches.find((m) => m.id === activeChatId);
+  const signature = activeChatId + '|' + msgs.length + '|' + (state.chatRead[activeChatId] || '');
+  if (signature === threadSignature) return;
+  threadSignature = signature;
+
+  $('#threadAvatar').innerHTML = avatarSVG(p.id, p.name);
+  $('#threadName').textContent = p.name;
+  $('#threadSub').textContent = `${match ? relTime(match.at) + ' 매칭' : '매칭'} · ${p.job} · ${p.mbti}`;
+  $('#threadReportBtn').dataset.id = activeChatId;
+
+  const divider = msgs.length
+    ? `<div class="day-divider">대화 시작 · ${relTime(msgs[0].at)}</div>`
+    : `<div class="day-divider">매칭이 성사됐어요 — 먼저 인사를 건네보세요</div>`;
+
+  $('#threadBody').innerHTML = divider +
+    msgs.map((m) => `
+      <div class="bubble bubble--${m.from === 'me' ? 'me' : 'them'}">${esc(m.text)}</div>
+      <div class="bubble__time">${timeHM(m.at)}${m.from === 'me' ? (state.chatRead[activeChatId] && new Date(m.at) <= new Date(state.chatRead[activeChatId]) ? ' · 읽음' : ' · 보냄') : ''}</div>`).join('');
+
+  $('#chipRow').innerHTML = ICEBREAKERS.map((t) =>
+    `<button class="chip" data-action="send-chip" data-text="${esc(t)}">${esc(t)}</button>`).join('');
+
+  requestAnimationFrame(() => { const b = $('#threadBody'); if (b) b.scrollTop = b.scrollHeight; });
+}
+
+function renderNav() {
+  const pending = state.received.filter((r) => r.status === 'pending' && PROFILE_MAP[r.id] && !isHidden(PROFILE_MAP[r.id])).length;
+  const unread = Object.values(state.unread).reduce((a, b) => a + b, 0);
+
+  const matchBadge = $('#matchBadge');
+  if (matchBadge) { matchBadge.hidden = pending === 0; matchBadge.textContent = pending; }
+
+  const chatBadge = $('#chatBadge');
+  if (chatBadge) { chatBadge.hidden = unread === 0; chatBadge.textContent = unread > 9 ? '9+' : unread; }
+
+  const dot = $('#adminPendingDot');
+  if (dot) {
+    const pendingVerify = isAdmin ? state.submissions.filter((s) => s.status === 'pending').length : 0;
+    const openReports = isAdmin ? state.reports.filter((r) => r.status === 'open').length : 0;
+    const pendingCharges = isAdmin ? state.charges.filter((c) => c.status === 'pending').length : 0;
+    const total = pendingVerify + openReports + pendingCharges;
+    dot.hidden = total === 0;
+    dot.textContent = total;
+  }
+}
+
+/* ---------- 프로필 ---------- */
+function fillProfileForm() {
+  const u = state.user;
+  const set = (sel, v) => { const el = $(sel); if (el) el.value = v === null || v === undefined ? '' : v; };
+  set('#fNickname', u.nickname);
+  set('#fAge', u.age);
+  set('#fJob', u.job);
+  set('#fCompany', u.company);
+  set('#fBio', u.bio);
+  set('#fMbti', u.mbti || '');
+  set('#fHeight', u.height);
+  set('#fRegion', u.region);
+  set('#fAgeMin', u.prefs.ageMin);
+  set('#fAgeMax', u.prefs.ageMax);
+  renderPrefChips();
+  renderProfileChrome();
+  renderAccountSection();
+}
+
+async function saveProfile() {
+  const nickname = ($('#fNickname').value || '').trim();
+  const age = parseInt($('#fAge').value, 10);
+  const job = ($('#fJob').value || '').trim();
+  const company = ($('#fCompany').value || '').trim();
+  const bio = ($('#fBio').value || '').trim();
+  const mbti = ($('#fMbti').value || '').trim();
+  const height = parseInt($('#fHeight').value, 10);
+  const region = ($('#fRegion').value || '').trim();
+  let ageMin = parseInt($('#fAgeMin').value, 10);
+  let ageMax = parseInt($('#fAgeMax').value, 10);
+
+  if (!nickname) { toast('닉네임을 입력해 주세요.'); $('#fNickname').focus(); return; }
+  if (!Number.isFinite(age) || age < 19 || age > 99) { toast('나이는 19~99세 사이로 입력해 주세요'); $('#fAge').focus(); return; }
+  if (Number.isFinite(ageMin) && Number.isFinite(ageMax) && ageMin > ageMax) { const t = ageMin; ageMin = ageMax; ageMax = t; }
+
+  const prefs = {
+    ...state.user.prefs,
+    ageMin: Number.isFinite(ageMin) ? ageMin : state.user.prefs.ageMin,
+    ageMax: Number.isFinite(ageMax) ? ageMax : state.user.prefs.ageMax
+  };
+  const patch = {
+    nickname, age,
+    job: job || null, company: company || null, bio: bio || null,
+    mbti: mbti || null, height: Number.isFinite(height) ? height : null,
+    region: region || null, priorities: prefs
+  };
+  try {
+    const { error } = await sb.from('profiles').update(patch).eq('id', meId).select('id');
+    if (error) throw error;
+    await refreshAll();
+    fillProfileForm(); renderAll();
+    toast('프로필을 저장했어요.');
+  } catch (err) { toast(errorText(err)); }
+}
+
+async function persistPrefs(patch) {
+  state.user.prefs = { ...state.user.prefs, ...patch };
+  deckSignature = '';
+  renderPrefChips(); renderAll();
+  try {
+    const { error } = await sb.from('profiles').update({ priorities: state.user.prefs }).eq('id', meId).select('id');
+    if (error) throw error;
+  } catch (err) { toast(errorText(err)); }
+}
+function updatePrefs(patch) { persistPrefs(patch); }
+
+function togglePref(listName, value) {
+  const arr = [...(state.user.prefs[listName] || [])];
+  const idx = arr.indexOf(value);
+  if (idx >= 0) {
+    if (arr.length === 1) { toast('한 개는 선택해 주세요'); return; }
+    arr.splice(idx, 1);
+  } else arr.push(value);
+  persistPrefs({ [listName]: arr });
+}
+function toggleMbti(value) {
+  const current = [...(state.user.prefs.mbti || [])];
+  if (value === '') { persistPrefs({ mbti: [] }); return; }
+  const idx = current.indexOf(value);
+  if (idx >= 0) current.splice(idx, 1); else current.push(value);
+  persistPrefs({ mbti: current });
+}
+function togglePriority(key) {
+  const current = [...(state.user.prefs.priorities || [])];
+  const idx = current.indexOf(key);
+  if (idx >= 0) current.splice(idx, 1);
+  else if (current.length >= 3) { toast('우선순위는 3개까지 고를 수 있어요.'); return; }
+  else current.push(key);
+  persistPrefs({ priorities: current });
+}
+
+function renderAccountSection() {
+  const el = $('#accountSection');
+  if (!el) return;
+  const email = (session && session.user && session.user.email) || '';
+  el.innerHTML = `
+    <div class="form-card">
+      <div class="toggle-row">
+        <div class="toggle-row__text">
+          <p class="toggle-title">데모 인연 함께 보기</p>
+          <p class="toggle-desc">실제 가입자가 적을 때 화면을 채워 주는 예시 프로필이에요</p>
+        </div>
+        <button class="switch" data-action="toggle-demo" aria-pressed="${uiPrefs.showDemo}" aria-label="데모 인연 보기"><span></span></button>
+      </div>
+      <p class="sheet-hint" style="margin-top:6px">계정 · ${esc(email || '이메일 없음')}${isAdmin ? ' · 운영자' : ''}</p>
+      <button class="btn btn--ghost btn--sm" data-action="logout" style="margin-top:10px">로그아웃</button>
+    </div>`;
+}
+
+/* ---------- 안전 설정 ---------- */
+async function saveSafety(patch) {
+  Object.assign(state.safety, patch);
+  deckSignature = '';
+  renderAll();
+  try {
+    const st = await rpc('update_safety', {
+      p_hidden_company: state.safety.hideSameCompany,
+      p_blocked_phones: state.safety.blockedNumbers,
+      p_blocked_profiles: state.safety.blockedProfiles
+    });
+    if (st) wallet = { ...wallet, ...st };
+  } catch (err) { toast(errorText(err)); }
+}
+
+function toggleSameCompany() {
+  saveSafety({ hideSameCompany: !state.safety.hideSameCompany });
+  toast(state.safety.hideSameCompany
+    ? '같은 회사 인연은 오늘의 인연에서 숨겨요.'
+    : '같은 회사 인연도 다시 보여드릴게요');
+}
+
+function addBlockedNumber() {
+  const input = $('#blockPhone');
+  const digits = normPhone(input.value);
+  if (digits.length < 10) { toast('번호를 정확히 입력해 주세요.'); input.focus(); return; }
+  const hash = hashPhone(digits);
+  if (state.safety.blockedNumbers.some((b) => b.hash === hash)) { toast('이미 차단한 번호예요'); return; }
+  input.value = '';
+  saveSafety({ blockedNumbers: [...state.safety.blockedNumbers, { hash, masked: maskPhone(digits), at: new Date().toISOString() }] });
+  toast('지인 번호를 차단했어요. 오늘의 인연에서 자동으로 빠져요.');
+}
+
+function removeBlockedNumber(hash) {
+  saveSafety({ blockedNumbers: state.safety.blockedNumbers.filter((b) => b.hash !== hash) });
+  toast('차단을 해제했어요');
+}
+
+/* ---------- 사진 ---------- */
+function readImageFile(file, max = 760, quality = 0.72) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve({ dataUrl, name: file.name, bytes: Math.round((dataUrl.length * 3) / 4) });
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function savePhotos(list) {
+  try {
+    const { error } = await sb.from('profiles').update({ avatar_data: JSON.stringify(list) }).eq('id', meId).select('id');
+    if (error) throw error;
+    state.user.photos = list;
+    renderProfileChrome();
+    toast('사진을 저장했어요. 첫 사진이 대표 사진이 돼요.');
+  } catch (err) { toast(errorText(err)); }
+}
+
+function removePhoto(index) {
+  const list = [...(state.user.photos || [])];
+  if (!list[index]) return;
+  list.splice(index, 1);
+  savePhotos(list);
+}
+
+/* ---------- 카드 액션 ---------- */
 function commit(kind) {
   if (busy) return;
   const target = visibleDeck()[0];
@@ -2834,83 +3825,71 @@ function commit(kind) {
   setTimeout(() => { applyCardAction(kind, target.id); busy = false; }, 380);
 }
 
-function applyCardAction(kind, id) {
+async function applyCardAction(kind, id) {
   const p = PROFILE_MAP[id];
-  state.deck = state.deck.filter((x) => x !== id);
+  if (!p) return;
+  try {
+    if (kind === 'pass') {
+      await rpc('pass_profile', { p_target: id });
+      await refreshAll(); renderAll();
+      toast('건너뛰었어요.', { label: '되돌리기', action: undoPass });
+      return;
+    }
+    const res = await rpc('send_like', { p_target: id });
+    await refreshAll(); renderAll();
+    if (res && res.status === 'matched') {
+      FX.burst();
+      toast(`${p.name}님과 매칭이 성사됐어요. 대화를 시작해볼까요?`, {
+        label: '대화하기', action: () => { switchView('chat'); openChat(id); }
+      });
+    } else {
+      toast(`${p.name}님에게 호감을 보냈어요. 48시간 안에 답이 없으면 매칭권이 자동으로 돌아와요.`);
+    }
+  } catch (err) {
+    const m = errorText(err);
+    await refreshAll(); renderAll();
+    if (/매칭권이 없어요/.test(m)) openTopUp('insufficient'); else toast(m);
+  }
+}
 
-  if (kind === 'pass') { state.passed.push(id); state.lastPassed=id; deckSignature=''; renderAll(); toast('건너뛰었어요.',{label:'되돌리기',action:undoPass}); return; }
+async function undoPass() {
+  const id = state.lastPassed;
+  if (!id) return;
+  try {
+    await rpc('undo_pass', { p_target: id });
+    await refreshAll(); renderAll();
+    toast('마지막 건너뛰기를 되돌렸어요.');
+  } catch (err) { toast(errorText(err)); }
+}
 
-  state.lastPassed = null;
-  state.tickets = Math.max(0, state.tickets - TICKET_COST);
-  ledger("use",-1,`${p.name}님에게 호감 전송`);
-  const incoming = state.received.find((r) => r.id === id && r.status === 'pending');
-  const alreadyMatched = state.matches.some((m) => m.id === id);
-  if (incoming) incoming.status = 'matched';
-  state.sent.push({ id, at: new Date().toISOString(), status: incoming ? 'matched' : 'pending' });
-
-  if (incoming && !alreadyMatched) {
-    addMatch(id, 'mutual');
-    renderAll();
-    FX.burst();
-    toast(`${p.name}님과 매칭이 성사됐어요. 대화를 시작해볼까요?`, {
+async function acceptLike(id) {
+  const r = state.received.find((x) => x.id === id && x.status === 'pending');
+  if (!r) return;
+  const p = PROFILE_MAP[id];
+  try {
+    await rpc('respond_like', { p_match: r.matchId, p_accept: true });
+    await refreshAll(); renderAll(); FX.burst();
+    toast(`${p ? p.name : '상대'}님과 매칭됐어요. 인사를 건네볼까요?`, {
       label: '대화하기', action: () => { switchView('chat'); openChat(id); }
     });
-  } else {
-    renderAll();
-    toast(`${p.name}님에게 호감을 보냈어요. 48시간 안에 답이 없으면 매칭권이 자동으로 돌아와요.`);
-  }
+  } catch (err) { toast(errorText(err)); }
 }
 
-function addMatch(id, via) {
-  if (!state.matches.some((m) => m.id === id)) state.matches.push({ id, at: new Date().toISOString(), via });
-  if (!state.chats[id]) state.chats[id] = [];
-  state.deck = state.deck.filter((x) => x !== id);
-}
-
-/* ---------- 6-2. 받은 호감 ---------- */
-function acceptLike(id) {
+async function declineLike(id) {
   const r = state.received.find((x) => x.id === id && x.status === 'pending');
   if (!r) return;
-  const p = PROFILE_MAP[id];
-  r.status = 'accepted';
-  addMatch(id, 'accepted');
-  renderAll();
-  FX.burst();
-  toast(`${p.name}님과 매칭됐어요. 인사를 건네볼까요?`, {
-    label: '대화하기', action: () => { switchView('chat'); openChat(id); }
-  });
+  try {
+    await rpc('respond_like', { p_match: r.matchId, p_accept: false });
+    await refreshAll(); renderAll();
+    toast('이번 인연은 정중히 넘어갈게요.');
+  } catch (err) { toast(errorText(err)); }
 }
 
-function declineLike(id) {
-  const r = state.received.find((x) => x.id === id && x.status === 'pending');
-  if (!r) return;
-  r.status = 'declined';
-  renderAll();
-  toast('이번 인연은 정중히 넘어갈게요.');
-}
-
-/* ---------- 6-3. 48시간 환불 데모 ---------- */
-function demoExpire() {
-  let sent = state.sent.find((s) => s.status === 'pending');
-  if (!sent) {
-    const candidate = PROFILES.find((p) =>
-      !state.matches.some((m) => m.id === p.id) && !state.sent.some((s) => s.id === p.id));
-    sent = { id: (candidate || PROFILES[0]).id, at: new Date().toISOString(), status: 'pending' };
-    state.sent.push(sent);
-    state.tickets = Math.max(0, state.tickets - TICKET_COST);
-    ledger("demo",-1,"만료 시뮬레이션용 매칭권 사용");
-  }
-  sent.at = new Date(Date.now() - (RESPONSE_HOURS + 1) * HOUR).toISOString();
-  processExpirations(false);
-  renderAll();
-  toast('48시간 무응답으로 990원 매칭권이 돌아왔어요.');
-}
-
-/* ---------- 6-4. 대화 ---------- */
+/* ---------- 대화 ---------- */
 function openChat(id) {
-  if (!safeProfile(id) || state.endedChats.includes(id) || !state.matches.some(m=>m.id===id)) { toast('종료·차단 또는 이용 제한된 대화입니다.'); return; }
+  const m = state.matches.find((x) => x.id === id);
+  if (!m || !safeProfile(id) || state.endedChats.includes(id)) { toast('종료·차단 또는 이용 제한된 대화입니다.'); return; }
   activeChatId = id;
-  state.unread[id] = 0;
   threadSignature = '';
   $('#thread').hidden = false;
   $('#chatListPane').hidden = true;
@@ -2918,8 +3897,10 @@ function openChat(id) {
   $('#sendBtn').disabled = true;
   renderThread();
   renderMeetBar();
-  renderNav();
-  save();
+  rpc('mark_read', { p_match: m.matchId }).then(() => {
+    state.unread[id] = 0;
+    renderNav(); renderChatList();
+  }).catch(() => {});
   setTimeout(() => $('#msgInput').focus({ preventScroll: true }), 60);
 }
 
@@ -2933,127 +3914,96 @@ function closeThread() {
   renderChatList();
 }
 
-function sendMessage(text) {
+async function sendMessage(text) {
   const id = activeChatId;
-  if (!id || !text.trim()) return;
+  const m = state.matches.find((x) => x.id === id);
+  const body = String(text || '').trim();
+  if (!id || !m || !body) return;
   if (!safeProfile(id) || state.endedChats.includes(id)) { toast('메시지를 보낼 수 없는 대화입니다.'); return; }
-  if (!state.chats[id]) state.chats[id] = [];
-  state.chats[id].push({ from: 'me', text: text.trim(), at: new Date().toISOString() });
+
+  state.chats[id] = [...(state.chats[id] || []), { from: 'me', text: body, at: new Date().toISOString() }];
   threadSignature = '';
   renderThread();
-  save();
-  scheduleMockReply(id);
-}
-
-/* 데모용 자동 응답 — 백엔드 연결 시 제거 */
-function scheduleMockReply(id) {
-  if (replyTimers.has(id)) return;
-  typingChats.add(id);
-  threadSignature = '';
-  if (activeChatId === id) renderThread();
-
-  const delay = 1100 + Math.random() * 900;
-  const timer = setTimeout(() => {
-    replyTimers.delete(id);
-    typingChats.delete(id);
-    if (!safeProfile(id) || state.endedChats.includes(id)) return;
-    state.chatRead[id] = new Date().toISOString(); // 데모 봇 응답 시점 = 읽음 시뮬레이션
-    const msgs = state.chats[id] || [];
-    msgs.push({ from: 'them', text: MOCK_REPLIES[msgs.length % MOCK_REPLIES.length], at: new Date().toISOString() });
-    threadSignature = '';
-    if (activeChatId === id) { renderThread(); renderNav(); }
-    else { state.unread[id] = (state.unread[id] || 0) + 1; renderNav(); renderChatList(); }
-    save();
-  }, delay);
-  replyTimers.set(id, timer);
+  try {
+    await rpc('send_message', { p_match: m.matchId, p_body: body });
+    await refreshAll();
+    renderNav();
+    if (activeChatId === id) { threadSignature = ''; renderThread(); }
+  } catch (err) {
+    await refreshAll();
+    if (activeChatId === id) { threadSignature = ''; renderThread(); }
+    toast(errorText(err));
+  }
 }
 
 function showChatSafety() {
-  const id=activeChatId, p=PROFILE_MAP[id]; if(!id||!p)return;
-  openSheet(`<div class="sheet__grabber"></div><h2>대화 안전 관리 · ${esc(p.name)}</h2><p class="sheet__sub">상대를 차단하면 매칭과 채팅 목록에서 숨겨지고 이후 메시지를 보낼 수 없습니다. 대화 종료는 차단 없이 채팅을 닫습니다.</p>
-    <div class="verify-actions"><button class="btn btn--ghost" data-action="end-chat" data-id="${id}">대화 종료</button><button class="btn btn--primary" data-action="block-chat" data-id="${id}">상대 차단</button><button class="btn btn--ghost" data-action="report" data-id="${id}">신고하기</button><button class="btn btn--ghost" data-action="close-sheet">취소</button></div><p class="demo-limits">데모에서만 로컬 차단·종료 상태가 저장됩니다. 실제 서비스의 서버 메시지 차단이나 신고 조사 처리는 구현되어 있지 않습니다.</p>`);
+  const id = activeChatId, p = PROFILE_MAP[id];
+  if (!id || !p) return;
+  openSheet(`<div class="sheet__grabber"></div><h2>대화 안전 관리 · ${esc(p.name)}</h2><p class="sheet__sub">상대를 차단하면 매칭과 채팅 목록에서 숨겨지고 이후 메시지를 보낼 수 없습니다. 대화 종료는 차단 없이 이 기기에서만 목록을 닫습니다.</p>
+    <div class="verify-actions"><button class="btn btn--ghost" data-action="end-chat" data-id="${id}">대화 종료</button><button class="btn btn--primary" data-action="block-chat" data-id="${id}">상대 차단</button><button class="btn btn--ghost" data-action="report" data-id="${id}">신고하기</button><button class="btn btn--ghost" data-action="close-sheet">취소</button></div>
+    <p class="demo-limits">신고는 운영자 콘솔의 신고 내역에 바로 접수됩니다.</p>`);
 }
-function endOrBlockChat(id,block) {
+
+function endOrBlockChat(id, block) {
   if (!PROFILE_MAP[id]) return;
   if (!state.endedChats.includes(id)) state.endedChats.push(id);
-  if (block && !state.safety.blockedProfiles.includes(id)) state.safety.blockedProfiles.push(id);
-  const timer=replyTimers.get(id); if(timer){clearTimeout(timer);replyTimers.delete(id);typingChats.delete(id)}
-  if (activeChatId===id) closeThread();
-  closeSheet();deckSignature='';renderAll();toast(block?'상대를 차단했어요 (데모).':'대화를 종료했어요 (데모).');
+  if (block) saveSafety({ blockedProfiles: [...new Set([...state.safety.blockedProfiles, id])] });
+  if (activeChatId === id) closeThread();
+  closeSheet(); deckSignature = ''; renderAll();
+  toast(block ? '상대를 차단했어요.' : '대화를 종료했어요.');
 }
 
-/* ---------- 6-5. 프로필 ---------- */
-function saveProfile() {
-  const nickname = $('#fNickname').value.trim();
-  const age = parseInt($('#fAge').value, 10);
-  const job = $('#fJob').value.trim();
-  const company = $('#fCompany').value.trim();
-  const bio = $('#fBio').value.trim();
-  let ageMin = parseInt($('#fAgeMin').value, 10);
-  let ageMax = parseInt($('#fAgeMax').value, 10);
+/* ---------- 만남 · 후기 ---------- */
+function saveMeeting() { /* 서버 함수(plan_meeting/confirm_met)로 처리합니다 */ }
 
-  if (!nickname) { toast('닉네임을 입력해 주세요.'); $('#fNickname').focus(); return; }
-  if (!Number.isFinite(age) || age < 19 || age > 99) { toast('나이는 19~99세 사이로 입력해 주세요'); $('#fAge').focus(); return; }
-  if (Number.isFinite(ageMin) && Number.isFinite(ageMax) && ageMin > ageMax) [ageMin, ageMax] = [ageMax, ageMin];
-
-  state.user = {
-    ...state.user,
-    nickname, age, job, company, bio,
-    prefs: {
-      ...state.user.prefs,
-      ageMin: Number.isFinite(ageMin) ? ageMin : 30,
-      ageMax: Number.isFinite(ageMax) ? ageMax : 40
-    }
-  };
-  $('#fAgeMin').value = state.user.prefs.ageMin;
-  $('#fAgeMax').value = state.user.prefs.ageMax;
-  deckSignature = '';
-  renderAll();
-  toast('프로필을 저장했어요.');
+async function confirmPlan(id) {
+  const m = state.matches.find((x) => x.id === id);
+  if (!m) return;
+  if (!planDraft) { toast('약속 날짜를 골라주세요.'); return; }
+  try {
+    await rpc('plan_meeting', { p_match: m.matchId, p_at: planDraft });
+    await refreshAll(); renderAll(); closeSheet();
+    toast(`${dateLabel(planDraft)} 약속을 저장했어요.`);
+  } catch (err) { toast(errorText(err)); }
 }
 
-/* ---------- 6-6. 안전 설정 ---------- */
-function toggleSameCompany() {
-  state.safety.hideSameCompany = !state.safety.hideSameCompany;
-  deckSignature = '';
-  renderAll();
-  toast(state.safety.hideSameCompany
-    ? '같은 회사 인연은 오늘의 인연에서 숨겨요.'
-    : '같은 회사 인연도 다시 보여드릴게요');
+async function confirmMeet(id) {
+  const m = state.matches.find((x) => x.id === id);
+  if (!m) return;
+  try {
+    await rpc('confirm_met', { p_match: m.matchId });
+    await refreshAll(); renderAll(); closeSheet();
+    toast('만남을 기록했어요. 후기를 남기면 300P를 드려요.');
+    openMeetSheet(id, 'review');
+  } catch (err) { toast(errorText(err)); }
 }
 
-function addBlockedNumber() {
-  const input = $('#blockPhone');
-  const digits = normPhone(input.value);
-  if (digits.length < 10) { toast('번호를 정확히 입력해 주세요.'); input.focus(); return; }
-
-  const hash = hashPhone(digits);
-  if (state.safety.blockedNumbers.some((b) => b.hash === hash)) { toast('이미 차단한 번호예요'); return; }
-
-  state.safety.blockedNumbers.push({ hash, masked: maskPhone(digits), at: new Date().toISOString() });
-  input.value = '';
-  deckSignature = '';
-  renderAll();
-  toast('지인 번호를 차단했어요. 오늘의 인연에서 자동으로 빠져요.');
+async function submitReview(id) {
+  const m = state.matches.find((x) => x.id === id);
+  if (!m || !reviewDraft) return;
+  if (!reviewDraft.manners || !reviewDraft.talk || !reviewDraft.again) {
+    toast('매너·대화·재만남 항목을 모두 골라주세요.');
+    return;
+  }
+  const note = ($('#reviewNote')?.value || '').trim();
+  const ratingMap = { '최고였어요': 5, '좋았어요': 4, '아쉬웠어요': 2 };
+  const rating = ratingMap[reviewDraft.manners] || 4;
+  const content = `매너 ${reviewDraft.manners} · 대화 ${reviewDraft.talk} · 재만남 ${reviewDraft.again}${note ? ' · ' + note : ''}`;
+  try {
+    const r = await rpc('submit_review', { p_match: m.matchId, p_rating: rating, p_content: content });
+    await refreshAll(); renderAll(); closeSheet();
+    toast(`후기 완료. ${(r && r.awarded) || 300}P가 적립됐어요. 990P면 매칭권 1장이에요.`);
+  } catch (err) { toast(errorText(err)); }
 }
 
-function removeBlockedNumber(hash) {
-  state.safety.blockedNumbers = state.safety.blockedNumbers.filter((b) => b.hash !== hash);
-  deckSignature = '';
-  renderAll();
-  toast('차단을 해제했어요');
-}
+/* ---------- 매칭권 충전 (입금 확인형) ---------- */
+async function openTopUp(reason) {
+  chargeName = (($('#depositorName')?.value) || chargeName || '').trim();
+  try { payInfo = await rpc('get_payment_info'); } catch (err) { /* 안내만 */ }
+  const info = payInfo || {};
+  const pending = state.charges.filter((c) => c.userId === meId && c.status === 'pending');
+  chargePack = chargePack || PACKS[0];
 
-/* ---------- 6-7. 매칭권 ---------- */
-const PACKS = [
-  { n: 1, price: 990, tag: '가볍게' },
-  { n: 3, price: 2500, tag: '인기' },
-  { n: 5, price: 3900, tag: '꿀혜택' }
-];
-
-let usePoints = false;
-
-function openTopUp(reason) {
   openSheet(`
     <div class="sheet__grabber"></div>
     <div class="sheet__head">
@@ -3064,306 +4014,392 @@ function openTopUp(reason) {
       ? '<p class="sheet__notice">매칭권이 없어요. 990원이면 인연을 한 번 더 만날 수 있어요.</p>'
       : '<p class="sheet__sub">매칭권 1장으로 호감을 한 번 보낼 수 있어요. 커피 한 잔보다 가벼운 가격이에요.</p>'}
     <ul class="packs">
-      ${PACKS.map((p) => {
-        const off = usePoints ? Math.min(state.points, p.price) : 0;
-        return `
-        <li class="pack">
+      ${PACKS.map((p) => `
+        <li class="pack" style="${chargePack.n === p.n ? 'box-shadow:0 0 0 1.5px var(--apricot-deep)' : ''}">
           <div>
-            <p class="pack__n">매칭권 ${p.n}장</p>
-            <p class="pack__p">${p.price.toLocaleString('ko-KR')}원${
-              off > 0 ? ` <span style="color:var(--apricot-ink)">→ ${(p.price - off).toLocaleString('ko-KR')}원</span>` : ''
-            }${p.tag ? `<span class="pack__tag">${p.tag}</span>` : ''}</p>
+            <p class="pack__n">${esc(p.name)}</p>
+            <p class="pack__p">${p.price.toLocaleString('ko-KR')}원<span class="pack__tag">${esc(p.tag)}</span></p>
           </div>
-          <button class="btn btn--sm btn--primary" data-action="buy-ticket" data-n="${p.n}">충전</button>
-        </li>`;
-      }).join('')}
+          <button class="btn btn--sm ${chargePack.n === p.n ? 'btn--primary' : 'btn--ghost'}" data-action="pick-pack" data-n="${p.n}">${chargePack.n === p.n ? '선택됨' : '선택'}</button>
+        </li>`).join('')}
     </ul>
-    <label class="check-row" style="margin-top:10px">
-      <input type="checkbox" id="usePoints" ${usePoints ? 'checked' : ''}>
-      <span>포인트 사용 (보유 <b>${state.points}P</b>) · 1P = 1원</span>
-    </label>
-    <p class="sheet__note">호감을 보낸 뒤 48시간 동안 답이 없으면 매칭권 1장이 자동으로 돌아옵니다.<br>만남 후기를 남기면 300P가 쌓여 결제에 쓸 수 있어요.<br>프로토타입 미리보기라 실제 결제는 연결되어 있지 않습니다.</p>
-    <div class="sheet__actions"><button class="btn btn--ghost" data-action="close-sheet">닫기</button></div>`);
-}
-
-function buyTicket(n) {
-  const pack = PACKS.find((p) => p.n === n);
-  const price = pack ? pack.price : n * TICKET_PRICE;
-  const used = usePoints ? Math.min(state.points, price) : 0;
-  state.points -= used;
-  state.tickets += n;
-  ledger("topup",n,`매칭권 ${n}장 · ${price}원 상당 (실제 결제 없음, 포인트 ${used}P 차감)`);
-  renderProfileChrome();
-  renderNav();
-  save();
-  closeSheet();
-  toast(used
-    ? `매칭권 ${n}장 충전 · 포인트 ${used}P 사용 (데모)`
-    : `매칭권 ${n}장을 충전했어요 (데모)`);
-}
-
-/* ---------- 6-8. 직장인 인증 ---------- */
-let emailDraft = { company: '', email: '' };
-let emailCode = '';
-let docDraft = null;
-
-function openEmailSheet() {
-  openSheet(`
-    <div class="sheet__grabber"></div>
-    <div class="sheet__head">
-      <h2>회사 메일 인증</h2>
-      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    <div class="form-card" style="margin-top:14px">
+      <p class="sheet__sub" style="margin:0 0 6px"><b>입금 계좌</b> · ${esc(info.bank_name || '카카오뱅크')} ${esc(info.bank_account || '')} (예금주 ${esc(info.account_holder || '')})</p>
+      <p class="sheet__hint" style="margin:0 0 10px">카카오페이 송금 ID · <b>${esc(info.kakaopay_id || '-')}</b><br>
+      위 계좌로 <b>${chargePack.price.toLocaleString('ko-KR')}원</b>을 입금하신 뒤 아래에 <b>입금자명</b>을 적어 주세요. 운영자가 확인하면 매칭권이 바로 충전됩니다.</p>
+      <label class="field field--col"><span>입금자명</span>
+        <input id="depositorName" maxlength="20" placeholder="예: 김예지" autocomplete="name" value="${esc(chargeName)}">
+      </label>
     </div>
-    <p class="sheet__sub">회사 도메인 메일로 인증번호를 보내드려요. 개인 메일(gmail 등)은 서류 인증을 이용해 주세요.</p>
-    <div class="sheet-field">
-      <label for="emailCompany">회사명</label>
-      <input id="emailCompany" placeholder="예: 성수건축" value="${esc(emailDraft.company || state.user.company || '')}" maxlength="30">
-    </div>
-    <div class="sheet-field">
-      <label for="emailAddr">회사 이메일</label>
-      <input id="emailAddr" type="email" placeholder="name@company.com" value="${esc(emailDraft.email)}" inputmode="email" autocomplete="off">
-      <p class="sheet-hint">데모라 실제 메일은 발송되지 않습니다. 인증번호가 화면에 표시돼요.</p>
-    </div>
+    ${pending.length ? `<p class="sheet__notice" style="margin-top:10px">확인 중인 요청 ${pending.length}건 · ${esc(pending[0].packageName)} / 입금자 ${esc(pending[0].depositor)}</p>` : ''}
+    <p class="sheet__note">보유 포인트 <b>${state.points}P</b> · 990P면 매칭권 1장으로 바꿀 수 있어요.<br>호감을 보낸 뒤 48시간 동안 답이 없으면 매칭권 1장이 자동으로 돌아옵니다.</p>
     <div class="sheet__actions">
-      <button class="btn btn--ghost" data-action="close-sheet">취소</button>
-      <button class="btn btn--primary" data-action="send-code">인증번호 받기</button>
+      <button class="btn btn--ghost" data-action="close-sheet">닫기</button>
+      <button class="btn btn--ghost" data-action="redeem-points" ${state.points < CFG.POINTS_PER_TICKET ? 'disabled' : ''}>포인트로 1장</button>
+      <button class="btn btn--primary" data-action="submit-charge">입금 확인 요청</button>
     </div>`);
 }
 
-function sendCode() {
-  const company = ($('#emailCompany')?.value || '').trim();
-  const email = ($('#emailAddr')?.value || '').trim();
-  const domain = (email.split('@')[1] || '').toLowerCase();
-
-  if (!company) { toast('회사명을 적어주세요.'); $('#emailCompany')?.focus(); return; }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('이메일 형식을 확인해 주세요.'); $('#emailAddr')?.focus(); return; }
-  if (FREE_MAIL.includes(domain)) { toast('회사 도메인 메일이 필요해요. 개인 메일은 서류 인증을 이용해 주세요.'); return; }
-
-  emailDraft = { company, email };
-  emailCode = String(Math.floor(100000 + Math.random() * 900000));
-
-  openSheet(`
-    <div class="sheet__grabber"></div>
-    <div class="sheet__head">
-      <h2>인증번호 입력</h2>
-      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
-    </div>
-    <p class="sheet__sub"><b>${esc(email)}</b> 로 인증번호를 보냈어요.<br>6자리 숫자를 입력해 주세요.</p>
-    <div class="sheet-field">
-      <input id="codeInput" class="code-input" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">
-    </div>
-    <div class="demo-code">
-      <span>데모용 인증번호 · <b>${emailCode}</b></span>
-      <button data-action="fill-demo-code">자동 입력</button>
-    </div>
-    <div class="sheet__actions">
-      <button class="btn btn--ghost" data-action="open-email-verify">이전</button>
-      <button class="btn btn--primary" data-action="verify-code">확인</button>
-    </div>
-    <p class="sheet__note">확인 후 운영자 승인만 남아요. 보통 10분 안에 처리돼요.</p>`);
-  setTimeout(() => $('#codeInput')?.focus(), 120);
+async function submitCharge() {
+  const name = ($('#depositorName')?.value || '').trim();
+  if (!chargePack) { toast('상품을 골라주세요.'); return; }
+  if (!name) { toast('입금자명을 적어주세요.'); $('#depositorName')?.focus(); return; }
+  try {
+    await rpc('request_charge', { p_tickets: chargePack.n, p_amount: chargePack.price, p_depositor: name });
+    await refreshAll(); renderAll(); closeSheet();
+    toast('입금 확인 요청을 접수했어요. 확인되면 매칭권이 충전되고 알려드릴게요.');
+  } catch (err) { toast(errorText(err)); }
 }
 
-function verifyCode() {
-  const code = ($('#codeInput')?.value || '').trim();
-  if (code.length !== 6) { toast('6자리 인증번호를 입력해 주세요'); return; }
-  if (code !== emailCode) { toast('인증번호가 일치하지 않아요. 다시 확인해 주세요.'); return; }
-  submitVerification({
-    method: 'email', company: emailDraft.company, email: emailDraft.email,
-    docName: '', docPreview: ''
-  });
+async function redeemPoints() {
+  try {
+    const r = await rpc('redeem_points');
+    await refreshAll(); renderAll(); closeSheet();
+    toast(`포인트로 매칭권 1장을 충전했어요. 남은 포인트 ${r.points}P`);
+  } catch (err) { toast(errorText(err)); }
 }
 
-function openDocSheet() {
-  docDraft = null;
-  openSheet(`
-    <div class="sheet__grabber"></div>
-    <div class="sheet__head">
-      <h2>명함·재직증명서 인증</h2>
-      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
-    </div>
-    <p class="sheet__sub">명함이나 재직증명서 사진을 올려주세요. 운영자가 확인하면 인증 마크가 붙어요.</p>
-    <div class="sheet-field">
-      <label for="docCompany">회사명</label>
-      <input id="docCompany" placeholder="예: 늘봄초등학교" maxlength="30" value="${esc(state.user.company || '')}">
-    </div>
-    <label class="upload-box" for="docFile" id="uploadBox">
-      <span class="upload-box__emoji"><svg><use href="#i-clip"/></svg></span>
-      <span class="upload-box__text">사진 선택하기</span>
-      <span class="upload-box__hint">JPG · PNG · 화면 캡처도 괜찮아요</span>
-    </label>
-    <input id="docFile" type="file" accept="image/*" hidden>
-    <div id="docPreviewArea"></div>
-    <div class="sheet__actions">
-      <button class="btn btn--ghost" data-action="close-sheet">취소</button>
-      <button class="btn btn--primary" data-action="submit-doc" id="submitDocBtn" disabled>제출하기</button>
-    </div>
-    <p class="sheet__note">데모에서는 선택한 이미지가 이 브라우저에만 저장되고 외부로 전송되지 않습니다.</p>`);
-
-  const input = $('#docFile');
-  input.addEventListener('change', async () => {
-    const file = input.files && input.files[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) { toast('이미지 파일만 올릴 수 있어요.'); return; }
-    try {
-      docDraft = await readImageFile(file);
-      $('#docPreviewArea').innerHTML = `
-        <div class="doc-preview">
-          <img src="${docDraft.dataUrl}" alt="업로드한 서류 미리보기">
-          <div class="doc-preview__meta">
-            <span>${esc(docDraft.name)} · ${Math.round(docDraft.bytes / 1024)}KB</span>
-            <button data-action="open-doc-verify">다시 선택</button>
-          </div>
-        </div>`;
-      $('#uploadBox').hidden = true;
-      $('#submitDocBtn').disabled = !($('#docCompany')?.value || '').trim();
-    } catch (err) {
-      toast('이미지를 읽지 못했어요. 다른 파일로 시도해 주세요.');
-    }
-  });
-}
-
-function readImageFile(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const max = 760;
-        const scale = Math.min(1, max / Math.max(img.width, img.height));
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
-        resolve({ dataUrl, name: file.name, bytes: Math.round((dataUrl.length * 3) / 4) });
-      };
-      img.onerror = reject;
-      img.src = reader.result;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-function submitDoc() {
-  const company = ($('#docCompany')?.value || '').trim();
-  if (!company) { toast('회사명을 적어주세요.'); $('#docCompany')?.focus(); return; }
-  if (!docDraft) { toast('서류 사진을 올려주세요.'); return; }
-  submitVerification({
-    method: 'doc', company, email: '',
-    docName: docDraft.name, docPreview: docDraft.dataUrl
-  });
-}
-
-/* 공통: 인증 제출 → 관리자 심사 큐 */
-function submitVerification(payload) {
-  const now = new Date().toISOString();
-  state.verification = {
-    status: 'pending', method: payload.method, company: payload.company,
-    email: payload.email || '', docName: payload.docName || '', docPreview: payload.docPreview || '',
-    submittedAt: now, decidedAt: null, reason: ''
+/* ---------- 직장인 인증 ---------- */
+async function submitVerification(payload) {
+  const row = {
+    user_id: meId,
+    method: payload.method,
+    company: payload.company || '',
+    company_email: payload.email || null,
+    doc_name: payload.docName || null,
+    doc_preview: payload.docPreview || null,
+    status: 'pending'
   };
-  state.submissions.push({
-    id: 'sub_' + Date.now(),
-    owner: 'me', ownerName: state.user.nickname,
-    method: payload.method, company: payload.company,
-    email: payload.email || '', docName: payload.docName || '', docPreview: payload.docPreview || '',
-    at: now, status: 'pending', reason: '', decidedAt: null
-  });
-  closeSheet();
-  renderAll();
-  toast('인증 서류를 접수했어요. 운영자 확인 후 바로 알려드릴게요.', {
-    label: '운영자 화면 열기', action: () => switchMode('admin')
-  });
+  try {
+    const { error } = await sb.from('verifications').insert(row).select('id');
+    if (error) throw error;
+    await refreshAll(); renderAll(); closeSheet();
+    toast('인증 서류를 접수했어요. 운영자 확인 후 알려드릴게요.');
+  } catch (err) { toast(errorText(err)); }
 }
 
-/* ---------- 6-9. 신고 ---------- */
-let reportDraft = null;
-
-function openReportSheet(targetId) {
-  const p = PROFILE_MAP[targetId];
-  if (!p) return;
-  reportDraft = { targetId, reason: '' };
-  openSheet(`
-    <div class="sheet__grabber"></div>
-    <div class="sheet__head">
-      <h2>신고하기</h2>
-      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
-    </div>
-    <p class="sheet__sub"><b>${esc(p.name)}</b>님을 신고하는 이유를 골라주세요. 운영자가 확인하고 조치해요.</p>
-    <div class="reason-pick" id="reportReasons">
-      ${REPORT_REASONS.map((r) =>
-        `<button class="reason-chip" data-action="pick-report-reason" data-value="${esc(r)}" aria-pressed="false">${esc(r)}</button>`).join('')}
-    </div>
-    <div class="sheet-field">
-      <label for="reportDetail">자세한 내용 (선택)</label>
-      <input id="reportDetail" placeholder="상황을 적어주시면 더 정확히 확인할 수 있어요" maxlength="120">
-    </div>
-    <label class="check-row">
-      <input type="checkbox" id="reportBlock" checked>
-      <span>이 사람 다시 보지 않기 (차단)</span>
-    </label>
-    <div class="sheet__actions">
-      <button class="btn btn--ghost" data-action="close-sheet">취소</button>
-      <button class="btn btn--primary" data-action="submit-report">신고 접수</button>
-    </div>
-    <p class="sheet__note">허위 신고는 서비스 이용에 제한이 있을 수 있어요. 접수된 내용은 운영자만 볼 수 있습니다.</p>`);
-}
-
-function pickReportReason(value, el) {
-  if (!reportDraft) return;
-  reportDraft.reason = value;
-  $$('#reportReasons .reason-chip').forEach((c) => c.setAttribute('aria-pressed', String(c === el)));
-}
-
-function submitReport() {
+/* ---------- 신고 ---------- */
+async function submitReport() {
   if (!reportDraft) return;
   if (!reportDraft.reason) { toast('신고 사유를 골라주세요.'); return; }
   const p = PROFILE_MAP[reportDraft.targetId];
+  if (!p) return;
   const detail = ($('#reportDetail')?.value || '').trim();
   const block = Boolean($('#reportBlock')?.checked);
+  try {
+    const { error } = await sb.from('reports').insert({
+      reporter_id: meId, target_user_id: p.id, reason: reportDraft.reason, detail
+    }).select('id');
+    if (error) throw error;
+    if (block) await saveSafety({ blockedProfiles: [...new Set([...state.safety.blockedProfiles, p.id])] });
+    reportDraft = null;
+    await refreshAll(); renderAll(); closeSheet();
+    toast('신고를 접수했어요. 운영자가 확인해요.');
+  } catch (err) { toast(errorText(err)); }
+}
 
-  state.reports.unshift({
-    id: 'rep_' + Date.now(),
-    targetId: p.id, targetName: p.name,
-    reporter: 'me', reporterId: 'me',
-    reason: reportDraft.reason, detail,
-    at: new Date().toISOString(), status: 'open', decidedAt: null
+/* ==========================================================================
+   운영자 콘솔
+   ========================================================================== */
+function renderAdmin() {
+  const gate = $('#adminGate');
+  const consoleEl = $('#adminConsole');
+  if (!gate || !consoleEl) return;
+  gate.hidden = isAdmin;
+  consoleEl.hidden = !isAdmin;
+  if (!isAdmin) return;
+
+  const pendingV = state.submissions.filter((s) => s.status === 'pending').sort((a, b) => new Date(a.at) - new Date(b.at));
+  const doneV = state.submissions.filter((s) => s.status !== 'pending')
+    .sort((a, b) => new Date(b.decidedAt || b.at) - new Date(a.decidedAt || a.at));
+  const approved = doneV.filter((s) => s.status === 'approved').length;
+  const openReports = state.reports.filter((r) => r.status === 'open');
+  const doneReports = state.reports.filter((r) => r.status !== 'open')
+    .sort((a, b) => new Date(b.decidedAt || b.at) - new Date(a.decidedAt || a.at));
+  const pendingCharges = state.charges.filter((c) => c.status === 'pending');
+  const doneCharges = state.charges.filter((c) => c.status !== 'pending');
+
+  const put = (sel, v) => { const el = $(sel); if (el) el.textContent = v; };
+  put('#adminPending', pendingV.length);
+  put('#adminReports', openReports.length);
+  put('#adminApproved', approved);
+  put('#adminCharges', pendingCharges.length);
+  put('#tabVerifyCount', pendingV.length);
+  put('#tabReportCount', openReports.length);
+  put('#tabChargeCount', pendingCharges.length);
+  put('#pendingLabel', `${pendingV.length}건`);
+  put('#doneLabel', `${doneV.length}건`);
+  put('#reportLabel', `${state.reports.length}건`);
+  put('#suspendLabel', `${state.suspendedIds.length}명`);
+  put('#chargeLabel', `${pendingCharges.length}건`);
+
+  const auditEl = $('#adminAuditList');
+  if (auditEl) {
+    auditEl.innerHTML = state.auditLog.length
+      ? state.auditLog.slice(0, 30).map((x) => `<div class="audit-item"><b>${esc(x.action)}</b> · ${esc(x.target)}
+          <div class="muted">담당: ${esc(x.actor || 'admin')} · ${esc(new Date(x.at).toLocaleString('ko-KR'))}</div>
+          <div>${esc(x.detail || '처리 완료')}</div></div>`).join('')
+      : '<p class="muted">아직 처리 이력이 없어요.</p>';
+  }
+
+  const pl = $('#adminPendingList');
+  if (pl) pl.innerHTML = pendingV.length
+    ? pendingV.map((s) => submissionCardHTML(s, true)).join('')
+    : '<div class="admin-empty">대기 중인 심사가 없어요.<br>사용자 화면에서 인증을 제출하면 여기에 나타납니다.</div>';
+  const dl = $('#adminDoneList');
+  if (dl) dl.innerHTML = doneV.length
+    ? doneV.map((s) => submissionCardHTML(s, false)).join('')
+    : '<div class="admin-empty">아직 처리한 내역이 없어요.</div>';
+
+  const cl = $('#adminChargeList');
+  if (cl) {
+    const card = (c) => `
+      <article class="sub-card ${c.status !== 'pending' ? 'is-done' : ''}">
+        <div class="sub-card__top">
+          <div class="sub-card__who">
+            <span class="sub-card__avatar">${avatarSVG(c.userId, c.userName)}</span>
+            <div>
+              <p class="sub-card__name">${esc(c.userName)}</p>
+              <p class="sub-card__company">${esc(c.packageName)} · ${c.amount.toLocaleString('ko-KR')}원</p>
+            </div>
+          </div>
+          <span class="method-badge">입금자 ${esc(c.depositor)}</span>
+        </div>
+        <p class="sub-card__time">${relTime(c.at)} 요청</p>
+        ${c.status === 'pending'
+          ? `<div class="sub-card__actions">
+               <button class="btn btn--ghost btn--sm" data-action="reject-charge" data-id="${c.id}">반려</button>
+               <button class="btn btn--mint btn--sm" data-action="approve-charge" data-id="${c.id}">입금 확인 · ${c.tickets}장 지급</button>
+             </div>`
+          : `<div class="sub-card__done"><span class="status-pill ${c.status === 'approved' ? 'status-pill--done' : ''}">${c.status === 'approved' ? '충전 완료' : '반려'}</span><span class="sub-card__time">${relTime(c.decidedAt || c.at)} 처리</span></div>
+             ${c.note ? `<p class="sub-card__reason">사유 · ${esc(c.note)}</p>` : ''}`}
+      </article>`;
+    cl.innerHTML = (pendingCharges.length ? pendingCharges.map(card).join('') : '<div class="admin-empty">대기 중인 충전 요청이 없어요.</div>')
+      + (doneCharges.length ? `<p class="admin-col__title" style="margin-top:16px">처리 완료 ${doneCharges.length}건</p>` + doneCharges.slice(0, 20).map(card).join('') : '');
+  }
+
+  const rl = $('#adminReportList');
+  if (rl) {
+    rl.innerHTML = openReports.length
+      ? openReports.map((r) => reportCardHTML(r, true)).join('') + doneReports.map((r) => reportCardHTML(r, false)).join('')
+      : doneReports.length ? doneReports.map((r) => reportCardHTML(r, false)).join('')
+      : '<div class="admin-empty">접수된 신고가 없어요.</div>';
+  }
+
+  const sl = $('#adminSuspendedList');
+  if (sl) {
+    sl.innerHTML = state.suspendedIds.length
+      ? state.suspendedIds.map((id) => {
+          const p = PROFILE_MAP[id];
+          return `
+            <div class="suspended-item">
+              <span class="avatar avatar--sm">${avatarSVG(id, p ? p.name : id)}</span>
+              <div>
+                <p class="suspended-item__name">${esc(p ? p.name : id)}</p>
+                <p class="suspended-item__sub">이용 정지 · 매칭에서 숨김</p>
+              </div>
+              <button class="btn btn--ghost btn--sm" data-action="restore-suspend" data-id="${id}">복구</button>
+            </div>`;
+        }).join('')
+      : '<div class="admin-empty">이용 정지된 회원이 없어요.</div>';
+  }
+
+  const pay = $('#payFields');
+  if (pay && !pay.dataset.filled) {
+    const info = payInfo || {};
+    const set = (id, v) => { const el = document.getElementById(id); if (el && !el.value) el.value = v || ''; };
+    set('payBank', info.bank_name); set('payAccount', info.bank_account);
+    set('payHolder', info.account_holder); set('payKakao', info.kakaopay_id);
+    pay.dataset.filled = '1';
+  }
+
+  pendingV.forEach((s) => {
+    if (!openRejects.has(s.id)) return;
+    const box = document.querySelector(`[data-reject="${s.id}"]`);
+    if (box) box.hidden = false;
   });
-
-  if (block && !state.safety.blockedProfiles.includes(p.id)) state.safety.blockedProfiles.push(p.id);
-
-  reportDraft = null;
-  deckSignature = '';
-  closeSheet();
-  renderAll();
-  toast('신고를 접수했어요. 운영자가 확인해요.', {
-    label: '운영자 화면 열기', action: () => switchMode('admin')
+  Object.entries(rejectDrafts).forEach(([id, text]) => {
+    const ta = document.querySelector(`[data-reason-input="${id}"]`);
+    if (ta) ta.value = text;
   });
 }
 
-/* ---------- 6-10. 관리자 액션 ---------- */
-function approveSubmission(id) {
-  const s = state.submissions.find((x) => x.id === id);
-  if (!s || s.status !== 'pending') return;
+async function adminClaim() {
+  const pin = ($('#adminPin')?.value || '').trim();
+  if (!pin) { toast('운영자 PIN을 입력해 주세요.'); return; }
+  try {
+    const r = await rpc('admin_claim', { p_pin: pin });
+    if (!r || !r.ok) { toast('PIN이 맞지 않아요.'); return; }
+    await refreshAll(); renderAll(); renderAdmin();
+    toast('운영자 콘솔에 들어왔어요.');
+  } catch (err) { toast(errorText(err)); }
+}
 
-  s.status = 'approved';
-  audit('인증 승인',s.ownerName||state.user.nickname,`${s.company} · ${s.method}`);
-  s.decidedAt = new Date().toISOString();
-  s.reason = '';
+async function approveSubmission(id) {
+  try {
+    await rpc('admin_review_verification', { p_id: id, p_approve: true, p_note: '' });
+    await refreshAll(); renderAll(); renderAdmin();
+    toast('인증을 승인했어요.');
+  } catch (err) { toast(errorText(err)); }
+}
+async function rejectSubmission(id) {
+  const ta = document.querySelector(`[data-reason-input="${id}"]`);
+  const reason = (ta?.value || '').trim();
+  if (!reason) { toast('반려 사유를 적어주세요.'); ta?.focus(); return; }
+  try {
+    await rpc('admin_review_verification', { p_id: id, p_approve: false, p_note: reason });
+    openRejects.delete(id); delete rejectDrafts[id];
+    await refreshAll(); renderAll(); renderAdmin();
+    toast('반려 처리했어요. 사유가 사용자 화면에 표시됩니다.');
+  } catch (err) { toast(errorText(err)); }
+}
+async function suspendReport(id) {
+  try {
+    await rpc('admin_review_report', { p_id: id, p_action: 'suspend' });
+    await refreshAll(); renderAll(); renderAdmin();
+    toast('이용 정지했어요. 사용자 화면에서 바로 사라집니다.');
+  } catch (err) { toast(errorText(err)); }
+}
+async function dismissReport(id) {
+  try {
+    await rpc('admin_review_report', { p_id: id, p_action: 'dismiss' });
+    await refreshAll(); renderAll(); renderAdmin();
+    toast('신고를 기각 처리했어요.');
+  } catch (err) { toast(errorText(err)); }
+}
+async function restoreSuspend(id) {
+  try {
+    await rpc('admin_restore_user', { p_target: id });
+    await refreshAll(); renderAll(); renderAdmin();
+    toast('이용 정지를 해제했어요');
+  } catch (err) { toast(errorText(err)); }
+}
+async function approveCharge(id) {
+  try {
+    const r = await rpc('admin_review_charge', { p_id: id, p_approve: true, p_note: '' });
+    await refreshAll(); renderAll(); renderAdmin();
+    toast(`입금 확인 · 매칭권을 지급했어요${r && r.tickets !== undefined ? ` (회원 잔액 ${r.tickets}장)` : ''}.`);
+  } catch (err) { toast(errorText(err)); }
+}
+async function rejectCharge(id) {
+  const note = (prompt('반려 사유 (선택)', '입금 내역을 확인할 수 없어요') || '').trim();
+  try {
+    await rpc('admin_review_charge', { p_id: id, p_approve: false, p_note: note });
+    await refreshAll(); renderAll(); renderAdmin();
+    toast('충전 요청을 반려했어요.');
+  } catch (err) { toast(errorText(err)); }
+}
+async function savePaymentInfo() {
+  try {
+    await rpc('admin_save_payment', {
+      p_bank_name: ($('#payBank')?.value || '').trim(),
+      p_bank_account: ($('#payAccount')?.value || '').trim(),
+      p_account_holder: ($('#payHolder')?.value || '').trim(),
+      p_kakaopay_id: ($('#payKakao')?.value || '').trim()
+    });
+    payInfo = await rpc('get_payment_info');
+    const pay = $('#payFields'); if (pay) delete pay.dataset.filled;
+    await refreshAll(); renderAll(); renderAdmin();
+    toast('입금 계좌를 저장했어요. 사용자 화면에 바로 반영됩니다.');
+  } catch (err) { toast(errorText(err)); }
+}
 
-  if (s.owner === 'me') {
-    state.verification.status = 'verified';
-    state.verification.decidedAt = s.decidedAt;
-    state.verification.reason = '';
-  } else if (s.owner && !state.verifiedIds.includes(s.owner)) {
-    state.verifiedIds.push(s.owner);
+/* ---------- 초기화 / 데모 토글 ---------- */
+function toggleDemoProfiles() {
+  uiPrefs.showDemo = !uiPrefs.showDemo;
+  saveUiPrefs();
+  refreshAll().then(() => { renderAll(); toast(uiPrefs.showDemo ? '데모 인연을 함께 보여드려요.' : '데모 인연을 숨겼어요.'); }).catch((err) => toast(errorText(err)));
+}
+
+function saveUiPrefs() { try { localStorage.setItem(UI_KEY, JSON.stringify(uiPrefs)); } catch (e) { /* 무시 */ } }
+function loadUiPrefs() {
+  try {
+    const raw = localStorage.getItem(UI_KEY);
+    if (raw) uiPrefs = { ...uiPrefs, ...JSON.parse(raw) };
+  } catch (e) { /* 무시 */ }
+}
+
+/* ---------- 직장인 인증 카드 ---------- */
+function renderVerifyCard() {
+  const v = state.verification;
+  const wrap = $('#verifySection');
+  if (!wrap) return;
+
+  const statusPill = {
+    none: '<span class="pill pill--gray">미인증</span>',
+    pending: '<span class="pill pill--yellow">심사 중</span>',
+    verified: '<span class="pill pill--mint">인증 완료</span>',
+    rejected: '<span class="pill pill--pink">반려</span>'
+  }[v.status] || '<span class="pill pill--gray">미인증</span>';
+
+  let body = '';
+  if (v.status === 'none') {
+    body = `
+      <p>직장인 인증을 하면 프로필에 <b>인증 마크</b>가 붙고,<br>매칭 수락률이 올라갑니다.</p>
+      <div class="verify-actions">
+        <button class="btn btn--primary" data-action="open-email-verify">회사 메일로 인증</button>
+        <button class="btn btn--ghost" data-action="open-doc-verify">명함·재직증명서로 인증</button>
+      </div>
+      <div class="verify-meta">① 제출 방식 선택 → ② 서류·메일 제출 → ③ 운영자 확인 → ④ 승인·반려 안내<br>회사 메일 인증은 지금 단계에서 화면 확인용이며 실제 메일 발송은 붙이지 않았습니다.</div>`;
+  } else if (v.status === 'pending') {
+    const methodLabel = v.method === 'email' ? '회사 메일' : '명함·재직증명서';
+    body = `
+      <div class="steps">
+        <span class="on"><span class="dot">1</span> 제출</span><span>›</span>
+        <span class="on"><span class="dot">2</span> 심사 중</span><span>›</span>
+        <span><span class="dot">3</span> 완료</span>
+      </div>
+      <div class="verify-meta" style="margin-top:11px">
+        <b>${esc(v.company)}</b> · ${methodLabel}<br>
+        ${relTime(v.submittedAt)} 접수 · 운영자 확인을 기다리고 있어요
+      </div>
+      <p style="margin-top:10px;font-size:9.5px;color:var(--ink-3)">승인되면 이 카드가 바로 인증 완료로 바뀝니다.</p>`;
+  } else if (v.status === 'verified') {
+    body = `
+      <div class="verify-meta" style="margin-top:11px;background:rgba(255,255,255,.7)">
+        <b>${esc(v.company || '직장')}</b> 재직 확인 완료<br>
+        ${v.decidedAt ? relTime(v.decidedAt) + ' 승인' : ''} · 프로필에 인증 마크가 표시되고 있어요
+      </div>`;
+  } else {
+    body = `
+      <div class="reject-reason">반려 사유 · ${esc(v.reason || '제출 서류를 다시 확인해 주세요')}</div>
+      <div class="verify-actions">
+        <button class="btn btn--primary" data-action="open-doc-verify">서류 다시 제출하기</button>
+        <button class="btn btn--ghost" data-action="open-email-verify">회사 메일로 인증</button>
+      </div>`;
   }
 
-  deckSignature = '';
-  renderAll();
-  toast(`${s.owner === 'me' ? '내' : s.ownerName + '님'} 인증을 승인했어요. 사용자 화면의 마크가 바로 바뀌었어요.`);
+  const cls = { pending: 'is-pending', verified: 'is-verified', rejected: 'is-rejected' }[v.status] || '';
+  const iconId = { pending: 'i-clock', verified: 'i-badge', rejected: 'i-mail' }[v.status] || 'i-badge';
+  const sub = {
+    none: '인증하고 신뢰 마크를 받아보세요',
+    pending: '운영자가 확인하고 있어요',
+    verified: '승인 완료 · 프로필에 표시 중',
+    rejected: '반려 · 다시 제출할 수 있어요'
+  }[v.status];
+
+  wrap.innerHTML = `
+    <div class="verify-card ${cls}">
+      <div class="verify-card__head">
+        <div class="verify-card__emoji"><svg class="icon"><use href="#${iconId}"/></svg></div>
+        <div>
+          <p class="verify-card__title">직장인 인증</p>
+          <p class="verify-card__sub">${sub}</p>
+        </div>
+        <div class="verify-status">${statusPill}</div>
+      </div>
+      <div class="verify-body">${body}</div>
+    </div>`;
+}
+
+/* ---------- 매칭권 이용내역 · 운영자 보조 ---------- */
+function showTicketHistory() {
+  const labels = { initial: '초기 지급', use: '호감 전송', refund: '무응답 반환', topup: '입금 충전' };
+  openSheet(`<div class="sheet__grabber"></div><div class="sheet__head"><h2>매칭권 이용내역</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기">✕</button></div>
+    <p class="sheet__sub">현재 <b>${state.tickets}장</b> · 충전 / 사용 / 반환 기록</p>
+    <div>${state.ticketLedger.length ? state.ticketLedger.map((x) => `<div class="ledger-item"><b>${esc(labels[x.kind] || x.kind)} · ${x.delta > 0 ? '+' : ''}${x.delta}장</b><div class="muted">${esc(x.detail)} · ${esc(new Date(x.at).toLocaleString('ko-KR'))}</div></div>`).join('') : '<p class="sheet__sub">아직 내역이 없어요.</p>'}</div>
+    <p class="demo-limits"><b>반환 기준:</b> 호감을 보낸 뒤 48시간 안에 응답이 없으면 매칭권 1장을 자동으로 돌려드려요. 서버에서 정산되며, 앱을 닫아 두어도 다음에 열 때 반영됩니다.</p>
+    <button class="btn btn--ghost btn--block" data-action="close-sheet">확인</button>`);
 }
 
 function toggleRejectBox(id) {
@@ -3374,62 +4410,6 @@ function toggleRejectBox(id) {
   openRejects = new Set([...document.querySelectorAll('.reject-box')].filter((b) => !b.hidden).map((b) => b.dataset.reject));
 }
 
-function rejectSubmission(id) {
-  const s = state.submissions.find((x) => x.id === id);
-  if (!s || s.status !== 'pending') return;
-  const ta = document.querySelector(`[data-reason-input="${id}"]`);
-  const reason = (ta?.value || '').trim();
-  if (!reason) { toast('반려 사유를 적어주세요.'); ta?.focus(); return; }
-
-  s.status = 'rejected';
-  audit('인증 반려',s.ownerName||state.user.nickname,reason);
-  s.reason = reason;
-  s.decidedAt = new Date().toISOString();
-
-  if (s.owner === 'me') {
-    state.verification.status = 'rejected';
-    state.verification.reason = reason;
-    state.verification.decidedAt = s.decidedAt;
-  }
-
-  openRejects.delete(id);
-  delete rejectDrafts[id];
-  renderAll();
-  toast('반려 처리했어요. 사유가 사용자 화면에 표시돼요.');
-}
-
-function suspendReport(id) {
-  const r = state.reports.find((x) => x.id === id);
-  if (!r || r.status !== 'open') return;
-  r.status = 'suspended';
-  audit('신고 이용 정지',r.targetName,r.reason);
-  r.decidedAt = new Date().toISOString();
-  if (!state.suspendedIds.includes(r.targetId)) state.suspendedIds.push(r.targetId);
-
-  state.received.forEach((x) => { if (x.id === r.targetId && x.status === 'pending') x.status = 'declined'; });
-  deckSignature = '';
-  renderAll();
-  toast(`${r.targetName}님을 이용 정지했어요. 사용자 화면에서 바로 사라졌어요.`);
-}
-
-function dismissReport(id) {
-  const r = state.reports.find((x) => x.id === id);
-  if (!r || r.status !== 'open') return;
-  r.status = 'dismissed';
-  audit('신고 기각',r.targetName,r.reason);
-  r.decidedAt = new Date().toISOString();
-  renderAll();
-  toast('신고를 기각 처리했어요.');
-}
-
-function restoreSuspend(id) {
-  state.suspendedIds = state.suspendedIds.filter((x) => x !== id);
-  audit('이용 정지 해제',PROFILE_MAP[id]?.name||id,'운영자 복구');
-  deckSignature = '';
-  renderAll();
-  toast('이용 정지를 해제했어요');
-}
-
 function previewDoc(id) {
   const s = state.submissions.find((x) => x.id === id);
   if (!s) return;
@@ -3437,121 +4417,17 @@ function previewDoc(id) {
     <div class="sheet__grabber"></div>
     <div class="sheet__head">
       <h2>제출 서류</h2>
-      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기">✕</button>
     </div>
     <p class="sheet__sub">${esc(s.ownerName)} · ${esc(s.company)} · ${relTime(s.at)} 제출</p>
     ${s.docPreview
       ? `<div class="doc-preview" style="margin-top:12px"><img src="${s.docPreview}" alt="제출 서류"></div>`
-      : '<div class="admin-empty" style="margin-top:12px">이미지가 없는 데모 데이터예요.</div>'}
+      : '<div class="admin-empty" style="margin-top:12px">이미지가 없는 예시 데이터예요.</div>'}
     <div class="sheet__actions"><button class="btn btn--ghost" data-action="close-sheet">닫기</button></div>`);
 }
 
-/* ---------- 6-11. 초기화 ---------- */
-function openResetConfirm() {
-  openSheet(`
-    <div class="sheet__grabber"></div>
-    <div class="sheet__head">
-      <h2>데모 데이터 초기화</h2>
-      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
-    </div>
-    <p class="sheet__sub">호감·매칭·대화·인증·신고·안전 설정이 모두 처음 상태로 돌아갑니다.</p>
-    <div class="sheet__actions">
-      <button class="btn btn--ghost" data-action="close-sheet">취소</button>
-      <button class="btn btn--primary" data-action="do-reset">초기화</button>
-    </div>`);
-}
-
-function resetDemo() {
-  state = defaultState();
-  activeChatId = null;
-  deckSignature = '';
-  threadSignature = '';
-  adminTab = 'verify';
-  openRejects = new Set();
-  rejectDrafts = {};
-  typingChats.clear();
-  replyTimers.forEach((t) => clearTimeout(t));
-  replyTimers.clear();
-  closeSheet();
-  $('#thread').hidden = true;
-  $('#chatListPane').hidden = false;
-  fillProfileForm();
-  renderAll();
-  switchAdminTab('verify');
-  switchView('today');
-  toast('데모 데이터를 처음 상태로 되돌렸어요.');
-}
-
-/* ---------- 6-12. 공통 UI ---------- */
-function openSheet(html) {
-  $('#sheet').innerHTML = html;
-  $('#sheetWrap').hidden = false;
-}
-function closeSheet() { $('#sheetWrap').hidden = true; }
-
-function toast(message, opts = {}) {
-  const el = $('#toast');
-  el.innerHTML = `<span>${esc(message)}</span>` + (opts.label ? `<button data-action="toast-action">${esc(opts.label)}</button>` : '');
-  el.classList.add('is-on');
-  toastAction = opts.action || null;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.classList.remove('is-on'); toastAction = null; }, opts.label ? 6500 : 2800);
-}
-
-function switchView(name) {
-  $$('.view').forEach((v) => v.classList.toggle('is-active', v.dataset.view === name));
-  $$('.tab').forEach((t) => {
-    const on = t.dataset.view === name;
-    t.classList.toggle('is-active', on);
-    t.setAttribute('aria-selected', String(on));
-  });
-  if (name !== 'chat') closeThread();
-  if (name === 'matches') renderMatches();
-  if (name === 'chat') renderChatList();
-  if (name === 'today') renderDeck();
-  if (name === 'profile') { renderVerifyCard(); renderSafety(); }
-}
-
-function switchMode(mode) {
-  currentMode = mode;
-  document.body.classList.toggle('mode-admin', mode === 'admin');
-  $('#userMode').hidden = mode !== 'user';
-  $('#adminView').hidden = mode !== 'admin';
-  $$('.seg__btn').forEach((b) => {
-    const on = b.dataset.mode === mode;
-    b.classList.toggle('is-on', on);
-    b.setAttribute('aria-selected', String(on));
-  });
-  if (mode === 'admin') renderAdmin();
-}
-
-function switchAdminTab(tab) {
-  adminTab = tab;
-  $('#adminVerifyPanel').hidden = tab !== 'verify';
-  $('#adminReportsPanel').hidden = tab !== 'reports';
-  $$('.admin-tab').forEach((b) => {
-    const on = b.dataset.tab === tab;
-    b.classList.toggle('is-on', on);
-    b.setAttribute('aria-selected', String(on));
-  });
-  renderAdmin();
-}
-
-/* ---------- 6-13. 전체 렌더 ---------- */
-function renderAll() {
-  renderDeck();
-  renderMatches();
-  renderChatList();
-  renderThread();
-  renderMeetBar();
-  renderProfileChrome();
-  renderNav();
-  renderAdmin();
-  save();
-}
-
 /* ==========================================================================
-   7. 이벤트 & 초기화
+   이벤트
    ========================================================================== */
 document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-action]');
@@ -3560,33 +4436,13 @@ document.addEventListener('click', (e) => {
   const id = el.dataset.id;
 
   switch (action) {
+    /* 인증 */
+    case 'auth-tab': authTab(el.dataset.tab); break;
+    case 'logout': doLogout(); break;
+    /* 화면 */
     case 'mode': switchMode(el.dataset.mode); break;
     case 'tab': switchView(el.dataset.view); break;
-    case 'like': commit('like'); break;
-    case 'pass': commit('pass'); break;
-    case 'undo-pass': undoPass(); break;
-    case 'detail-profile': openProfileDetail(id); break;
-    case 'detail-like': { closeSheet(); const top=visibleDeck()[0]; if(top?.id===id) commit('like'); else toast('현재 맨 앞 카드에서만 호감을 보낼 수 있어요.'); break; }
-    case 'ticket-history': showTicketHistory(); break;
-    case 'chat-safety': showChatSafety(); break;
-    case 'end-chat': endOrBlockChat(id,false); break;
-    case 'block-chat': endOrBlockChat(id,true); break;
-    case 'accept': acceptLike(id); break;
-    case 'decline': declineLike(id); break;
-    case 'open-chat': switchView('chat'); openChat(id); break;
-    case 'close-thread': closeThread(); break;
-    case 'send-chip': sendMessage(el.dataset.text); break;
-    case 'open-topup': openTopUp(); break;
     case 'close-sheet': closeSheet(); break;
-    case 'buy-ticket': buyTicket(parseInt(el.dataset.n, 10)); break;
-    case 'ask-reset': openResetConfirm(); break;
-    case 'do-reset': resetDemo(); break;
-    case 'save-profile': saveProfile(); break;
-    case 'toggle-area': togglePref('areas', el.dataset.value); break;
-    case 'toggle-value': togglePref('values', el.dataset.value); break;
-    case 'toggle-mbti': toggleMbti(el.dataset.value); break;
-    case 'toggle-priority': togglePriority(el.dataset.value); break;
-    case 'demo-expire': demoExpire(); break;
     case 'toast-action': {
       const fn = toastAction;
       $('#toast').classList.remove('is-on');
@@ -3594,11 +4450,51 @@ document.addEventListener('click', (e) => {
       if (fn) fn();
       break;
     }
+    /* 카드 */
+    case 'like': commit('like'); break;
+    case 'pass': commit('pass'); break;
+    case 'undo-pass': undoPass(); break;
+    case 'detail-profile': openProfileDetail(id); break;
+    case 'detail-like': {
+      closeSheet();
+      const top = visibleDeck()[0];
+      if (top && top.id === id) commit('like'); else toast('현재 맨 앞 카드에서만 호감을 보낼 수 있어요.');
+      break;
+    }
+    case 'photo': setCardPhoto(el.dataset.id, parseInt(el.dataset.index, 10)); break;
+    case 'remove-photo': removePhoto(parseInt(el.dataset.index, 10)); break;
+    case 'ticket-history': showTicketHistory(); break;
+    /* 받은 호감 */
+    case 'accept': acceptLike(id); break;
+    case 'decline': declineLike(id); break;
+    /* 대화 */
+    case 'open-chat': switchView('chat'); openChat(id); break;
+    case 'close-thread': closeThread(); break;
+    case 'send-chip': sendMessage(el.dataset.text); break;
+    case 'chat-safety': showChatSafety(); break;
+    case 'end-chat': endOrBlockChat(id, false); break;
+    case 'block-chat': endOrBlockChat(id, true); break;
+    /* 충전 */
+    case 'open-topup': openTopUp(); break;
+    case 'pick-pack': {
+      chargePack = PACKS.find((p) => p.n === parseInt(el.dataset.n, 10)) || chargePack;
+      openTopUp();
+      break;
+    }
+    case 'submit-charge': submitCharge(); break;
+    case 'redeem-points': redeemPoints(); break;
+    /* 프로필 */
+    case 'save-profile': saveProfile(); break;
+    case 'toggle-area': togglePref('areas', el.dataset.value); break;
+    case 'toggle-value': togglePref('values', el.dataset.value); break;
+    case 'toggle-mbti': toggleMbti(el.dataset.value); break;
+    case 'toggle-priority': togglePriority(el.dataset.value); break;
+    case 'toggle-demo': toggleDemoProfiles(); break;
     /* 안전 설정 */
     case 'toggle-same-company': toggleSameCompany(); break;
     case 'add-block': addBlockedNumber(); break;
     case 'remove-block': removeBlockedNumber(el.dataset.hash); break;
-    /* 인증 */
+    /* 인증 제출 */
     case 'open-email-verify': openEmailSheet(); break;
     case 'open-doc-verify': openDocSheet(); break;
     case 'send-code': sendCode(); break;
@@ -3609,9 +4505,6 @@ document.addEventListener('click', (e) => {
     case 'report': if (id) openReportSheet(id); break;
     case 'pick-report-reason': pickReportReason(el.dataset.value, el); break;
     case 'submit-report': submitReport(); break;
-    /* 사진 */
-    case 'photo': setCardPhoto(el.dataset.id, parseInt(el.dataset.index, 10)); break;
-    case 'remove-photo': removePhoto(parseInt(el.dataset.index, 10)); break;
     /* 만남 · 후기 */
     case 'meet-plan': openMeetSheet(id, 'plan'); break;
     case 'pick-plan-date': {
@@ -3633,8 +4526,9 @@ document.addEventListener('click', (e) => {
       break;
     }
     case 'submit-review': submitReview(id); break;
-    /* 관리자 */
+    /* 운영자 */
     case 'admin-tab': switchAdminTab(el.dataset.tab); break;
+    case 'admin-claim': adminClaim(); break;
     case 'approve-sub': approveSubmission(id); break;
     case 'toggle-reject': toggleRejectBox(id); break;
     case 'reject-sub': rejectSubmission(id); break;
@@ -3648,18 +4542,14 @@ document.addEventListener('click', (e) => {
     case 'suspend-report': suspendReport(id); break;
     case 'dismiss-report': dismissReport(id); break;
     case 'restore-suspend': restoreSuspend(id); break;
+    case 'approve-charge': approveCharge(id); break;
+    case 'reject-charge': rejectCharge(id); break;
+    case 'save-payment': savePaymentInfo(); break;
   }
 });
 
-function removePhoto(index) {
-  if (!Array.isArray(state.user.photos)) return;
-  state.user.photos.splice(index, 1);
-  save();
-  renderProfileChrome();
-  toast('사진을 삭제했어요');
-}
-
 document.addEventListener('input', (e) => {
+  if (e.target.id === 'depositorName') chargeName = e.target.value;
   if (e.target.matches('[data-reason-input]')) rejectDrafts[e.target.dataset.reasonInput] = e.target.value;
   if (e.target.id === 'docCompany') {
     const btn = $('#submitDocBtn');
@@ -3668,22 +4558,14 @@ document.addEventListener('input', (e) => {
 });
 
 document.addEventListener('change', async (e) => {
-  if (e.target.id === 'usePoints') {
-    usePoints = e.target.checked;
-    if (!$('#sheetWrap').hidden) openTopUp();   // 가격표를 바로 갱신
-    return;
-  }
   if (!e.target.matches('[data-photo-upload]')) return;
-
   const file = e.target.files && e.target.files[0];
   if (!file) return;
   if (!file.type.startsWith('image/')) { toast('이미지 파일만 올릴 수 있어요.'); return; }
   try {
-    const img = await readImageFile(file);
-    state.user.photos = [...(state.user.photos || []), img.dataUrl].slice(0, 3);
-    save();
-    renderProfileChrome();
-    toast('사진을 추가했어요. 첫 사진이 대표 사진이 돼요.');
+    const img = await readImageFile(file, 480, 0.72);
+    const list = [...(state.user.photos || []), img.dataUrl].slice(0, 3);
+    await savePhotos(list);
   } catch (err) {
     toast('이미지를 읽지 못했어요. 다른 파일로 시도해 주세요');
   }
@@ -3696,101 +4578,115 @@ document.addEventListener('keydown', (e) => {
 
 /* 메시지 입력 */
 const msgInput = $('#msgInput');
-msgInput.addEventListener('input', () => { $('#sendBtn').disabled = msgInput.value.trim().length === 0; });
-$('#composer').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const text = msgInput.value;
-  if (!text.trim()) return;
-  msgInput.value = '';
-  $('#sendBtn').disabled = true;
-  sendMessage(text);
-});
+if (msgInput) {
+  msgInput.addEventListener('input', () => { $('#sendBtn').disabled = msgInput.value.trim().length === 0; });
+}
+const composer = $('#composer');
+if (composer) {
+  composer.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = msgInput.value;
+    if (!text.trim()) return;
+    msgInput.value = '';
+    $('#sendBtn').disabled = true;
+    sendMessage(text);
+  });
+}
 
 /* ESC */
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    if (!$('#sheetWrap').hidden) closeSheet();
-    else if (activeChatId && currentMode === 'user') closeThread();
-  }
+  if (e.key !== 'Escape') return;
+  if (!$('#sheetWrap').hidden) closeSheet();
+  else if (activeChatId && currentMode === 'user') closeThread();
 });
 
 /* 카드 드래그 */
 const deckEl = $('#deck');
 let drag = null;
-
-deckEl.addEventListener('pointerdown', (e) => {
-  if (busy) return;
-  const card = e.target.closest('.card[data-depth="0"]');
-  if (!card) return;
-  drag = { card, startX: e.clientX, startY: e.clientY, dx: 0, active: false, pointerId: e.pointerId };
-});
-
-deckEl.addEventListener('pointermove', (e) => {
-  if (!drag || e.pointerId !== drag.pointerId) return;
-  const dx = e.clientX - drag.startX;
-  const dy = e.clientY - drag.startY;
-  if (!drag.active) {
-    if (Math.abs(dx) < 10) return;
-    if (Math.abs(dy) > Math.abs(dx)) { drag = null; return; }
-    drag.active = true;
-    drag.card.classList.add('is-dragging');
-    drag.card.setPointerCapture?.(e.pointerId);
+if (deckEl) {
+  deckEl.addEventListener('pointerdown', (e) => {
+    if (busy) return;
+    const card = e.target.closest('.card[data-depth="0"]');
+    if (!card) return;
+    drag = { card, startX: e.clientX, startY: e.clientY, dx: 0, active: false, pointerId: e.pointerId };
+  });
+  deckEl.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.pointerId) return;
+    const dx = e.clientX - drag.startX;
+    const dy = e.clientY - drag.startY;
+    if (!drag.active) {
+      if (Math.abs(dx) < 10) return;
+      if (Math.abs(dy) > Math.abs(dx)) { drag = null; return; }
+      drag.active = true;
+      drag.card.classList.add('is-dragging');
+      drag.card.setPointerCapture?.(e.pointerId);
+    }
+    drag.dx = dx;
+    drag.card.style.setProperty('--dx', `${dx}px`);
+    drag.card.style.setProperty('--rot', `${Math.max(-12, Math.min(12, dx / 16))}deg`);
+    drag.card.style.setProperty('--like', String(Math.min(1, Math.max(0, dx / 120))));
+    drag.card.style.setProperty('--pass', String(Math.min(1, Math.max(0, -dx / 120))));
+  });
+  function endDrag() {
+    if (!drag) return;
+    const { card, dx, active } = drag;
+    drag = null;
+    if (!active) return;
+    if (dx > 92) { commit('like'); return; }
+    if (dx < -92) { commit('pass'); return; }
+    card.classList.remove('is-dragging');
+    card.style.setProperty('--dx', '0px');
+    card.style.setProperty('--rot', '0deg');
+    card.style.setProperty('--like', '0');
+    card.style.setProperty('--pass', '0');
   }
-  drag.dx = dx;
-  drag.card.style.setProperty('--dx', `${dx}px`);
-  drag.card.style.setProperty('--rot', `${Math.max(-12, Math.min(12, dx / 16))}deg`);
-  drag.card.style.setProperty('--like', String(Math.min(1, Math.max(0, dx / 120))));
-  drag.card.style.setProperty('--pass', String(Math.min(1, Math.max(0, -dx / 120))));
-});
-
-function endDrag() {
-  if (!drag) return;
-  const { card, dx, active } = drag;
-  drag = null;
-  if (!active) return;
-  if (dx > 92) { commit('like'); return; }
-  if (dx < -92) { commit('pass'); return; }
-  card.classList.remove('is-dragging');
-  card.style.setProperty('--dx', '0px');
-  card.style.setProperty('--rot', '0deg');
-  card.style.setProperty('--like', '0');
-  card.style.setProperty('--pass', '0');
+  deckEl.addEventListener('pointerup', endDrag);
+  deckEl.addEventListener('pointercancel', endDrag);
 }
-deckEl.addEventListener('pointerup', endDrag);
-deckEl.addEventListener('pointercancel', endDrag);
 
-/* 다른 탭과 실시간 동기화 */
-window.addEventListener('storage', (e) => {
-  if (e.key !== STORAGE_KEY) return;
-  state = storage.load();
-  deckSignature = '';
-  threadSignature = '';
-  renderAll();
-});
-
-/* 시계 · 날짜 · 만료 체크 */
+/* 시계 · 날짜 */
 function tick() {
   const d = new Date();
-  $('#clock').textContent = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  const el = $('#clock');
+  if (el) el.textContent = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 tick();
 setInterval(tick, 30 * 1000);
-$('#todayDate').textContent = todayLabel();
+const todayEl = $('#todayDate');
+if (todayEl) todayEl.textContent = todayLabel();
 
-setInterval(() => {
-  const refunded = processExpirations(false);
-  if (refunded) {
-    renderAll();
-    toast(`48시간 동안 답이 없어 매칭권 ${refunded}장이 돌아왔어요.`);
-  } else if (currentMode === 'user' && document.querySelector('[data-view="matches"].is-active')) {
-    renderMatches();
+/* 메시지 초안 잠금 해제 */
+window.addEventListener('focus', () => {
+  if (session && !document.hidden) {
+    refreshAll().then(() => { renderAll(); }).catch(() => {});
   }
-}, 60 * 1000);
+});
 
-/* 시작 */
-processExpirations(false);
-fillProfileForm();
-renderAll();
+/* ==========================================================================
+   6. 시작
+   ========================================================================== */
+(async function start() {
+  loadUiPrefs();
+  const loginForm = $('#loginForm');
+  const signupForm = $('#signupForm');
+  if (loginForm) loginForm.addEventListener('submit', doLogin);
+  if (signupForm) signupForm.addEventListener('submit', doSignup);
+
+  if (!initSupabase()) return;
+
+  const { data } = await sb.auth.getSession();
+  session = (data && data.session) || null;
+
+  sb.auth.onAuthStateChange((event, s) => {
+    const had = !!session;
+    session = s;
+    if (!s && had) showAuth();
+    if (s && !had) setTimeout(() => afterLogin(), 0);
+  });
+
+  if (session) await afterLogin();
+  else showAuth();
+})();
 </script>
 </body>
 </html>
