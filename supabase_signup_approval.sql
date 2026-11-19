@@ -113,11 +113,11 @@ end $$;
 -- ============================================================================
 update public.profiles p
    set status = 'active'
-  from auth.users u, public.admin_config c
+  from auth.users u
  where u.id = p.id
-   and c.id = 1
    and p.status = 'pending'
-   and u.created_at < coalesce(c.signup_approval_since, now());
+   and u.created_at < (select c.signup_approval_since from public.admin_config c where c.id = 1);
+   /* signup_approval_since 가 비어 있으면(NULL) 아무 줄도 바뀌지 않습니다 — 한 번도 잠그지 않는 쪽으로 안전하게. */
 
 -- 운영자(is_admin) 계정과 관리자 이메일 계정도 그대로 활동 상태로 둡니다.
 update public.profiles
