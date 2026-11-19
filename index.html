@@ -4210,7 +4210,7 @@ function parseVcf(text) {
     .replace(/\n[ \t]/g, '')            // 접힌 줄 이어붙이기
     .split('\n')
     .forEach((line) => {
-      const m = /^TEL[^:]*:(.+)$/i.exec(line.trim());
+      const m = /^(?:[A-Za-z0-9-]+\.)?TEL[^:]*:(.+)$/i.exec(line.trim());
       if (!m) return;
       const raw = m[1].replace(/^tel:/i, '').split(';')[0].trim();
       if (raw) out.push(raw);
