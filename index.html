@@ -548,6 +548,8 @@ img{display:block;max-width:100%}
 .phone-add .btn{flex:0 0 auto}
 .text-btn--sm{font-size:10px;padding:7px 12px}
 .contact-sync{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:9px}
+.region-pick{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.region-pick .field__select{flex:1 1 96px;min-width:0}.region-pick .btn{flex:0 0 auto}
 .lock-banner{
   display:flex;flex-direction:column;gap:5px;margin:2px 0 14px;padding:12px 14px;border-radius:12px;
   background:rgba(230,217,200,.4);color:#6B5A3E;font-size:11px;line-height:1.7;letter-spacing:.01em;
@@ -958,6 +960,109 @@ body.mode-admin .toast{bottom:24px}
 .thread-head__text{min-width:0}
 .thread-head__sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .thread-head .btn{white-space:nowrap;flex:0 0 auto}
+/* ==========================================================================
+   v2.0 — 공통 타이포그래피 · 간격 시스템
+   본문 14px/1.5 · 설명 13.5px/1.6 · 캡션 12px/1.45 · 라벨 12px
+   카드 여백 14px 16px · 카드 사이 12px · 목록 행 12px 0 · 폼 필드 11px 0
+   ========================================================================== */
+body{font-size:14px;line-height:1.5}
+.view-title{font-size:22px;line-height:1.3}
+.eyebrow{font-size:11.5px;line-height:1.4}
+
+/* 섹션 · 카드 */
+.section{margin-bottom:18px}
+.section__head{margin-bottom:10px;padding-bottom:8px}
+.section__title{font-size:14px;line-height:1.35}
+.section__hint{font-size:11.5px}
+.form-card{padding:0 14px;border-radius:14px}
+.profile-card{padding:14px 16px;gap:14px;margin-bottom:12px;border-radius:14px}
+.profile-card__meta{font-size:12px;margin-top:4px}
+.card-head{padding:12px 16px 0}
+.card-body{padding:8px 16px 12px}
+.card-bio{font-size:13.5px;line-height:1.6}
+.card-meta{font-size:12px;margin-top:4px}
+.card-badge{font-size:10.5px;padding:3px 9px;margin-bottom:6px}
+.card-sticker{font-size:10px;padding:4px 9px}
+.tag-row{margin-top:8px;gap:6px}
+.tag,.tag-label{font-size:11.5px}
+.match-reason{font-size:12px;line-height:1.55;padding:9px 11px}
+
+/* 폼 필드 */
+.field{padding:11px 0;gap:10px}
+.field > span,.field--col > span,.sheet-field > label{font-size:12px;line-height:1.4}
+.field input,.field--col textarea,.sheet-field input,.sheet-field textarea{font-size:13px;line-height:1.5}
+.field__select{font-size:13px;padding:8px 11px}
+.field--col{padding:12px 0}
+.field--col > span{margin-bottom:8px}
+.field__empty{display:inline-block;padding:4px 0;font-size:11.5px;color:var(--ink-3)}
+.toggle-row{padding:12px 0;gap:10px}
+.toggle-title{font-size:12.5px;line-height:1.4}
+.toggle-desc{font-size:11px;line-height:1.5;margin-top:3px}
+.sheet-hint,.priority-summary{font-size:11.5px;line-height:1.55}
+.chips-select{gap:6px}
+.chip,.chip-select,.reason-chip{font-size:12px;min-height:34px;padding:0 12px}
+.chip-x{margin-left:6px;opacity:.55;font-size:12px}
+
+/* 목록 행 */
+.row{padding:12px 0}
+.row__name{font-size:13.5px;line-height:1.35}
+.row__sub{font-size:11.5px;line-height:1.45;margin-top:3px}
+
+/* 버튼 */
+.btn{height:46px;font-size:13.5px;padding:0 18px}
+.btn--sm{height:34px;font-size:12px;padding:0 13px}
+.text-btn{font-size:11.5px;padding:7px 13px}
+.text-btn--sm{font-size:11px;padding:6px 11px}
+
+/* 시트 */
+.sheet{padding:12px 18px calc(22px + env(safe-area-inset-bottom))}
+.sheet__head{margin-bottom:8px}
+.sheet__head h2{font-size:18px;line-height:1.3}
+.sheet__sub{font-size:12.5px;line-height:1.65;margin-top:6px}
+.sheet__notice,.sheet__note,.sheet__notice b,.sheet__note b{font-size:11.5px;line-height:1.6}
+.sheet-field{margin-top:14px}
+.sheet-field > label{margin-bottom:7px}
+.sheet__actions{margin-top:16px;gap:8px}
+.doc-preview__meta{font-size:11.5px;padding:9px 12px}
+.doc-preview__meta button{font-size:11px}
+
+/* 인증 카드 */
+.verify-card{padding:14px 16px;margin-bottom:12px;border-radius:14px}
+.verify-card__title{font-size:13.5px;line-height:1.35}
+.verify-card__sub{font-size:11.5px;line-height:1.45;margin-top:2px}
+.verify-body p{font-size:13px;line-height:1.6}
+.verify-meta{font-size:11.5px;line-height:1.55;padding:10px 12px}
+.verify-actions{gap:8px;margin-top:10px}
+.reject-reason{font-size:11.5px;line-height:1.55}
+
+/* 매칭권 이용내역 · 운영 이력 */
+.ledger-entry{padding:12px 14px;margin-top:8px;font-size:12.5px;line-height:1.4}
+.ledger-item{padding:13px 0;border-bottom:1px solid var(--line);line-height:1.5}
+.ledger-item:last-child{border-bottom:0}
+.ledger-item:first-child{padding-top:4px}
+.ledger-item__top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.ledger-item__title{font-size:13px;font-weight:500;color:var(--ink)}
+.ledger-item__delta{font-family:var(--font-title);font-size:13px;color:var(--ink-2);white-space:nowrap}
+.ledger-item__delta.is-plus{color:var(--sage-ink)}
+.ledger-item__detail{margin-top:4px;font-size:12px;color:var(--ink-2);line-height:1.5}
+.ledger-item__time{margin-top:2px;font-size:11px;color:var(--ink-3)}
+.audit-item{padding:11px 0;font-size:12px;line-height:1.55}
+
+/* 탭바 · 로그인 */
+.tab{font-size:10px}
+.tab__badge{font-size:9px}
+.auth__card{padding:22px 20px 18px}
+.auth__title{font-size:22px;line-height:1.35}
+.auth__sub{font-size:12.5px;line-height:1.6}
+.auth__note{font-size:11px;line-height:1.6;margin-top:14px}
+.auth__msg{font-size:12px;line-height:1.55}
+.lock-banner{padding:12px 14px;margin-bottom:12px;font-size:12px;line-height:1.55}
+
+/* 운영자 화면 */
+.admin{padding:20px 18px 56px}
+.admin-head h1{font-size:20px}
+.admin-sub{font-size:12px;line-height:1.6}
+.sub-card{padding:13px 14px;margin-bottom:9px}
 </style>
 </head>
 <body>
@@ -1119,7 +1224,8 @@ body.mode-admin .toast{bottom:24px}
             <div class="avatar avatar--lg" id="meAvatar"></div>
             <div class="profile-card__text">
               <p class="profile-card__name"><span id="meName">예지</span><span id="meAge">1991년(만35세)</span>
-                <span class="pill pill--mint" id="meVerifyBadge" hidden>인증</span>
+                <span class="pill pill--mint" id="meVerifyBadge" hidden>직장인 인증</span>
+                <span class="pill pill--sage" id="meHeightBadge" hidden>키 인증</span>
               </p>
               <p class="profile-card__meta" id="meMeta">콘텐츠 기획 · 성수건축</p>
             </div>
@@ -1157,7 +1263,12 @@ body.mode-admin .toast{bottom:24px}
                 </select>
               </label>
               <label class="field"><span>키</span><input id="fHeight" type="number" min="140" max="210" inputmode="numeric" placeholder="cm"></label>
-              <label class="field"><span>지역</span><input id="fRegion" maxlength="20" placeholder="성수동"></label>
+              <label class="field"><span>활동 지역 (시·도)</span>
+                <select id="fProvince" class="field__select" aria-label="활동 지역 시도"></select>
+              </label>
+              <label class="field"><span>활동 지역 (구·시·군)</span>
+                <select id="fDistrict" class="field__select" aria-label="활동 지역 구시군"></select>
+              </label>
               <label class="field field--col"><span>한 줄 소개</span>
                 <textarea id="fBio" rows="3" maxlength="120" placeholder="어떤 사람인지 소개해 주세요"></textarea>
               </label>
@@ -1186,8 +1297,16 @@ body.mode-admin .toast{bottom:24px}
                 <p class="priority-summary" id="prioritySummary"></p>
                 <p class="sheet-hint">순서대로 최대 3개 · 궁합과 카드 순서가 바로 바뀝니다<br>외모는 사진을 올린 프로필, 나이는 위의 선호 나이, 키는 178cm 이상을 기준으로 해요.</p>
               </div>
-              <div class="field field--col"><span>선호 지역</span><div class="chips-select" id="areaChips"></div></div>
               <div class="field field--col"><span>중요하게 보는 것</span><div class="chips-select" id="valueChips"></div></div>
+              <div class="field field--col"><span>선호 지역 (최대 3곳)</span>
+                <div class="region-pick">
+                  <select id="prefProvince" class="field__select" aria-label="선호 지역 시도"></select>
+                  <select id="prefDistrict" class="field__select" aria-label="선호 지역 구시군"></select>
+                  <button type="button" class="btn btn--sm btn--primary" data-action="add-pref-area">+ 추가</button>
+                </div>
+                <div class="chips-select" id="areaChips"></div>
+                <p class="sheet-hint">최대 3곳 · 비워 두면 지역은 상관없어요</p>
+              </div>
             </div>
           </section>
 
@@ -1239,7 +1358,7 @@ body.mode-admin .toast{bottom:24px}
           <section class="section" id="accountSection"></section>
 
           <section class="section">
-            <p class="footnote">v1.0 · Supabase 연동 · 프로필·호감·대화·인증이 서버에 저장됩니다<br>결제는 계좌이체 입금 확인 방식이며 자동 결제가 아닙니다</p>
+            <p class="footnote">v2.0 · Supabase 연동 · 프로필·호감·대화·인증이 서버에 저장됩니다<br>결제는 계좌이체 입금 확인 방식이며 자동 결제가 아닙니다</p>
           </section>
         </section>
       </main>
@@ -1488,7 +1607,7 @@ body.mode-admin .toast{bottom:24px}
 <script>
 'use strict';
 /* ==========================================================================
-   990 인연 · 직장인 소개팅 — Supabase 연동판 v1.0
+   990 인연 · 직장인 소개팅 — Supabase 연동판 v2.0
    ---------------------------------------------------------------------------
      0. 설정 (CFG)
      1. 상태 · 데이터 매핑
@@ -1524,6 +1643,71 @@ const PACKS = [
 ];
 
 const AREA_OPTIONS = ['성수·성동', '망원·마포', '판교·분당', '일산', '서울 전역'];
+
+/* 시·도 → 구·시·군 (지역 콤보박스). 저장은 "서울 강남구" 한 줄 */
+const REGION_MAP = {
+  '서울': ['종로구', '중구', '용산구', '성동구', '광진구', '동대문구', '중랑구', '성북구', '강북구', '도봉구', '노원구', '은평구', '서대문구', '마포구', '양천구', '강서구', '구로구', '금천구', '영등포구', '동작구', '관악구', '서초구', '강남구', '송파구', '강동구'],
+  '경기': ['수원시', '성남시', '고양시', '용인시', '부천시', '안산시', '안양시', '남양주시', '화성시', '평택시', '의정부시', '시흥시', '파주시', '광주시', '김포시', '이천시', '양주시', '오산시', '구리시', '안성시', '포천시', '의왕시', '하남시', '여주시', '동두천시', '과천시', '광명시', '군포시', '양평군', '가평군', '연천군'],
+  '인천': ['중구', '동구', '미추홀구', '연수구', '남동구', '부평구', '계양구', '서구', '강화군', '옹진군'],
+  '부산': ['중구', '서구', '동구', '영도구', '부산진구', '동래구', '남구', '북구', '해운대구', '사하구', '금정구', '강서구', '연제구', '수영구', '사상구', '기장군'],
+  '대구': ['중구', '동구', '서구', '남구', '북구', '수성구', '달서구', '달성군', '군위군'],
+  '대전': ['동구', '중구', '서구', '유성구', '대덕구'],
+  '광주': ['동구', '서구', '남구', '북구', '광산구'],
+  '울산': ['중구', '남구', '동구', '북구', '울주군'],
+  '세종': ['세종시'],
+  '강원': ['춘천시', '원주시', '강릉시', '동해시', '태백시', '속초시', '삼척시', '홍천군', '횡성군', '영월군', '평창군', '정선군', '철원군', '화천군', '양구군', '인제군', '고성군', '양양군'],
+  '충북': ['청주시', '충주시', '제천시', '보은군', '옥천군', '영동군', '증평군', '진천군', '괴산군', '음성군', '단양군'],
+  '충남': ['천안시', '공주시', '보령시', '아산시', '서산시', '논산시', '계룡시', '당진시', '금산군', '부여군', '서천군', '청양군', '홍성군', '예산군', '태안군'],
+  '전북': ['전주시', '군산시', '익산시', '정읍시', '남원시', '김제시', '완주군', '진안군', '무주군', '장수군', '임실군', '순창군', '고창군', '부안군'],
+  '전남': ['목포시', '여수시', '순천시', '나주시', '광양시', '담양군', '곡성군', '구례군', '고흥군', '보성군', '화순군', '장흥군', '강진군', '해남군', '영암군', '무안군', '함평군', '영광군', '장성군', '완도군', '진도군', '신안군'],
+  '경북': ['포항시', '경주시', '김천시', '안동시', '구미시', '영주시', '영천시', '상주시', '문경시', '경산시', '의성군', '청송군', '영양군', '영덕군', '청도군', '고령군', '성주군', '칠곡군', '예천군', '봉화군', '울진군', '울릉군'],
+  '경남': ['창원시', '진주시', '통영시', '사천시', '김해시', '밀양시', '거제시', '양산시', '의령군', '함안군', '창녕군', '고성군', '남해군', '하동군', '산청군', '함양군', '거창군', '합천군'],
+  '제주': ['제주시', '서귀포시']
+};
+/* 기존에 쓰던 동네 이름을 가까운 구로 임의 연결 */
+const REGION_ALIAS = {
+  '성수': '서울 성동구', '성수동': '서울 성동구', '성동': '서울 성동구',
+  '망원': '서울 마포구', '망원동': '서울 마포구', '연남': '서울 마포구', '연남동': '서울 마포구', '마포': '서울 마포구',
+  '판교': '경기 성남시', '분당': '경기 성남시', '일산': '경기 고양시', '서울 전역': ''
+};
+
+function regionDistricts(province) { return REGION_MAP[province] || []; }
+function parseRegion(value) {
+  const v = String(value || '').trim();
+  if (!v) return { province: '', district: '' };
+  const prov = Object.keys(REGION_MAP).find((p) => v === p || v.startsWith(p + ' '));
+  if (prov) {
+    const rest = v.slice(prov.length).trim();
+    const d = regionDistricts(prov).find((x) => rest === x || rest.startsWith(x)) || '';
+    return { province: prov, district: d };
+  }
+  for (const [p, list] of Object.entries(REGION_MAP)) {
+    const hit = list.find((d) => v.includes(d.replace(/(구|시|군)$/, '')));
+    if (hit) return { province: p, district: hit };
+  }
+  for (const [alias, full] of Object.entries(REGION_ALIAS)) {
+    if (!full || !v.includes(alias)) continue;
+    const [p, d] = full.split(' ');
+    return { province: p, district: d };
+  }
+  return { province: '', district: '' };
+}
+function fillRegionSelects(provSel, distSel, value) {
+  if (!provSel || !distSel) return;
+  const { province, district } = parseRegion(value);
+  provSel.innerHTML = '<option value="">시·도 선택</option>' +
+    Object.keys(REGION_MAP).map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  provSel.value = province || '';
+  syncDistricts(provSel, distSel);
+  if (district) distSel.value = district;
+}
+function syncDistricts(provSel, distSel) {
+  if (!provSel || !distSel) return;
+  const list = regionDistricts(provSel.value);
+  distSel.innerHTML = '<option value="">구·시·군 선택</option>' +
+    list.map((d) => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
+  distSel.disabled = !list.length;
+}
 const VALUE_OPTIONS = ['다정한 대화', '진솔함', '유머 코드', '안정적인 생활', '같은 취미'];
 const MBTI_TYPES = ['ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
 const PRIORITY_OPTIONS = [
@@ -1580,6 +1764,7 @@ function emptyState() {
     ticketLedger: [], endedChats: [], chatRead: {}, auditLog: [], meetings: {},
     sent: [], received: [], matches: [], chats: {}, unread: {},
     verification: { status: 'none', method: null, company: '', email: '', docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: '' },
+    heightVerification: { status: 'none', docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: '' },
     submissions: [], reports: [], charges: [], suspendedIds: []
   };
 }
@@ -2212,7 +2397,17 @@ function applyData(d) {
   });
 
   /* 인증 */
-  const myVer = d.verifications.find((v) => v.user_id === meId);
+  const mineVers = d.verifications.filter((v) => v.user_id === meId);
+  const myVer = mineVers.find((v) => v.method !== 'height');
+  const myHeight = mineVers.find((v) => v.method === 'height');
+  state.heightVerification = myHeight ? {
+    status: myHeight.status === 'approved' ? 'verified' : (myHeight.status === 'rejected' ? 'rejected' : 'pending'),
+    docName: myHeight.doc_name || '',
+    docPreview: myHeight.doc_preview || '',
+    submittedAt: myHeight.created_at,
+    decidedAt: myHeight.reviewed_at,
+    reason: myHeight.note || ''
+  } : { status: 'none', docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: '' };
   state.verification = myVer ? {
     status: myVer.status === 'approved' ? 'verified' : (myVer.status === 'rejected' ? 'rejected' : 'pending'),
     method: myVer.method,
@@ -2224,7 +2419,8 @@ function applyData(d) {
     decidedAt: myVer.reviewed_at,
     reason: myVer.note || ''
   } : { status: 'none', method: null, company: '', email: '', docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: '' };
-  if (state.verified && state.verification.status !== 'verified') state.verification.status = 'verified';
+  /* 직장인 인증 표시는 직장인 인증 제출 건의 승인 상태를 따릅니다
+     (profiles.verified 는 다른 회원 카드에 쓰이는 값이라 여기서 덮어쓰지 않아요) */
 
   state.submissions = d.verifications.map((v) => {
     const isMine = v.user_id === meId;
@@ -2394,8 +2590,15 @@ function matchReasons(p) {
   const reasons = [];
   if (p.age >= Number(prefs.ageMin) && p.age <= Number(prefs.ageMax)) reasons.push(`선호 연령 ${prefs.ageMin}~${prefs.ageMax}세에 해당`);
   if ((prefs.mbti || []).includes(p.mbti)) reasons.push(`선호 MBTI ${p.mbti} 일치`);
-  if ((prefs.areas || []).includes('서울 전역') && ['성수동','망원동','연남동'].includes(p.area)) reasons.push(`선호 지역 서울 · ${p.area}`);
-  if ((prefs.areas || []).some(a => (a.startsWith('성수') && p.area === '성수동') || (a.startsWith('망원') && p.area === '망원동') || (a.startsWith('판교') && p.area === '판교') || (a === p.area))) reasons.push(`선호 지역 ${p.area} 일치`);
+  const wantArea = parseRegion(p.area);
+  const areaHit = (prefs.areas || []).filter((a) => a && a !== '서울 전역').some((a) => {
+    if (a === p.area) return true;
+    const want = parseRegion(a);
+    return !!want.district && want.district === wantArea.district &&
+      (!want.province || !wantArea.province || want.province === wantArea.province);
+  });
+  if (areaHit) reasons.push(`선호 지역 ${p.area} 일치`);
+  if ((prefs.areas || []).includes('서울 전역') && wantArea.province === '서울') reasons.push(`선호 지역 서울 · ${p.area}`);
   (prefs.priorities || []).forEach(key => { if (matchesPriority(p,key) === true) {
     const criterion = {looks:'외모 우선: 사진 등록 프로필',job:'직장 우선 조건 충족 (샘플)',age:`나이 우선 조건 충족 (${p.age}세)`,personality:`성격 우선: ${p.mbti}`,area:`거리 우선 조건 충족 (샘플 ${p.distKm}km)`,hobby:'취미 우선 조건 충족 (샘플)',habit:'비흡연 조건 충족',style:`키 우선 조건 충족 (${p.height}cm)`};
     const text = criterion[key];
@@ -2784,7 +2987,7 @@ function showTicketHistory() {
   const labels = {initial:'초기 지급',use:'호감 전송',refund:'무응답 반환',topup:'충전 (데모)',demo:'데모 테스트'};
   openSheet(`<div class="sheet__grabber"></div><div class="sheet__head"><h2>매칭권 이용내역</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기">✕</button></div>
     <p class="sheet__sub">현재 ${state.tickets}장 · 충전 / 사용 / 반환 기록</p>
-    <div>${state.ticketLedger.length?state.ticketLedger.map(x=>`<div class="ledger-item"><b>${esc(labels[x.kind]||x.kind)} · ${x.delta>0?'+':''}${x.delta}장</b><div class="muted">${esc(x.detail)} · ${esc(new Date(x.at).toLocaleString('ko-KR'))}</div></div>`).join(''):'<p class="sheet__sub">아직 내역이 없어요.</p>'}</div>
+    <div>${state.ticketLedger.length?state.ticketLedger.map(x=>`<div class="ledger-item"><div class="ledger-item__top"><span class="ledger-item__title">${esc(labels[x.kind]||x.kind)}</span><b class="ledger-item__delta ${x.delta>0?'is-plus':''}">${x.delta>0?'+':''}${x.delta}장</b></div><p class="ledger-item__detail">${esc(x.detail)}</p><p class="ledger-item__time">${esc(new Date(x.at).toLocaleString('ko-KR'))}</p></div>`).join(''):'<p class="sheet__sub">아직 내역이 없어요.</p>'}</div>
     <p class="demo-limits"><b>반환 기준:</b> 호감 전송 후 48시간 내 응답이 없으면 매칭권 1장을 반환합니다. 수락 또는 거절 등 응답이 있으면 자동 반환 대상이 아닙니다. 현 데모는 브라우저 실행 중/다시 열 때 만료 여부를 계산하며 서버 자동정산이나 실제 환불을 수행하지 않습니다. 실제 결제·환불 정책은 출시 전에 별도 확정해야 합니다.</p>
     <button class="btn btn--ghost btn--block" data-action="close-sheet">확인</button>`);
 }
@@ -3196,9 +3399,14 @@ function renderPrefChips() {
     ? prefs.priorities.map((k, i) => `${i + 1}순위 ${PRIORITY_LABEL[k]}`).join('  →  ')
     : '우선순위를 고르면 궁합 %와 카드 순서가 바로 바뀌어요';
 
-  /* 지역 · 가치관 */
-  $('#areaChips').innerHTML = AREA_OPTIONS.map((a) =>
-    `<button type="button" class="chip-select" data-action="toggle-area" data-value="${esc(a)}" aria-pressed="${prefs.areas.includes(a)}">${esc(a)}</button>`).join('');
+  /* 선호 지역 — 고른 곳만 칩으로, 눌러서 뺌 */
+  const areas = (prefs.areas || []).filter(Boolean);
+  $('#areaChips').innerHTML = areas.length
+    ? areas.map((a) =>
+      `<button type="button" class="chip-select chip-select--pick" data-action="remove-area" data-value="${esc(a)}" aria-pressed="true">${esc(a)}<span class="chip-x">×</span></button>`).join('')
+    : '<span class="field__empty">아직 고른 지역이 없어요 · 지역은 상관없어요</span>';
+  const pp = $('#prefProvince'), pd = $('#prefDistrict');
+  if (pp && !pp.options.length) { pp.innerHTML = '<option value="">시·도 선택</option>' + Object.keys(REGION_MAP).map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join(''); syncDistricts(pp, pd); }
   $('#valueChips').innerHTML = VALUE_OPTIONS.map((v) =>
     `<button type="button" class="chip-select" data-action="toggle-value" data-value="${esc(v)}" aria-pressed="${prefs.values.includes(v)}">${esc(v)}</button>`).join('');
 }
@@ -3247,11 +3455,13 @@ function renderProfileChrome() {
   $('#meMeta').textContent = [u.job, u.company].filter(Boolean).join(' · ');
   const avatar = $('#meAvatar');
   if (u.photos && u.photos[0]) {
-    avatar.innerHTML = `<img src="${u.photos[0]}" alt="내 사진" style="width:100%;height:100%;object-fit:cover">`;
+    avatar.innerHTML = `<img src="${esc(u.photos[0])}" alt="내 사진" style="width:100%;height:100%;object-fit:cover">`;
   } else {
     avatar.innerHTML = avatarSVG('me', u.nickname || '나');
   }
   $('#meVerifyBadge').hidden = !myVerified();
+  const hb = $('#meHeightBadge');
+  if (hb) hb.hidden = !(state.heightVerification && state.heightVerification.status === 'verified');
   $('#ticketBalance').textContent = state.tickets;
   $('#ticketCount').textContent = state.tickets;
   $('#pointsCount').textContent = state.points;
@@ -3269,7 +3479,7 @@ function renderPhotoManage() {
     const src = photos[i];
     if (src) {
       return `<div class="photo-slot is-filled">
-        <img src="${src}" alt="내 사진 ${i + 1}">
+        <img src="${esc(src)}" alt="내 사진 ${i + 1}">
         <button class="photo-slot__remove" data-action="remove-photo" data-index="${i}" aria-label="사진 삭제">✕</button>
         ${i === 0 ? '<span class="photo-slot__tag">대표</span>' : ''}
       </div>`;
@@ -3472,7 +3682,7 @@ function submissionCardHTML(s, isPending) {
   const who = isMine ? (state.user.nickname || '나') : s.ownerName;
   const avatar = isMine ? avatarSVG('me', who) : avatarSVG(s.owner, profile ? profile.name : s.ownerName);
   const name = isMine ? `${state.user.nickname} (나)` : s.ownerName;
-  const methodBadge = s.method === 'email' ? '회사 메일' : '명함·서류';
+  const methodBadge = s.method === 'height' ? '키 인증' : (s.method === 'email' ? '회사 메일' : '명함·서류');
 
   if (!isPending) {
     const ok = s.status === 'approved';
@@ -3600,6 +3810,7 @@ const replyTimers = new Map();
 let emailDraft = { company: '', email: '' };
 let emailCode = '';
 let docDraft = null;
+let heightDraft = null;
 let reportDraft = null;
 let chargePack = null;
 let chargeName = '';
@@ -3679,7 +3890,7 @@ const PROFILE_REQUIRED_FIELDS = [
   { key: 'age', label: '나이', sel: '#fAge' },
   { key: 'job', label: '직업', sel: '#fJob' },
   { key: 'company', label: '회사', sel: '#fCompany' },
-  { key: 'region', label: '지역', sel: '#fRegion' },
+  { key: 'region', label: '지역', sel: '#fProvince' },
   { key: 'mbti', label: 'MBTI', sel: '#fMbti' },
   { key: 'height', label: '키', sel: '#fHeight' },
   { key: 'bio', label: '한 줄 소개', sel: '#fBio' },
@@ -3743,7 +3954,7 @@ function artFor(id, idx) {
 function photoMarkup(p, idx) {
   const photo = photoAt(p, idx);
   if (photo && photo.src) {
-    return `<img src="${photo.src}" alt="${esc(p.name)} 사진" style="width:100%;height:100%;object-fit:cover">`;
+    return `<img src="${esc(photo.src)}" alt="${esc(p.name)} 사진" style="width:100%;height:100%;object-fit:cover">`;
   }
   return plateSVG(artFor(p.id, idx));
 }
@@ -3982,7 +4193,7 @@ function fillProfileForm() {
   set('#fBio', u.bio);
   set('#fMbti', u.mbti || '');
   set('#fHeight', u.height);
-  set('#fRegion', u.region);
+  fillRegionSelects($('#fProvince'), $('#fDistrict'), u.region);
   set('#fAgeMin', u.prefs.ageMin);
   set('#fAgeMax', u.prefs.ageMax);
   renderPrefChips();
@@ -3998,7 +4209,9 @@ async function saveProfile() {
   const bio = ($('#fBio').value || '').trim();
   const mbti = ($('#fMbti').value || '').trim();
   const height = parseInt($('#fHeight').value, 10);
-  const region = ($('#fRegion').value || '').trim();
+  const province = ($('#fProvince')?.value || '').trim();
+  const district = ($('#fDistrict')?.value || '').trim();
+  const region = province && district ? `${province} ${district}` : province;
   let ageMin = parseInt($('#fAgeMin').value, 10);
   let ageMax = parseInt($('#fAgeMax').value, 10);
 
@@ -4008,7 +4221,7 @@ async function saveProfile() {
   const missing = [];
   if (!job) missing.push(PROFILE_REQUIRED_FIELDS[2]);
   if (!company) missing.push(PROFILE_REQUIRED_FIELDS[3]);
-  if (!region) missing.push(PROFILE_REQUIRED_FIELDS[4]);
+  if (!region || !province || !district) missing.push(PROFILE_REQUIRED_FIELDS[4]);
   if (!mbti) missing.push(PROFILE_REQUIRED_FIELDS[5]);
   if (!Number.isFinite(height) || height <= 0) missing.push(PROFILE_REQUIRED_FIELDS[6]);
   if (!bio) missing.push(PROFILE_REQUIRED_FIELDS[7]);
@@ -4084,6 +4297,23 @@ function togglePriority(key) {
   else if (current.length >= 3) { toast('우선순위는 3개까지 고를 수 있어요.'); return; }
   else current.push(key);
   persistPrefs({ priorities: current });
+}
+
+/* 선호 지역 — 최대 3곳, prefs.areas(priorities jsonb) 에 "서울 강남구" 형태로 저장 */
+function addPrefArea() {
+  const p = ($('#prefProvince')?.value || '').trim();
+  const d = ($('#prefDistrict')?.value || '').trim();
+  if (!p || !d) { toast('시·도와 구·시·군을 골라 주세요.'); return; }
+  const value = `${p} ${d}`;
+  const cur = (state.user.prefs.areas || []).filter((a) => a && a !== '서울 전역');
+  if (cur.includes(value)) { toast('이미 추가한 지역이에요.'); return; }
+  if (cur.length >= 3) { toast('선호 지역은 3곳까지 고를 수 있어요.'); return; }
+  persistPrefs({ areas: [...cur, value] });
+  const dist = $('#prefDistrict'); if (dist) dist.value = '';
+  toast(`${value} 추가했어요.`);
+}
+function removePrefArea(value) {
+  persistPrefs({ areas: (state.user.prefs.areas || []).filter((a) => a !== value) });
 }
 
 function renderAccountSection() {
@@ -4872,9 +5102,64 @@ function showTicketHistory() {
   const labels = { initial: '초기 지급', use: '호감 전송', refund: '무응답 반환', topup: '입금 충전' };
   openSheet(`<div class="sheet__grabber"></div><div class="sheet__head"><h2>매칭권 이용내역</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기">✕</button></div>
     <p class="sheet__sub">현재 <b>${state.tickets}장</b> · 충전 / 사용 / 반환 기록</p>
-    <div>${state.ticketLedger.length ? state.ticketLedger.map((x) => `<div class="ledger-item"><b>${esc(labels[x.kind] || x.kind)} · ${x.delta > 0 ? '+' : ''}${x.delta}장</b><div class="muted">${esc(x.detail)} · ${esc(new Date(x.at).toLocaleString('ko-KR'))}</div></div>`).join('') : '<p class="sheet__sub">아직 내역이 없어요.</p>'}</div>
+    <div>${state.ticketLedger.length ? state.ticketLedger.map((x) => `<div class="ledger-item"><div class="ledger-item__top"><span class="ledger-item__title">${esc(labels[x.kind] || x.kind)}</span><b class="ledger-item__delta ${x.delta > 0 ? 'is-plus' : ''}">${x.delta > 0 ? '+' : ''}${x.delta}장</b></div><p class="ledger-item__detail">${esc(x.detail)}</p><p class="ledger-item__time">${esc(new Date(x.at).toLocaleString('ko-KR'))}</p></div>`).join('') : '<p class="sheet__sub">아직 내역이 없어요.</p>'}</div>
     <p class="demo-limits"><b>반환 기준:</b> 호감을 보낸 뒤 48시간 안에 응답이 없으면 매칭권 1장을 자동으로 돌려드려요. 서버에서 정산되며, 앱을 닫아 두어도 다음에 열 때 반영됩니다.</p>
     <button class="btn btn--ghost btn--block" data-action="close-sheet">확인</button>`);
+}
+
+/* ---------- 키 인증 (선택) 시트 ---------- */
+function openHeightSheet() {
+  heightDraft = null;
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head">
+      <h2>키 인증 (선택)</h2>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <p class="sheet__sub">건강검진 결과표나 신체검사서에서 <b>키가 보이는 부분</b>만 사진으로 올려 주세요.<br>운영자가 확인하면 프로필에 <b>키 인증</b> 뱃지가 붙어요.</p>
+    <p class="sheet__notice">주민번호 뒷자리·질병·주소 같은 민감정보는 꼭 가리고 올려 주세요. 심사가 끝나면 화면에는 인증 뱃지만 보여요.</p>
+    <label class="upload-box" for="heightFile" id="heightUploadBox">
+      <span class="upload-box__emoji"><svg><use href="#i-clip"/></svg></span>
+      <span class="upload-box__text">사진 선택하기</span>
+      <span class="upload-box__hint">JPG · PNG · 화면 캡처도 괜찮아요</span>
+    </label>
+    <input id="heightFile" type="file" accept="image/*" hidden>
+    <div id="heightPreviewArea"></div>
+    <div class="sheet__actions">
+      <button class="btn btn--ghost" data-action="close-sheet">취소</button>
+      <button class="btn btn--primary" data-action="submit-height" id="submitHeightBtn" disabled>제출하기</button>
+    </div>
+    <p class="sheet__note">사진은 축소본으로 저장되고 운영자만 확인해요. 선택 항목이라 하지 않아도 괜찮아요.</p>`);
+
+  const input = $('#heightFile');
+  if (!input) return;
+  input.addEventListener('change', async () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast('이미지 파일만 올릴 수 있어요.'); return; }
+    try {
+      heightDraft = await readImageFile(file, 760, 0.7);
+      const area = $('#heightPreviewArea');
+      if (area) area.innerHTML = `
+        <div class="doc-preview">
+          <img src="${esc(heightDraft.dataUrl)}" alt="업로드한 키 인증 사진">
+          <div class="doc-preview__meta">
+            <span>${esc(heightDraft.name)} · ${Math.round(heightDraft.bytes / 1024)}KB</span>
+            <button data-action="open-height-verify">다시 선택</button>
+          </div>
+        </div>`;
+      const btn = $('#submitHeightBtn');
+      if (btn) btn.disabled = false;
+    } catch (err) {
+      toast('이미지를 읽지 못했어요. 다른 파일로 시도해 주세요.');
+    }
+  });
+}
+
+async function submitHeightVerify() {
+  if (!heightDraft) { toast('키 인증 사진을 먼저 올려 주세요.'); return; }
+  await submitVerification({ method: 'height', company: '키 인증', email: '', docName: heightDraft.name, docPreview: heightDraft.dataUrl });
+  heightDraft = null;
 }
 
 function toggleRejectBox(id) {
@@ -5136,6 +5421,10 @@ document.addEventListener('click', (e) => {
     /* 프로필 */
     case 'save-profile': saveProfile(); break;
     case 'toggle-area': togglePref('areas', el.dataset.value); break;
+    case 'add-pref-area': addPrefArea(); break;
+    case 'remove-area': removePrefArea(el.dataset.value); break;
+    case 'open-height-verify': openHeightSheet(); break;
+    case 'submit-height': submitHeightVerify(); break;
     case 'toggle-value': togglePref('values', el.dataset.value); break;
     case 'toggle-mbti': toggleMbti(el.dataset.value); break;
     case 'toggle-priority': togglePriority(el.dataset.value); break;
@@ -5208,6 +5497,8 @@ document.addEventListener('input', (e) => {
 });
 
 document.addEventListener('change', async (e) => {
+  if (e.target.id === 'fProvince') { syncDistricts($('#fProvince'), $('#fDistrict')); return; }
+  if (e.target.id === 'prefProvince') { syncDistricts($('#prefProvince'), $('#prefDistrict')); return; }
   if (e.target.id === 'vcfInput') { const f = e.target.files && e.target.files[0]; e.target.value = ''; onVcfFile(f); return; }
   if (!e.target.matches('[data-photo-upload]')) return;
   const file = e.target.files && e.target.files[0];
