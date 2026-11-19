@@ -1988,7 +1988,7 @@ function normalizePrefs(raw) {
 }
 
 /* ---------- 취향 순위(학습된 우선순위) ---------- */
-function emptyTaste() { return { weights: {}, responds: {}, updatedAt: null }; }
+function emptyTaste() { return { weights: {}, responds: {}, actions: { accept: 0, decline: 0 }, updatedAt: null }; }
 
 function normalizeTaste(raw) {
   const t = raw && typeof raw === 'object' ? raw : {};
@@ -2005,6 +2005,11 @@ function normalizeTaste(raw) {
     const d = Math.max(0, Math.round(Number(item.decline) || 0));
     if (a || d) out.responds[k] = { accept: a, decline: d };
   });
+  const acts = t.actions && typeof t.actions === 'object' ? t.actions : {};
+  out.actions = {
+    accept: Math.max(0, Math.round(Number(acts.accept) || 0)),
+    decline: Math.max(0, Math.round(Number(acts.decline) || 0))
+  };
   if (typeof t.updatedAt === 'string') out.updatedAt = t.updatedAt;
   return out;
 }
@@ -2036,11 +2041,18 @@ function tasteTopKeys(prefs, n) {
   return tasteRanking(prefs).filter((r) => r.weight > 0).slice(0, n || 3).map((r) => r.key);
 }
 
+/* 응답(수락·거절을 누른 횟수)과 그때 고른 이유 개수를 함께 돌려줍니다 */
 function tasteReplyCount(prefs) {
   const taste = normalizeTaste(((prefs || state.user.prefs) || {}).taste);
   let accept = 0, decline = 0;
   Object.values(taste.responds).forEach((s) => { accept += s.accept || 0; decline += s.decline || 0; });
-  return { accept, decline, total: accept + decline };
+  const act = taste.actions || { accept: 0, decline: 0 };
+  return {
+    accept, decline, reasons: accept + decline,
+    responseAccept: act.accept || 0,
+    responseDecline: act.decline || 0,
+    responses: (act.accept || 0) + (act.decline || 0)
+  };
 }
 
 /* 상대 프로필(profiles.priorities)에서 그 사람의 우선순위 상위 3개 */
@@ -3733,8 +3745,8 @@ function renderTasteCard() {
   const maxW = top.length ? top[0].weight : 1;
   const manualList = (prefs.priorities || []).map((k, i) => `${i + 1}순위 ${PRIORITY_LABEL[k]}`).join(' → ');
 
-  const summary = total.total
-    ? `수락·거절에서 고른 이유 <b>${total.total}건</b>으로 순위를 다시 계산했어요. <span>(수락 ${total.accept} · 거절 ${total.decline})</span>`
+  const summary = total.responses
+    ? `수락·거절 응답 <b>${total.responses}건</b>(수락 ${total.responseAccept} · 거절 ${total.responseDecline})으로 순위를 다시 계산했어요. <span>고른 이유 ${total.reasons}개</span>`
     : '아직 응답 데이터가 없어요. 프로필에서 고른 순서로 시작했어요.';
 
   const topHTML = top.length
@@ -3782,7 +3794,7 @@ function openTasteResetSheet() {
       <h2>취향 데이터 초기화</h2>
       <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
     </div>
-    <p class="sheet__sub">쌓인 응답 <b>${total.total}건</b>(수락 ${total.accept} · 거절 ${total.decline})과 학습된 점수를 지우고,<br>프로필에서 고른 수동 순위로 다시 시작해요.<br><b>${manualList ? esc(manualList) : '수동 순위를 아직 고르지 않았어요'}</b></p>
+    <p class="sheet__sub">쌓인 응답 <b>${total.responses}건</b>(수락 ${total.responseAccept} · 거절 ${total.responseDecline})과 고른 이유 <b>${total.reasons}개</b>의 점수를 지우고,<br>프로필에서 고른 수동 순위로 다시 시작해요.<br><b>${manualList ? esc(manualList) : '수동 순위를 아직 고르지 않았어요'}</b></p>
     <p class="sheet__note">지운 데이터는 되돌릴 수 없어요. 순위 자체를 바꾸려면 프로필의 '매칭 우선순위'를 다시 고르세요.</p>
     <div class="sheet__actions">
       <button class="btn btn--ghost" data-action="close-sheet">취소</button>
@@ -5068,6 +5080,8 @@ async function recordTasteReply(kind, keys) {
     stat[bucket] += 1;
     taste.responds[k] = stat;
   });
+  if (!taste.actions) taste.actions = { accept: 0, decline: 0 };
+  taste.actions[bucket] = (taste.actions[bucket] || 0) + 1;
   taste.updatedAt = new Date().toISOString();
   state.user.prefs.taste = taste;
   deckSignature = '';
@@ -5093,6 +5107,8 @@ async function revertTasteReply(entry) {
       if (!stat.accept && !stat.decline) delete taste.responds[k];
     }
   });
+  if (!taste.actions) taste.actions = { accept: 0, decline: 0 };
+  taste.actions[entry.bucket] = Math.max(0, (taste.actions[entry.bucket] || 0) - 1);
   taste.updatedAt = new Date().toISOString();
   state.user.prefs.taste = taste;
   deckSignature = '';
