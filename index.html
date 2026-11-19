@@ -226,9 +226,10 @@ img{display:block;max-width:100%}
 }
 .promo__arrow{margin-left:auto;font-size:13px;color:rgba(138,116,82,.7)}
 
-/* 카드가 들어갈 자리 — flex 여백에만 기대지 않고 최소 높이를 잡아 둡니다.
-   (iOS Safari에서 100dvh가 작게 계산되면 카드가 납작해져 내용이 잘리던 문제) */
-.deck{position:relative;flex:1 1 auto;min-height:clamp(232px,42vh,560px);touch-action:pan-y}
+/* 카드가 들어갈 자리 — 높이를 '고정'하지 않습니다.
+   (iOS Safari는 100dvh가 작게 계산되므로, 카드 높이를 화면에 맞추려 하면 내용이 찌그러지고 잘립니다.
+    카드는 내용만큼 자연스럽게 커지고, 화면이 좁으면 '오늘' 화면 전체가 스크롤됩니다.) */
+.deck{position:relative;flex:1 0 auto;display:flex;flex-direction:column;touch-action:pan-y}
 .card{
   position:absolute;inset:0;display:flex;flex-direction:column;background:var(--card);
   border-radius:20px;
@@ -304,33 +305,45 @@ img{display:block;max-width:100%}
     var(--card);
 }
 .card--editorial .swipe-label{top:16px}
+/* 오늘의 카드는 '일반 흐름'에 놓습니다 — position:absolute·height:100%·overflow:hidden을 쓰지 않으므로
+   iOS Safari에서 덱이 납작해져도 이름·직업·소개가 찌그러지거나 잘리지 않습니다. */
+.deck .card--editorial{position:relative;inset:auto;height:auto;flex:1 0 auto;min-height:0;overflow:visible}
+/* 뒤에 겹쳐 보이는 다음 카드만 덱 위에 겹쳐 둡니다 (높이에 관여하지 않음) */
+.deck .card--editorial[data-depth="1"],.deck .card--editorial[data-depth="2"]{position:absolute;inset:0;flex:none}
+
 .card-ed__top{flex:0 0 auto;padding:26px 24px 0;text-align:center}
 .card-ed__eyebrow{font-size:10px;font-weight:400;line-height:1.5;letter-spacing:.2em;color:var(--ink-3)}
-/* 내용이 자리보다 길면 잘리지 않고 카드 안에서 부드럽게 스크롤됩니다.
-   (위·아래 margin:auto 로 가운데 정렬하되, 넘칠 때는 위에서부터 보이게) */
+/* 내용은 자르지 않고 자연 높이를 그대로 씁니다. 남는 공간은 위·아래 margin:auto 로만 나눕니다. */
 .card-ed__body{
-  flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-  padding:12px 26px 0;text-align:center;overflow-y:auto;overflow-x:hidden;
-  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  flex:0 0 auto;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  margin:auto 0;padding:14px 26px 0;text-align:center;overflow:visible;
 }
-.card-ed__body::-webkit-scrollbar{display:none}
-.card-ed__body::before,.card-ed__body::after{content:'';flex:0 0 auto;display:block;height:0;margin:auto}
 .card-ed__name{
   max-width:100%;font-family:var(--font-title);font-size:31px;font-weight:700;line-height:1.24;
   letter-spacing:-.02em;color:var(--ink);overflow-wrap:anywhere;word-break:keep-all;
 }
 .card-ed__age{margin-top:8px;font-size:12.5px;line-height:1.5;color:var(--ink-2);letter-spacing:.04em}
-.card-ed__rule{display:block;width:24px;height:1px;margin:19px auto 16px;background:var(--sand)}
+/* 가운데 구분선 — 직업 줄과 소개 사이에 겹치지 않게 위·아래 여백을 확보합니다 */
+.card-ed__rule{display:block;flex:0 0 1px;width:24px;height:1px;margin:16px auto 14px;background:var(--sand)}
 .card-ed__meta{
-  max-width:100%;font-size:12.5px;line-height:1.6;color:var(--ink-2);letter-spacing:.01em;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  flex:0 0 auto;max-width:100%;font-size:12.5px;line-height:1.6;color:var(--ink-2);letter-spacing:.01em;
+  white-space:normal;overflow-wrap:anywhere;word-break:keep-all;
 }
+/* 카드에서는 4줄까지만 보여 주고 '더보기'로 이어집니다 (상세 시트에서는 전문 표시) */
 .card-ed__quote{
-  width:100%;margin-top:18px;padding:17px 18px;border-radius:14px;
+  flex:0 0 auto;width:100%;margin-top:16px;padding:17px 18px;border-radius:14px;
   background:rgba(243,235,224,.62);
-  font-family:var(--font-title);font-size:14.5px;line-height:1.95;color:var(--ink);letter-spacing:-.01em;
-  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+  font-family:var(--font-title);font-size:14.5px;line-height:1.9;color:var(--ink);letter-spacing:-.01em;
+  display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;
+  white-space:pre-line;overflow-wrap:anywhere;word-break:keep-all;
 }
+.card-ed__more{
+  display:none;flex:0 0 auto;align-items:center;gap:4px;margin-top:10px;padding:5px 12px;border:0;border-radius:999px;
+  background:rgba(230,217,200,.4);color:#7A6640;font-size:11px;line-height:1.5;letter-spacing:.02em;
+  -webkit-tap-highlight-color:transparent;
+}
+.card-ed__more span{margin-left:1px}
+.card--editorial.is-bio-clamped .card-ed__more{display:inline-flex}
 .card-ed__foot{flex:0 0 auto;padding:16px 24px 24px;text-align:center}
 .card-ed__cue{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;max-width:100%;
@@ -356,6 +369,12 @@ img{display:block;max-width:100%}
 
 /* 상세 프로필 시트 — 섹션 구분 */
 .detail-sec{margin-top:19px}
+/* 상세 시트의 소개 — 긴 자기소개도 줄간격·여백을 두고 전부 보여 줍니다 */
+.detail-bio{
+  margin-top:10px;padding:14px 16px;border-radius:12px;background:rgba(243,235,224,.55);
+  font-family:var(--font-title);font-size:13.5px;line-height:1.9;color:var(--ink);letter-spacing:-.01em;
+  white-space:pre-line;overflow-wrap:anywhere;word-break:keep-all;
+}
 .detail-sec > h3{font-size:11px;font-weight:500;color:var(--ink-3);letter-spacing:.1em}
 .detail-info{margin-top:10px;display:grid;grid-template-columns:62px 1fr;gap:8px 12px;font-size:12.5px;line-height:1.6}
 .detail-info dt{color:var(--ink-3);font-size:12px}
@@ -1046,7 +1065,7 @@ body.mode-admin .toast{bottom:24px}
 .detail-actions{display:flex;gap:8px;margin-top:14px}.detail-actions .btn{flex:1}
 .thread-ended{margin:10px 18px;padding:14px;border-radius:12px;background:var(--sand-soft);font-size:12px;text-align:center;line-height:1.7}
 .demo-limits{margin-top:16px;padding:12px;border:1px solid var(--line-2);border-radius:10px;font-size:11.5px;line-height:1.8;color:var(--ink-2)}
-@media(max-height:780px){.promo{display:none}.wave{margin-bottom:10px}.view--today .view-head{padding:6px 2px 8px}.view-title{font-size:20px;margin-top:3px}.card-ed__top{padding-top:18px}.card-ed__foot{padding:12px 24px 18px}.card-ed__quote{-webkit-line-clamp:2;margin-top:14px;padding:14px 16px}.card-ed__rule{margin:12px auto 10px}.deck-actions{padding-top:10px}}
+@media(max-height:780px){.promo{display:none}.wave{margin-bottom:10px}.view--today .view-head{padding:6px 2px 8px}.view-title{font-size:20px;margin-top:3px}.card-ed__top{padding-top:18px}.card-ed__foot{padding:12px 24px 18px}.card-ed__quote{margin-top:14px;padding:14px 16px}.card-ed__rule{margin:12px auto 10px}.deck-actions{padding-top:10px}}
 @media(max-width:370px){.view--today{padding-left:13px;padding-right:13px}.card-head{padding-left:16px;padding-right:16px}.card-body{padding-left:16px;padding-right:16px}.deck-actions{padding-top:8px}.undo-row span{display:none}}
 
 /* 사진 보호 — 저장·드래그 차단 + 옅은 워터마크 */
@@ -3768,6 +3787,35 @@ function renderDeck() {
   actions.hidden = false; note.hidden = false;
   const cards = queue.slice(0, 2).map((p, i) => cardHTML(p, i)).reverse();
   deck.innerHTML = cards.join('');
+  fitBioClamp();
+}
+
+/* 소개가 4줄을 넘으면 줄 경계에서만 끊고 '…' + '소개 더보기'를 붙입니다.
+   CSS 말줌만 쓰면 iOS Safari에서 5번째 줄이 반쯤 비치는 경우가 있어,
+   실제 카드에서 '4줄에 들어가는 가장 긴 앞부분'을 찾아 글자를 한 번만 확정합니다. */
+function fitBioClamp(root) {
+  const scope = root || $('#deck');
+  if (!scope || !scope.querySelectorAll) return;
+  scope.querySelectorAll('.card--editorial').forEach((card) => {
+    const quote = card.querySelector('.card-ed__quote');
+    if (!quote) return;
+    const full = quote.dataset.bio != null ? quote.dataset.bio : quote.textContent;
+    quote.dataset.bio = full;
+    const fits = () => quote.scrollHeight - quote.clientHeight <= 1;
+    quote.textContent = full;
+    if (fits()) { card.classList.remove('is-bio-clamped'); return; }
+    const words = full.split(/\s+/).filter(Boolean);
+    let lo = 0;
+    let hi = words.length - 1;
+    let best = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      quote.textContent = `${words.slice(0, mid + 1).join(' ')}…`;
+      if (fits()) { best = mid; lo = mid + 1; } else { hi = mid - 1; }
+    }
+    quote.textContent = best >= 0 ? `${words.slice(0, best + 1).join(' ')}…` : '…';
+    card.classList.add('is-bio-clamped');
+  });
 }
 
 function openProfileDetail(id) {
@@ -5134,6 +5182,7 @@ function cardHTML(p, depth) {
         <span class="card-ed__rule" aria-hidden="true"></span>
         ${meta ? `<p class="card-ed__meta">${meta}</p>` : ''}
         <p class="card-ed__quote">${esc((p.bio || '').trim() || '아직 소개를 작성하지 않았어요.')}</p>
+        <button type="button" class="card-ed__more" data-action="detail-profile" data-id="${p.id}">소개 더보기<span aria-hidden="true">→</span></button>
       </div>
       <div class="card-ed__foot">
         ${noPrefs
@@ -5169,7 +5218,7 @@ function openProfileDetail(id) {
     ${p.isDemo
       ? `<div class="detail-gallery detail-gallery--demo"><figure>${demoPhotoMarkup(p)}</figure></div>`
       : `<div class="detail-gallery">${(p.photos || []).map((photo, i) => `<figure>${photoMarkup(p, i)}<figcaption>${esc(photo.caption || '')}</figcaption></figure>`).join('')}</div>`}
-    <div class="detail-sec"><h3>소개</h3><p class="sheet__sub">${esc(p.bio || '아직 소개가 없어요.')}</p></div>
+    <div class="detail-sec"><h3>소개</h3><p class="detail-bio">${esc((p.bio || '').trim() || '아직 소개가 없어요.')}</p></div>
     <div class="detail-sec"><h3>기본 정보</h3><dl class="detail-info">${info.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>
     <div class="detail-sec"><h3>취미 · 가치관</h3>
       <div class="tag-row">${p.hobbies.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>
@@ -7273,6 +7322,17 @@ if (deckEl) {
   }
   deckEl.addEventListener('pointerup', endDrag);
   deckEl.addEventListener('pointercancel', endDrag);
+
+  /* 긴 소개 줄 수는 폰트가 늦게 준비되거나 화면 폭이 바뀌면 다시 쟀습니다 */
+  const refit = () => fitBioClamp();
+  new MutationObserver(refit).observe(deckEl, { childList: true });
+  window.addEventListener('resize', refit);
+  window.addEventListener('orientationchange', () => setTimeout(refit, 150));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit).catch(() => {});
+  /* 웹폰트가 적용된 뒤에는 글자 폭이 달라지므로 몇 번 더 맞춰 봅니다 */
+  requestAnimationFrame(refit);
+  setTimeout(refit, 350);
+  setTimeout(refit, 1200);
 }
 
 /* 시계 · 날짜 */
