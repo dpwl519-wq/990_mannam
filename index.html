@@ -72,7 +72,7 @@ img{display:block;max-width:100%}
    1. 무대 · 상단 모드 전환
    ========================================================================== */
 .stage{
-  display:flex;flex-direction:column;height:100dvh;overflow:hidden;
+  display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;
   padding-top:env(safe-area-inset-top,0px);
   background-color:var(--paper);
   background-image:
@@ -195,7 +195,8 @@ img{display:block;max-width:100%}
 .view.is-active{opacity:1;pointer-events:auto;transform:none}
 .view--scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 20px calc(var(--nav-h) + env(safe-area-inset-bottom) + 30px);scrollbar-width:none}
 .view--scroll::-webkit-scrollbar{display:none}
-.view--today{display:flex;flex-direction:column;padding:0 20px calc(var(--nav-h) + env(safe-area-inset-bottom) + 10px)}
+.view--today{display:flex;flex-direction:column;padding:0 20px calc(var(--nav-h) + env(safe-area-inset-bottom) + 10px);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:none}
+.view--today::-webkit-scrollbar{display:none}
 .view--chat{display:flex;flex-direction:column;padding-bottom:var(--nav-h)}
 
 /* ==========================================================================
@@ -225,7 +226,9 @@ img{display:block;max-width:100%}
 }
 .promo__arrow{margin-left:auto;font-size:13px;color:rgba(138,116,82,.7)}
 
-.deck{position:relative;flex:1 1 auto;min-height:0;touch-action:pan-y}
+/* 카드가 들어갈 자리 — flex 여백에만 기대지 않고 최소 높이를 잡아 둡니다.
+   (iOS Safari에서 100dvh가 작게 계산되면 카드가 납작해져 내용이 잘리던 문제) */
+.deck{position:relative;flex:1 1 auto;min-height:clamp(280px,44vh,560px);touch-action:pan-y}
 .card{
   position:absolute;inset:0;display:flex;flex-direction:column;background:var(--card);
   border-radius:20px;
@@ -303,10 +306,15 @@ img{display:block;max-width:100%}
 .card--editorial .swipe-label{top:16px}
 .card-ed__top{flex:0 0 auto;padding:26px 24px 0;text-align:center}
 .card-ed__eyebrow{font-size:10px;font-weight:400;line-height:1.5;letter-spacing:.2em;color:var(--ink-3)}
+/* 내용이 자리보다 길면 잘리지 않고 카드 안에서 부드럽게 스크롤됩니다.
+   (위·아래 margin:auto 로 가운데 정렬하되, 넘칠 때는 위에서부터 보이게) */
 .card-ed__body{
-  flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:12px 26px 0;text-align:center;overflow:hidden;
+  flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:12px 26px 0;text-align:center;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
 }
+.card-ed__body::-webkit-scrollbar{display:none}
+.card-ed__body::before,.card-ed__body::after{content:'';flex:0 0 auto;display:block;height:0;margin:auto}
 .card-ed__name{
   max-width:100%;font-family:var(--font-title);font-size:31px;font-weight:700;line-height:1.24;
   letter-spacing:-.02em;color:var(--ink);overflow-wrap:anywhere;word-break:keep-all;
@@ -329,6 +337,10 @@ img{display:block;max-width:100%}
   font-size:11.5px;line-height:1.6;color:var(--sage-ink);letter-spacing:.01em;
 }
 .card-ed__cue::before{content:'';flex:0 0 auto;width:4px;height:4px;border-radius:50%;background:var(--sage)}
+/* 추천 조건을 아직 고르지 않았을 때 — 누르면 프로필의 우선순위로 이동 */
+.card-ed__cue--link{color:var(--apricot-ink);background:rgba(234,191,168,.16);border-radius:999px;padding:5px 12px;box-shadow:0 0 0 1px rgba(230,217,200,.65);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;-webkit-tap-highlight-color:transparent}
+.card-ed__cue--link::before{background:var(--apricot-deep)}
+.card-ed__cue--link span{margin-left:2px}
 .card-ed__cue.is-quiet{color:var(--ink-3)}
 .card-ed__cue.is-quiet::before{background:var(--line-2)}
 .card-ed__open{margin-top:10px;font-size:11px;line-height:1.5;color:var(--ink-3);letter-spacing:.03em}
@@ -1030,10 +1042,11 @@ body.mode-admin .toast{bottom:24px}
 .audit-item,.ledger-item{padding:12px 0;border-bottom:1px solid var(--line);font-size:12px;line-height:1.6}.audit-item:last-child,.ledger-item:last-child{border-bottom:0}
 .muted{color:var(--ink-2);font-size:11.5px}.reason-list{padding:10px 14px;border-radius:12px;background:var(--sage-soft);margin-top:10px}
 .reason-list li{list-style:disc;margin-left:14px;padding:3px 0;font-size:12.5px;color:var(--ink)}
-.detail-gallery{display:flex;gap:8px;overflow-x:auto;margin-top:14px;scroll-snap-type:x mandatory}.detail-gallery figure{margin:0;flex:0 0 78%;scroll-snap-align:start;background:var(--paper-2);border-radius:12px;overflow:hidden}.detail-gallery figure svg{display:block;width:100%;height:175px}.detail-gallery figcaption{font-size:12px;padding:8px 12px}
+.detail-gallery{display:flex;gap:8px;overflow-x:auto;margin-top:14px;scroll-snap-type:x mandatory}.detail-gallery figure{margin:0;flex:0 0 78%;scroll-snap-align:start;background:var(--paper-2);border-radius:12px;overflow:hidden}.detail-gallery figure > svg{display:block;width:100%;height:175px}.detail-gallery figcaption{font-size:12px;padding:8px 12px}
 .detail-actions{display:flex;gap:8px;margin-top:14px}.detail-actions .btn{flex:1}
 .thread-ended{margin:10px 18px;padding:14px;border-radius:12px;background:var(--sand-soft);font-size:12px;text-align:center;line-height:1.7}
 .demo-limits{margin-top:16px;padding:12px;border:1px solid var(--line-2);border-radius:10px;font-size:11.5px;line-height:1.8;color:var(--ink-2)}
+@media(max-height:780px){.promo{display:none}.wave{margin-bottom:10px}.view--today .view-head{padding:6px 2px 8px}.view-title{font-size:20px;margin-top:3px}.card-ed__top{padding-top:18px}.card-ed__foot{padding:12px 24px 18px}.card-ed__quote{-webkit-line-clamp:2;margin-top:14px;padding:14px 16px}.card-ed__rule{margin:12px auto 10px}.deck-actions{padding-top:10px}}
 @media(max-width:370px){.view--today{padding-left:13px;padding-right:13px}.card-head{padding-left:16px;padding-right:16px}.card-body{padding-left:16px;padding-right:16px}.deck-actions{padding-top:8px}.undo-row span{display:none}}
 
 /* 사진 보호 — 저장·드래그 차단 + 옅은 워터마크 */
@@ -1355,7 +1368,8 @@ body{font-size:14px;line-height:1.5}
   background:linear-gradient(150deg,#FBF3E9 0%,#F6EBDD 55%,#EDF3EA 100%);
 }
 .demo-photo__avatar{
-  width:76px;height:76px;border-radius:50%;overflow:hidden;opacity:.94;
+  flex:0 0 auto;display:grid;place-items:center;width:76px;height:76px;border-radius:50%;overflow:hidden;opacity:.94;
+  background:rgba(255,253,251,.55);
   box-shadow:0 0 0 1px rgba(46,40,37,.07),0 12px 26px -20px rgba(46,40,37,.6);
 }
 .demo-photo__avatar svg{width:100%;height:100%;display:block;transform:none !important}
@@ -2681,6 +2695,7 @@ async function doLogout() {
   try { await sb.auth.signOut(); } catch (e) { console.warn(e); }
   session = null; meId = null; afterLoginDone = false;
   state = emptyState(); PROFILES = [];
+  dailyServer = { ok: false, ready: true, key: '', ids: null, at: 0 }; dailyCache = null;
   gateWasOn = false; gateSignature = '';
   const gateTabbar = $('#tabbar'); if (gateTabbar) gateTabbar.hidden = false;
   Object.keys(PROFILE_MAP).forEach((k) => delete PROFILE_MAP[k]);
@@ -2871,6 +2886,10 @@ async function refreshAll() {
   res.forEach((r, i) => { if (r.error) console.warn('[load]', labels[i], r.error.message); });
   const critical = res[0].error || res[1].error || res[2].error;
   if (critical) throw critical;
+
+  /* 오늘의 두 장은 DB(today_deck)가 정합니다. SQL을 아직 실행하지 않았으면
+     이 기기 기록으로 그대로 동작합니다(오류 없이 조용히). */
+  await fetchDailyPicks();
 
   applyData({
     profiles: res[0].data || [],
@@ -3149,18 +3168,21 @@ function applyData(d) {
   });
   state.ticketLedger = led.sort((a, b) => new Date(b.at) - new Date(a.at));
 
-  /* 오늘의 인연 (아직 아무것도 하지 않은 활성 프로필) */
+  /* 오늘의 인연 — DB가 정한 두 장(또는 이 기기 기록) 중 아직 아무것도 하지 않은 사람만 */
   const mineSet = new Set(mine.map((l) => l.to_user));
   const matchedSet = new Set(matched.map((l) => (l.from_user === meId ? l.to_user : l.from_user)));
   const passedMeSet = new Set(d.likes.filter((l) => l.from_user !== meId && l.status === 'passed').map((l) => l.from_user));
   const myGender = state.user.gender;
-  state.deck = d.profiles
+  const eligible = d.profiles
     .filter((r) => r.id !== meId && r.status === 'active'
       && !mineSet.has(r.id) && !matchedSet.has(r.id) && !passedMeSet.has(r.id))
     .filter((r) => !!r.gender)   /* 성별을 고르지 않은 운영자 전용 계정은 인연 덱에서 제외 */
     .filter((r) => !myGender || !r.gender || r.gender !== myGender)
     .filter((r) => state.showDemo !== false || !r.is_demo)
     .map((r) => r.id);
+  /* DB 배정을 쓰는 중이면 오늘의 두 장 밖의 사람은 덱에 올리지 않습니다 */
+  const served = (dailyServer.ok && dailyServer.ids) ? new Set(dailyServer.ids) : null;
+  state.deck = served ? eligible.filter((id) => served.has(id)) : eligible;
 
   deckSignature = '';
   threadSignature = '';
@@ -3541,20 +3563,65 @@ function dateLabel(iso) {
   return `${d.getMonth() + 1}월 ${d.getDate()}일`;
 }
 
-/* ---------- 4-1. 오늘의 인연 (하루 두 장) ---------- */
+/* ---------- 4-1. 오늘의 인연 (하루 두 장) ----------
+   두 장은 DB(today_deck 함수)가 정합니다. 기기를 바꾸거나 브라우저를 지워도
+   같은 두 분이 나오고, 하루 두 장을 넘지 않아요. SQL을 아직 실행하지 않은
+   DB에서는 예전처럼 이 기기(localStorage) 기록으로 동작합니다. */
 const DAILY_CARDS = 2;
 let dailyCache = null;
+/* { ok: DB 배정 사용, ready: 프로필 준비됨, key: '사용자|날짜', ids: [...], at: 마지막 확인 } */
+let dailyServer = { ok: false, ready: true, key: '', ids: null, at: 0 };
 
 function dailyDateKey() {
   const d = new Date();
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
-function dailyUserId() { return (state.user && state.user.id) || meId || 'guest'; }
+function dailyUserId() {
+  return (session && session.user && session.user.id) || (state.user && state.user.id) || meId || 'guest';
+}
+function dailyServerKey() { return `${dailyUserId()}|${dailyDateKey()}`; }
 
-/* 오늘 배정된 두 명을 사용자별로 기억합니다 (날짜가 바뀌면 새로 시작) */
+/* DB에서 오늘의 두 장을 받아 옵니다 (하루 한 번 · 하루 두 장을 못 채웠을 때만 다시 확인) */
+async function fetchDailyPicks() {
+  if (!sb || !session) return null;
+  const key = dailyServerKey();
+  const st = dailyServer;
+  if (st.ok && st.key === key) {
+    if ((st.ids || []).length >= DAILY_CARDS) return st.ids;
+    if (Date.now() - st.at < 120000) return st.ids;
+  }
+  /* SQL 미실행이면 1분에 한 번만 조용히 확인합니다 */
+  if (!st.ok && st.at && Date.now() - st.at < 60000) return null;
+  try {
+    const { data, error } = await sb.rpc('today_deck', { p_limit: DAILY_CARDS });
+    if (error) throw error;
+    const res = data && typeof data === 'object' ? data : {};
+    const ids = Array.isArray(res.ids) ? res.ids.filter((x) => typeof x === 'string') : [];
+    dailyServer = {
+      ok: true,
+      ready: res.ready !== false,
+      key: key,
+      ids,
+      at: Date.now()
+    };
+    /* 이 기기에도 적어 두어 새로고침했을 때 바로 보이게 합니다 */
+    try { localStorage.setItem(`990.today.${dailyUserId()}`, JSON.stringify({ date: dailyDateKey(), ids, server: true })); } catch (err) { /* 무시 */ }
+    dailyCache = null;
+    return ids;
+  } catch (err) {
+    if (dailyServer.ok) return dailyServer.ids;
+    dailyServer = { ok: false, ready: true, key: '', ids: null, at: Date.now() };
+    return null;
+  }
+}
+
+/* 오늘 배정된 두 명 — DB 배정(서버) 또는 이 기기 기록(localStorage) */
 function dailyRecord() {
   const key = `990.today.${dailyUserId()}`;
   const date = dailyDateKey();
+  if (dailyServer.ok && dailyServer.key === `${dailyUserId()}|${date}`) {
+    return { key, date, ids: (dailyServer.ids || []).slice(0, DAILY_CARDS), server: true };
+  }
   if (dailyCache && dailyCache.key === key && dailyCache.date === date) return dailyCache;
   let ids = [];
   try {
@@ -3563,16 +3630,18 @@ function dailyRecord() {
       ids = raw.ids.filter((id) => typeof id === 'string').slice(0, DAILY_CARDS);
     }
   } catch (err) { ids = []; }
-  dailyCache = { key, date, ids };
+  dailyCache = { key, date, ids, server: false };
   return dailyCache;
 }
 function saveDailyRecord(rec) {
+  if (rec.server) return;   /* DB가 정한 두 장은 이 기기에서 바꾸지 않습니다 */
   try { localStorage.setItem(rec.key, JSON.stringify({ date: rec.date, ids: rec.ids })); } catch (err) { /* 저장할 수 없으면 이번 실행 동안만 유지 */ }
 }
 
-/* 후보가 모자라면 있는 만큼만, 두 장을 넘기지는 않습니다 */
+/* 후보가 모자라면 있는 만큼만, 두 장을 넘기지는 않습니다 (이 기기 기록 모드에서만) */
 function ensureDailyServed(visible) {
   const rec = dailyRecord();
+  if (rec.server) return rec;
   const pool = (visible || visibleDeck()).map((p) => p.id).filter((id) => !rec.ids.includes(id));
   let changed = false;
   while (rec.ids.length < DAILY_CARDS && pool.length) { rec.ids.push(pool.shift()); changed = true; }
@@ -3585,7 +3654,8 @@ function dailyQueue() {
   const rec = dailyRecord();
   const byId = {};
   visibleDeck().forEach((p) => { byId[p.id] = p; });
-  return rec.ids.map((id) => byId[id]).filter(Boolean);
+  return rec.ids.map((id) => byId[id]).filter(Boolean)
+    .sort((a, b) => compatibility(b) - compatibility(a));
 }
 
 function renderDailyProgress(now) {
@@ -3594,10 +3664,11 @@ function renderDailyProgress(now) {
   const rec = dailyRecord();
   if (!rec.ids.length) { el.hidden = true; return; }
   el.hidden = false;
-  const step = Math.max(1, Math.min(now, DAILY_CARDS));
-  el.setAttribute('aria-label', `오늘의 인연 ${step} / ${DAILY_CARDS}`);
+  const total = Math.max(1, rec.ids.length);
+  const step = Math.max(1, Math.min(now, total));
+  el.setAttribute('aria-label', `오늘의 인연 ${step} / ${total}`);
   const txt = el.querySelector('.daily-progress__text');
-  if (txt) txt.innerHTML = `오늘의 인연 <b>${step}</b> / ${DAILY_CARDS}`;
+  if (txt) txt.innerHTML = `오늘의 인연 <b>${step}</b> / ${total}`;
   el.querySelectorAll('.daily-progress__bars i').forEach((b, i) => b.classList.toggle('is-on', i < step));
 }
 
@@ -3610,8 +3681,10 @@ function renderDeck() {
   const hidden = hiddenDeckCount();
   const rec = ensureDailyServed(visible);
   const queue = dailyQueue();
+  const servedIds = rec.ids.map((id) => id);
+  const doneCount = servedIds.filter((id) => !queue.some((p) => p.id === id)).length;
   const step = queue.length
-    ? rec.ids.indexOf(queue[0].id) + 1
+    ? doneCount + 1
     : Math.min(rec.ids.length, DAILY_CARDS);
   renderDailyProgress(step);
   const prefs = (state.user && state.user.prefs) || {};
@@ -3621,7 +3694,12 @@ function renderDeck() {
     state.verifiedIds.join(','), (state.heightVerifiedIds || []).join(','),
     tasteTopKeys(prefs, 3).join('>')
   ].join('|');
-  const undoButton = $('#undoPassBtn'); if (undoButton) undoButton.disabled = !state.lastPassed;
+  const undoButton = $('#undoPassBtn');
+  if (undoButton) {
+    undoButton.disabled = !state.lastPassed;
+    const row = undoButton.closest('.undo-row');
+    if (row) row.hidden = !state.lastPassed;   /* 되돌릴 것이 없을 때는 자리를 비워 카드를 넓게 */
+  }
   if (signature === deckSignature) {
     safety.hidden = hidden === 0;
     if (hidden) safety.textContent = `안전 설정으로 ${hidden}분을 가려 두었어요`;
@@ -3653,7 +3731,7 @@ function renderDeck() {
         <div class="empty">
           ${emptyArt('moon')}
           <h3>오늘의 인연 ${rec.ids.length}명을 모두 확인했어요</h3>
-          <p>내일 새로운 인연 두 분이 도착해요.<br>오늘은 여기까지, 천천히 쉬어가요.</p>
+          <p>내일 새로운 인연 두 분이 도착해요.<br>오늘은 여기까지, 천천히 쉬어가요.<br><b style="font-weight:400;color:var(--ink-3)">확인하신 분은 다시 소개되지 않아요.</b></p>
           <button class="btn btn--ghost" data-action="tab" data-view="matches">매칭 현황 보기</button>
         </div>`;
       return;
@@ -4962,7 +5040,7 @@ function artFor(id, idx) {
 function demoPhotoMarkup(p) {
   return `<div class="demo-photo">
       <div class="demo-photo__avatar">${avatarSVG(p.id, p.name)}</div>
-      <p class="demo-photo__label">데모 프로필 · 사진 비공개</p>
+      <p class="demo-photo__label">데모 프로필은 사진 비공개예요</p>
     </div>`;
 }
 
@@ -4997,14 +5075,22 @@ function setCardPhoto(id, idx) {
   card.querySelectorAll('.photo-dot').forEach((d, i) => d.classList.toggle('is-on', i === idx));
 }
 
+/* 추천 조건을 하나라도 골랐는지 (수동 1·2·3순위 · MBTI · 가치관 · 배운 취향 점수) */
+function hasMatchConditions(prefs) {
+  const p = prefs || (state.user && state.user.prefs) || {};
+  return Boolean((p.priorities || []).length || (p.mbti || []).length || (p.values || []).length
+    || tasteTopKeys(p, 3).length);
+}
+
 /* 한 줄로 조용히 전하는 오늘의 이유 */
 function dailyCueText(p) {
+  if (!hasMatchConditions(state.user.prefs)) return '추천 조건을 선택해 주세요';
   const reasons = matchReasons(p);
   const keys = tasteTopKeys(state.user.prefs, 3);
   const hit = priorityHitIndex(p);
   if (hit >= 0 && keys[hit]) return `내 ${hit + 1}순위 ‘${PRIORITY_LABEL[keys[hit]]}’ 조건이 맞아요`;
   if (reasons.length) return `추천 조건 ${reasons.length}가지가 맞아요`;
-  return '설정한 조건과 겹치는 항목은 아직 없어요';
+  return '오늘 새로 도착한 인연이에요';
 }
 
 function cardHTML(p, depth) {
@@ -5018,7 +5104,8 @@ function cardHTML(p, depth) {
   const eyebrow = flags.length ? flags.join(' · ') : '추천 인연';
   const meta = [p.job, p.area, p.mbti].filter((v) => v && v !== '—').map(esc).join(' · ');
   const cue = dailyCueText(p);
-  const quiet = !matchReasons(p).length && priorityHitIndex(p) < 0;
+  const noPrefs = !hasMatchConditions(state.user.prefs);
+  const quiet = !noPrefs && !matchReasons(p).length && priorityHitIndex(p) < 0;
   return `
     <article class="card card--editorial" data-id="${p.id}" data-depth="${depth}" style="--depth:${depth}" aria-label="${esc(p.name)} 프로필 · 눌러서 상세 보기">
       <div class="swipe-label swipe-label--like">호감</div>
@@ -5032,7 +5119,9 @@ function cardHTML(p, depth) {
         <p class="card-ed__quote">${esc((p.bio || '').trim() || '아직 소개를 작성하지 않았어요.')}</p>
       </div>
       <div class="card-ed__foot">
-        <p class="card-ed__cue${quiet ? ' is-quiet' : ''}">${esc(cue)}</p>
+        ${noPrefs
+          ? `<button type="button" class="card-ed__cue card-ed__cue--link" data-action="tune-prefs">${esc(cue)}<span aria-hidden="true">→</span></button>`
+          : `<p class="card-ed__cue${quiet ? ' is-quiet' : ''}">${esc(cue)}</p>`}
         <p class="card-ed__open">눌러서 사진 · 상세 프로필 보기 <span aria-hidden="true">→</span></p>
       </div>
     </article>`;
@@ -5048,14 +5137,20 @@ function openProfileDetail(id) {
   const info = [];
   if (p.height) info.push(['키', `${p.height}cm`]);
   info.push(['흡연', p.nonsmoker ? '비흡연' : '미기재']);
-  if (p.distKm !== null && p.distKm !== undefined) info.push(['거리', `${p.distKm}km`]);
+  if (p.company) info.push(['직장', p.company]);
   const front = dailyQueue()[0];
+  const noPrefs = !hasMatchConditions(state.user.prefs);
+  const reasonBlock = noPrefs
+    ? `<div class="detail-sec"><h3>추천 조건</h3><p class="sheet__sub">오늘의 추천으로 소개된 인연이에요.<br>내 프로필에서 매칭 우선순위를 고르면 다음 카드부터 조건이 반영돼요.</p></div>`
+    : (reasons.length
+      ? `<div class="detail-sec"><h3>추천 조건</h3><div class="reason-list"><strong>추천 조건 ${reasons.length}개 일치</strong><ul>${reasons.map((r) => `<li>${esc(r)}</li>`).join('')}</ul></div></div>`
+      : `<div class="detail-sec"><h3>추천 조건</h3><p class="sheet__sub">오늘 새로 도착한 인연이에요.</p></div>`);
   openSheet(`<div class="sheet__grabber"></div><div class="sheet__head"><h2>${esc(p.name)}님의 프로필</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기">✕</button></div>
     <p class="sheet__sub"><b>${head}</b></p>
     <p class="sheet__sub">${esc(p.job || '')} · ${esc(p.area || '')} · ${esc(p.mbti || '—')}${p.isDemo ? ' · 데모 프로필' : ''}</p>
     ${verifyPillsHTML(p) ? `<p class="sheet__verify">${verifyPillsHTML(p)}</p>` : ''}
     ${p.isDemo
-      ? `<div class="detail-gallery detail-gallery--demo"><figure>${demoPhotoMarkup(p)}<figcaption>사진은 비공개로 표시돼요</figcaption></figure></div>`
+      ? `<div class="detail-gallery detail-gallery--demo"><figure>${demoPhotoMarkup(p)}</figure></div>`
       : `<div class="detail-gallery">${(p.photos || []).map((photo, i) => `<figure>${photoMarkup(p, i)}<figcaption>${esc(photo.caption || '')}</figcaption></figure>`).join('')}</div>`}
     <div class="detail-sec"><h3>소개</h3><p class="sheet__sub">${esc(p.bio || '아직 소개가 없어요.')}</p></div>
     <div class="detail-sec"><h3>기본 정보</h3><dl class="detail-info">${info.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>
@@ -5064,7 +5159,7 @@ function openProfileDetail(id) {
       <div class="tag-row">${p.values.map((t) => `<span class="tag tag--value">${esc(t)}</span>`).join('')}</div>
     </div>
     ${partnerPriorityLine(p) ? `<div class="detail-sec"><h3>상대가 보는 순위</h3><div class="sheet-prio">${partnerPriorityLine(p, { label: '' })}</div></div>` : ''}
-    <div class="reason-list"><strong>추천 조건 ${reasons.length}개 일치</strong>${reasons.length ? `<ul>${reasons.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>` : '<p>현재 설정된 조건에서 확인된 일치 항목이 없습니다.</p>'}</div>
+    ${reasonBlock}
     <p class="demo-limits">추천 조건은 상대 프로필과 내가 고른 설정의 단순 비교입니다. 점수나 실제 관계 궁합을 보증하지 않아요.${p.isDemo ? ' 데모 프로필의 우선순위는 화면 확인을 위한 예시 값이에요.' : ''}</p>
     <button class="detail-report" data-action="report" data-id="${id}">이 프로필 신고하기</button>
     <div class="detail-actions"><button class="btn btn--ghost" data-action="close-sheet">닫기</button><button class="btn btn--primary" data-action="detail-like" data-id="${id}" ${front && front.id === id ? '' : 'disabled'}>호감 보내기</button></div>`);
@@ -5390,6 +5485,7 @@ async function saveProfile() {
   try {
     const { error } = await sb.from('profiles').update(patch).eq('id', meId).select('id');
     if (error) throw error;
+    dailyServer = { ok: false, ready: true, key: '', ids: null, at: 0 };   /* 프로필이 갖춰졌으니 오늘의 두 장을 바로 다시 확인 */
     await refreshAll();
     withViewportStable(() => { fillProfileForm(); renderAll(); });
     const stillMissing = refreshProfileLock();
@@ -5442,6 +5538,18 @@ function resetPriorities() {
   if (!(state.user.prefs.priorities || []).length) { toast('이미 초기화됐어요. 아래에서 다시 고르면 돼요.'); return; }
   persistPrefs({ priorities: [] });
   toast('매칭 우선순위를 초기화했어요. 다시 고를 수 있어요.');
+}
+
+/* 카드의 '추천 조건을 선택해 주세요' — 프로필의 매칭 우선순위로 이동 */
+function openPrioritySection() {
+  closeSheet();
+  switchView('profile');
+  const chips = $('#priorityChips');
+  const target = chips ? (chips.closest('.field--col') || chips.closest('.field') || chips) : null;
+  setTimeout(() => {
+    if (target && target.scrollIntoView) target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, 80);
+  toast('매칭 우선순위에서 1·2·3순위를 골라 주세요.');
 }
 
 /* 선호 지역 — 최대 3곳, prefs.areas(priorities jsonb) 에 "서울시 강남구" · "서울시 전체" 형태로 저장 */
@@ -5969,13 +6077,48 @@ function showChatSafety() {
     <p class="demo-limits">신고는 운영자 콘솔의 신고 내역에 바로 접수됩니다.</p>`);
 }
 
+/* 대화 종료 · 차단 — 바로 처리하지 않고 한 번 더 확인합니다 (iOS Safari에서도 확실히 보이는 앱 안 팝업) */
+function openChatConfirm(id, mode) {
+  const p = PROFILE_MAP[id];
+  if (!id || !p) return;
+  const isBlock = mode === 'block';
+  openSheet(`<div class="sheet__grabber"></div>
+    <div class="sheet__head"><h2>${isBlock ? '상대를 차단할까요?' : '정말 대화를 종료할까요?'}</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button></div>
+    <p class="sheet__sub"><b>${esc(p.name)}</b>님과의 대화예요.</p>
+    <p class="sheet__notice">${isBlock
+      ? '차단하면 이 대화가 목록에서 사라지고 상대와 서로 메시지를 보낼 수 없게 돼요. 차단한 상대는 다시 추천되지 않아요.'
+      : '종료하면 상대방에게도 나가기로 표시되고, 더 이상 대화할 수 없어요.'}</p>
+    <div class="sheet__actions">
+      <button class="btn btn--ghost" data-action="close-sheet">취소</button>
+      <button class="btn btn--primary" data-action="${isBlock ? 'block-chat-confirm' : 'end-chat-confirm'}" data-id="${esc(id)}">${isBlock ? '차단하기' : '대화 종료'}</button>
+    </div>`);
+}
+
+/* 처리 결과를 한 번 더 분명하게 알려 줍니다 */
+function showChatEndedResult(name) {
+  openSheet(`<div class="sheet__grabber"></div>
+    <div class="sheet__head"><h2>대화를 종료했어요</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button></div>
+    <p class="sheet__sub"><b>${esc(name || '상대')}</b>님과의 대화는 종료되었어요.</p>
+    <p class="sheet__notice">상대방에게도 나가기로 표시되고, 더 이상 메시지를 보낼 수 없어요. 새 인연은 오늘의 인연에서 만날 수 있어요.</p>
+    <div class="sheet__actions">
+      <button class="btn btn--ghost" data-action="tab" data-view="matches">매칭 현황 보기</button>
+      <button class="btn btn--primary" data-action="close-sheet">확인</button>
+    </div>`);
+}
+
 async function endOrBlockChat(id, block) {
-  if (!PROFILE_MAP[id]) return;
+  const p = PROFILE_MAP[id];
+  if (!p) return;
   if (!state.endedChats.includes(id)) state.endedChats.push(id);
   if (block) saveSafety({ blockedProfiles: [...new Set([...state.safety.blockedProfiles, id])] });
   if (activeChatId === id) closeThread();
   closeSheet(); deckSignature = ''; renderAll();
-  if (block) { toast('상대를 차단했어요.'); return; }
+  if (block) {
+    /* 차단한 상대는 DB 영구 명부에도 남겨 다시 추천되지 않게 합니다 (SQL 미실행이면 조용히 넘어갑니다) */
+    try { await rpc('note_seen', { p_target: id, p_reason: 'blocked' }); } catch (err) { /* 무시 */ }
+    toast('상대를 차단했어요. 이제 이 대화는 목록에 보이지 않아요.');
+    return;
+  }
   /* 서버에도 종료를 남겨 상대 화면에서도 대화가 닫히게 합니다.
      (end_chat 함수가 아직 없는 DB에서는 이 기기에서만 종료됩니다) */
   const m = (state.matches || []).find((x) => x.id === id);
@@ -5989,6 +6132,7 @@ async function endOrBlockChat(id, block) {
   toast(shared
     ? '대화를 종료했어요. 상대방도 더 이상 메시지를 보낼 수 없어요.'
     : '대화를 종료했어요. 이제 더 이상 메시지를 보낼 수 없어요.');
+  showChatEndedResult(p.name);
 }
 
 /* ---------- 만남 · 후기 ---------- */
@@ -6142,6 +6286,8 @@ async function submitReport() {
     }).select('id');
     if (error) throw error;
     if (block) await saveSafety({ blockedProfiles: [...new Set([...state.safety.blockedProfiles, p.id])] });
+    /* 신고한 상대는 다시 소개되지 않게 DB에도 남깁니다 (SQL 미실행이면 조용히 무시) */
+    try { await rpc('note_seen', { p_target: p.id, p_reason: 'reported' }); } catch (err) { /* 무시 */ }
     reportDraft = null;
     await refreshAll(); renderAll(); closeSheet();
     toast('신고를 접수했어요. 운영자가 확인해요.');
@@ -6862,6 +7008,7 @@ document.addEventListener('click', (e) => {
     case 'like': commit('like'); break;
     case 'pass': commit('pass'); break;
     case 'undo-pass': undoPass(); break;
+    case 'tune-prefs': e.stopPropagation(); openPrioritySection(); break;
     case 'detail-profile': openProfileDetail(id); break;
     case 'detail-like': {
       closeSheet();
@@ -6892,8 +7039,10 @@ document.addEventListener('click', (e) => {
     case 'send-chip': sendMessage(el.dataset.text); break;
     case 'chat-safety': showChatMenu(); break;
     case 'chat-menu': showChatMenu(); break;
-    case 'end-chat': endOrBlockChat(id, false); break;
-    case 'block-chat': endOrBlockChat(id, true); break;
+    case 'end-chat': openChatConfirm(id, 'end'); break;
+    case 'block-chat': openChatConfirm(id, 'block'); break;
+    case 'end-chat-confirm': closeSheet(); endOrBlockChat(id, false); break;
+    case 'block-chat-confirm': closeSheet(); endOrBlockChat(id, true); break;
     /* 충전 */
     case 'open-topup': openTopUp(); break;
     case 'pick-pack': {
