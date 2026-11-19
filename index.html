@@ -340,7 +340,7 @@ img{display:block;max-width:100%}
 /* 추천 조건을 아직 고르지 않았을 때 — 누르면 프로필의 우선순위로 이동 */
 .card-ed__cue--link{color:var(--apricot-ink);background:rgba(234,191,168,.16);border-radius:999px;padding:5px 12px;box-shadow:0 0 0 1px rgba(230,217,200,.65);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;-webkit-tap-highlight-color:transparent}
 .card-ed__cue--link::before{background:var(--apricot-deep)}
-.card-ed__cue--link span{margin-left:2px}
+.card-ed__cue--link span{margin-left:6px}
 .card-ed__cue.is-quiet{color:var(--ink-3)}
 .card-ed__cue.is-quiet::before{background:var(--line-2)}
 .card-ed__open{margin-top:10px;font-size:11px;line-height:1.5;color:var(--ink-3);letter-spacing:.03em}
@@ -3261,12 +3261,29 @@ function matchesPriority(p, key) {
     case 'job': return Boolean(p.jobStable);
     case 'age': return Number.isFinite(p.age)
       ? (p.age >= Number(prefs.ageMin) && p.age <= Number(prefs.ageMax)) : null;
-    case 'area': return (p.distKm || 99) <= 7;
+    case 'area': return prefAreaHit(p);   /* 가짜 거리(km) 대신 고른 선호 지역으로 판단 */
     case 'hobby': return (p.hobbyMatch || 0) >= 2;
     case 'habit': return Boolean(p.nonsmoker);
     case 'style': return (p.height || 0) >= 178;
     default: return null;
   }
+}
+
+/* 선호 지역 판단 — 고른 지역(구·시·군 또는 시·도 전체)에 해당하면 true, 아니면 null */
+function prefAreaHit(p) {
+  const prefs = state.user.prefs;
+  const want = parseRegion(p.area);
+  const list = (prefs.areas || []).filter((a) => a && !isAnywhereArea(a));
+  const direct = list.some((a) => {
+    if (a === p.area) return true;
+    const got = parseRegion(a);
+    return !!got.district && got.district === want.district &&
+      (!got.province || !want.province || got.province === want.province);
+  });
+  if (direct) return true;
+  const prov = (prefs.areas || []).filter(isAnywhereArea).map((a) => parseRegion(a).province).filter(Boolean);
+  if (prov.length && want.province && prov.includes(want.province)) return true;
+  return null;
 }
 
 function matchReasons(p) {
@@ -3285,7 +3302,7 @@ function matchReasons(p) {
   const anywhereProv = (prefs.areas || []).filter(isAnywhereArea).map((a) => parseRegion(a).province).filter(Boolean);
   if (anywhereProv.length && wantArea.province && anywhereProv.includes(wantArea.province)) reasons.push(`선호 지역 ${parseRegion(anywhereProv[0]).province} · ${p.area}`);
   (tasteTopKeys(prefs, 3)).forEach(key => { if (matchesPriority(p,key) === true) {
-    const criterion = {looks:'외모 우선: 사진 등록 프로필',job:'직장 우선 조건 충족 (샘플)',age:`나이 우선 조건 충족 (${p.age}세)`,personality:`성격 우선: ${p.mbti}`,area:`거리 우선 조건 충족 (샘플 ${p.distKm}km)`,hobby:'취미 우선 조건 충족 (샘플)',habit:'비흡연 조건 충족',style:`키 우선 조건 충족 (${p.height}cm)`};
+    const criterion = {looks:'외모 우선: 사진 등록 프로필',job:'직장 우선 조건 충족 (샘플)',age:`나이 우선 조건 충족 (${p.age}세)`,personality:`성격 우선: ${p.mbti}`,area:'동네·지역 우선 조건 충족',hobby:'취미 우선 조건 충족 (샘플)',habit:'비흡연 조건 충족',style:`키 우선 조건 충족 (${p.height}cm)`};
     const text = criterion[key];
     if (text && !reasons.includes(text)) reasons.push(text);
   }});
