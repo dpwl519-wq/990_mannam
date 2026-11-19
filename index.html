@@ -73,6 +73,7 @@ img{display:block;max-width:100%}
    ========================================================================== */
 .stage{
   display:flex;flex-direction:column;height:100dvh;overflow:hidden;
+  padding-top:env(safe-area-inset-top,0px);
   background-color:var(--paper);
   background-image:
     radial-gradient(80% 50% at 0% -10%, rgba(217,155,132,.16) 0%, rgba(217,155,132,0) 60%),
@@ -120,14 +121,6 @@ img{display:block;max-width:100%}
       0 44px 80px -56px rgba(46,40,37,.55);
   }
 }
-.statusbar{
-  flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;
-  height:40px;padding:0 26px 4px;padding-top:max(env(safe-area-inset-top),0px);
-  font-size:11px;font-weight:500;color:var(--ink-2);letter-spacing:.02em;
-}
-.statusbar__icons{display:flex;align-items:center;gap:5px;opacity:.5}
-.statusbar__icons svg{display:block}
-
 /* ==========================================================================
    3. 공통 요소
    ========================================================================== */
@@ -276,11 +269,11 @@ img{display:block;max-width:100%}
 }
 .card-badge--hit{background:rgba(201,214,201,.45);color:var(--sage-ink)}
 .card-name{
-  font-family:var(--font-title);font-size:20px;font-weight:700;letter-spacing:-.02em;
+  font-family:var(--font-title);font-size:22px;font-weight:700;letter-spacing:-.02em;
   display:flex;flex-wrap:wrap;align-items:baseline;gap:7px;line-height:1.3;
   min-width:0;overflow-wrap:anywhere;word-break:keep-all;
 }
-.card-name span{font-size:12px;font-weight:400;color:var(--ink-3);letter-spacing:.02em;flex:0 0 auto}
+.card-name span{font-size:13.5px;font-weight:400;color:var(--ink-2);letter-spacing:.02em;flex:0 0 auto}
 .card-meta{margin-top:4px;font-size:11px;font-weight:400;color:var(--ink-2);letter-spacing:.02em}
 
 .swipe-label{
@@ -366,8 +359,8 @@ img{display:block;max-width:100%}
 }
 .row:active{box-shadow:0 0 0 1px var(--line-2)}
 .row__main{flex:1 1 auto;min-width:0}
-.row__name{font-family:var(--font-title);font-size:13px;font-weight:700;letter-spacing:.01em;display:flex;align-items:center;gap:5px}
-.row__name span{font-family:var(--font-body);font-size:9.5px;font-weight:400;color:var(--ink-3)}
+.row__name{font-family:var(--font-title);font-size:13px;font-weight:700;letter-spacing:.01em;display:flex;align-items:baseline;gap:5px;flex-wrap:wrap;min-width:0}
+.row__name span{font-family:var(--font-body);font-size:11px;font-weight:400;color:var(--ink-3);white-space:nowrap}
 .row__sub{margin-top:4px;font-size:10.5px;color:var(--ink-3);letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row__actions{display:flex;gap:5px;flex:0 0 auto}
 .status-pill{
@@ -460,10 +453,10 @@ img{display:block;max-width:100%}
 }
 .profile-card__text{flex:1 1 auto;min-width:0}
 .profile-card__name{
-  font-family:var(--font-title);font-size:17px;font-weight:700;letter-spacing:-.01em;
+  font-family:var(--font-title);font-size:19px;font-weight:700;letter-spacing:-.01em;
   display:flex;align-items:center;gap:6px;flex-wrap:wrap;
 }
-.profile-card__name span{font-family:var(--font-body);font-size:11px;font-weight:400;color:var(--ink-3)}
+.profile-card__name span{font-family:var(--font-body);font-size:12.5px;font-weight:400;color:var(--ink-3)}
 .profile-card__meta{margin-top:5px;font-size:10px;color:var(--ink-3);letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .verify-card{
@@ -1018,15 +1011,6 @@ body.mode-admin .toast{bottom:24px}
   <div class="workspace">
     <!-- ═══════════════════════════ 사용자 화면 ═══════════════════════════ -->
     <div class="phone" id="userMode">
-      <div class="statusbar" aria-hidden="true">
-        <span id="clock">12:41</span>
-        <span class="statusbar__icons">
-          <svg width="20" height="14"><use href="#i-signal"/></svg>
-          <svg width="24" height="18"><use href="#i-wifi"/></svg>
-          <svg width="26" height="13"><use href="#i-battery"/></svg>
-        </span>
-      </div>
-
       <main class="screen">
         <!-- 오늘의 인연 -->
         <section class="view view--today is-active" data-view="today" aria-label="오늘의 인연">
@@ -1134,7 +1118,7 @@ body.mode-admin .toast{bottom:24px}
           <div class="profile-card">
             <div class="avatar avatar--lg" id="meAvatar"></div>
             <div class="profile-card__text">
-              <p class="profile-card__name"><span id="meName">예지</span><span id="meAge">35</span>
+              <p class="profile-card__name"><span id="meName">예지</span><span id="meAge">1991년(만35세)</span>
                 <span class="pill pill--mint" id="meVerifyBadge" hidden>인증</span>
               </p>
               <p class="profile-card__meta" id="meMeta">콘텐츠 기획 · 성수건축</p>
@@ -1636,6 +1620,20 @@ function ageFromYear(y) {
   if (!Number.isFinite(n)) return null;
   return new Date().getFullYear() - n;
 }
+/* 나이 → 출생연도('91년생' 표기). 저장된 birth_year가 있으면 그걸 우선합니다 */
+function yearOf(age, birthYear) {
+  const y = parseInt(birthYear, 10);
+  if (Number.isFinite(y) && y > 1900) return y;
+  const a = parseInt(age, 10);
+  return Number.isFinite(a) && a > 0 ? new Date().getFullYear() - a : null;
+}
+function yearLabel(age, birthYear) {
+  const y = yearOf(age, birthYear);
+  const a = parseInt(age, 10);
+  if (!y) return Number.isFinite(a) && a > 0 ? `만${a}세` : '';
+  const manAge = Number.isFinite(a) && a > 0 ? a : new Date().getFullYear() - y;
+  return `${y}년(만${manAge}세)`;
+}
 function normalizePrefs(raw) {
   let p = raw;
   if (typeof p === 'string') { try { p = JSON.parse(p); } catch (e) { p = {}; } }
@@ -1668,6 +1666,7 @@ function toProfile(r) {
     id: r.id,
     name: r.nickname || '인연',
     age: r.age || ageFromYear(r.birth_year) || '-',
+    birthYear: yearOf(r.age, r.birth_year),
     job: r.job || '직장인',
     company: r.company || '',
     phone: '',
@@ -2696,7 +2695,7 @@ function cardHTML(p, depth) {
       </div>
       <div class="card-head">
         <span class="card-badge ${hit >= 0 ? 'card-badge--hit' : ''}">${badgeText}</span>
-        <h2 class="card-name">${esc(p.name)} <span>${p.age}</span></h2>
+        <h2 class="card-name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span></h2>
         <p class="card-meta">${esc(p.job)} · ${esc(p.area)} · ${p.mbti}</p>
       </div>
       <div class="card-body">
@@ -2767,7 +2766,7 @@ function openProfileDetail(id) {
   const p = PROFILE_MAP[id]; if (!p) return;
   const reasons = matchReasons(p);
   openSheet(`<div class="sheet__grabber"></div><div class="sheet__head"><h2>${esc(p.name)}님의 상세 프로필</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기">✕</button></div>
-    <p class="sheet__sub">${p.age}세 · ${esc(p.job)} · ${esc(p.area)} · ${esc(p.mbti)} ${isVerified(id)?'· 직장 인증(데모)':''}</p>
+    <p class="sheet__sub">${yearLabel(p.age, p.birthYear)} · ${esc(p.job)} · ${esc(p.area)} · ${esc(p.mbti)} ${isVerified(id)?'· 직장 인증(데모)':''}</p>
     <div class="detail-gallery">${(p.photos||[]).map((photo,i)=>`<figure>${plateSVG(artFor(id,i))}<figcaption>${esc(photo.caption)}</figcaption></figure>`).join('')}</div>
     <p class="sheet__sub">${esc(p.bio)}</p><p class="sheet__sub">취미: ${p.hobbies.map(esc).join(', ')}<br>가치관: ${p.values.map(esc).join(', ')}<br>흡연: ${p.nonsmoker?'비흡연':'정보상 비흡연 아님'} · 키: ${p.height}cm</p>
     <div class="reason-list"><strong>추천 조건 ${reasons.length}개 일치</strong>${reasons.length?`<ul>${reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`:'<p>현재 설정된 조건에서 확인된 일치 항목이 없습니다.</p>'}</div>
@@ -2803,7 +2802,7 @@ function renderMatches() {
           <li class="row">
             <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
             <div class="row__main">
-              <p class="row__name">${esc(p.name)} <span>${p.age}</span></p>
+              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span></p>
               <p class="row__sub">${esc(p.job)} · ${esc(p.area)} · ${relTime(r.at)}</p>
             </div>
             <div class="row__actions">
@@ -2833,7 +2832,7 @@ function renderMatches() {
           <li class="row">
             <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
             <div class="row__main">
-              <p class="row__name">${esc(p.name)} <span>${p.age}</span></p>
+              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span></p>
               <p class="row__sub">${sub}</p>
             </div>
             ${pill}
@@ -2853,7 +2852,7 @@ function renderMatches() {
           <li class="row">
             <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
             <div class="row__main">
-              <p class="row__name">${esc(p.name)} <span>${p.age}</span></p>
+              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span></p>
               <p class="row__sub">${m.via === 'accepted' ? '받은 호감 수락' : '서로 호감'} · ${relTime(m.at)}${meetLabel}</p>
             </div>
             <button class="btn btn--sm btn--primary" data-action="open-chat" data-id="${p.id}">대화하기</button>
@@ -2935,7 +2934,7 @@ function renderChatList() {
           <li class="row" data-action="open-chat" data-id="${p.id}" style="cursor:pointer">
             <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
             <div class="row__main">
-              <p class="row__name">${esc(p.name)} <span>${p.age}</span></p>
+              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span></p>
               <p class="row__sub">${last ? esc(last.text) : '첫 대화를 기다리고 있어요'}</p>
             </div>
             ${unread
@@ -3244,7 +3243,7 @@ function togglePriority(key) {
 function renderProfileChrome() {
   const u = state.user;
   $('#meName').textContent = u.nickname || '나';
-  $('#meAge').textContent = u.age ? `${u.age}` : '';
+  $('#meAge').textContent = yearLabel(u.age, u.birthYear);
   $('#meMeta').textContent = [u.job, u.company].filter(Boolean).join(' · ');
   const avatar = $('#meAvatar');
   if (u.photos && u.photos[0]) {
@@ -3788,7 +3787,7 @@ function cardHTML(p, depth) {
       </div>
       <div class="card-head">
         <span class="card-badge ${hit >= 0 ? 'card-badge--hit' : ''}">${badgeText}</span>
-        <h2 class="card-name">${esc(p.name)} <span>${p.age}</span></h2>
+        <h2 class="card-name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span></h2>
         <p class="card-meta">${esc(p.job)} · ${esc(p.area)} · ${p.mbti}</p>
       </div>
       <div class="card-body">
@@ -3811,7 +3810,7 @@ function openProfileDetail(id) {
   if (!p) return;
   const reasons = matchReasons(p);
   openSheet(`<div class="sheet__grabber"></div><div class="sheet__head"><h2>${esc(p.name)}님의 상세 프로필</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기">✕</button></div>
-    <p class="sheet__sub">${p.age}세 · ${esc(p.job)} · ${esc(p.area)} · ${esc(p.mbti)} ${isVerified(id) ? '· 직장인 인증 완료' : ''}${p.isDemo ? ' · 데모 프로필' : ''}</p>
+    <p class="sheet__sub">${yearLabel(p.age, p.birthYear)} · ${esc(p.job)} · ${esc(p.area)} · ${esc(p.mbti)} ${isVerified(id) ? '· 직장인 인증 완료' : ''}${p.isDemo ? ' · 데모 프로필' : ''}</p>
     <div class="detail-gallery">${(p.photos || []).map((photo, i) => `<figure>${photoMarkup(p, i)}<figcaption>${esc(photo.caption || '')}</figcaption></figure>`).join('')}</div>
     <p class="sheet__sub">${esc(p.bio || '아직 소개가 없어요.')}</p>
     <p class="sheet__sub">취미: ${p.hobbies.map(esc).join(', ')}<br>가치관: ${p.values.map(esc).join(', ')}<br>흡연: ${p.nonsmoker ? '비흡연' : '미기재'}${p.height ? ' · 키: ' + p.height + 'cm' : ''}${p.distKm !== null ? ' · 거리: ' + p.distKm + 'km' : ''}</p>
@@ -3909,7 +3908,7 @@ function renderChatList() {
           <li class="row" data-action="open-chat" data-id="${p.id}" style="cursor:pointer">
             <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
             <div class="row__main">
-              <p class="row__name">${esc(p.name)} <span>${p.age}</span></p>
+              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span></p>
               <p class="row__sub">${last ? esc(last.text) : '첫 대화를 기다리고 있어요'}</p>
             </div>
             ${unread
