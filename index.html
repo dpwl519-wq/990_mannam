@@ -4703,7 +4703,7 @@ async function checkSignupApproval() {
   } finally {
     checkingApproval = false;
     const again = document.querySelector('[data-action="check-approval"]');
-    if (again) again.disabled = false;
+    if (again) { again.disabled = false; again.textContent = '새로고침 (승인 확인)'; }
   }
 }
 
