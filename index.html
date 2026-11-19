@@ -915,6 +915,41 @@ body.mode-admin .toast{bottom:24px}
 .suspended-item__sub{font-size:8px;color:var(--ink-3);margin-top:3px;letter-spacing:.03em}
 
 /* ==========================================================================
+   10-2. 가입 승인 대기 · 반려 안내 (승인 전에는 이 화면만 보입니다)
+   ========================================================================== */
+.gate{display:flex;flex-direction:column;justify-content:center;min-height:calc(100% - 10px);gap:0}
+.gate__card{
+  background:var(--card);border-radius:22px;padding:30px 22px 24px;text-align:center;
+  box-shadow:var(--shadow-2);animation:authIn .45s var(--ease) both;
+}
+.gate__mark{
+  width:62px;height:62px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;
+  background:var(--butter-soft);color:var(--butter-ink);box-shadow:inset 0 0 0 1px rgba(138,116,82,.14);
+}
+.gate__mark svg{width:26px;height:26px}
+.gate.is-rejected .gate__mark{background:var(--apricot-soft);color:var(--apricot-ink);box-shadow:inset 0 0 0 1px rgba(140,91,74,.14)}
+.gate__eyebrow{font-size:9.5px;letter-spacing:.18em;color:var(--ink-3);text-transform:uppercase}
+.gate__title{font-family:var(--font-title);font-size:21px;line-height:1.5;letter-spacing:-.02em;margin-top:10px}
+.gate__sub{margin-top:12px;font-size:12.5px;line-height:1.9;color:var(--ink-2);letter-spacing:-.01em}
+.gate__sub b{font-weight:600;color:var(--ink)}
+.gate__steps{
+  margin:20px 0 2px;padding:15px 16px;border-radius:14px;background:var(--sand-soft);
+  display:flex;flex-direction:column;gap:9px;text-align:left;
+}
+.gate__step{display:flex;align-items:flex-start;gap:9px;font-size:11.5px;line-height:1.7;color:#6E5F49;letter-spacing:-.01em}
+.gate__step i{
+  flex:0 0 auto;display:inline-grid;place-items:center;width:16px;height:16px;margin-top:1px;border-radius:50%;
+  background:rgba(255,255,255,.75);color:var(--sand-ink);font-size:8.5px;font-style:normal;font-weight:500;
+}
+.gate__step b{font-weight:600;color:#54462F}
+.gate__actions{display:flex;flex-direction:column;gap:8px;margin-top:20px}
+.gate__meta{margin-top:14px;font-size:10px;color:var(--ink-3);line-height:1.9;letter-spacing:.01em}
+.gate__meta b{font-weight:500;color:var(--ink-2)}
+.gate__foot{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.gate__link{font-size:10px;color:var(--ink-3);letter-spacing:.02em;text-decoration:underline;text-underline-offset:3px;padding:4px 6px}
+.gate__link:active{color:var(--ink)}
+
+/* ==========================================================================
    11. 모션 최소화
    ========================================================================== */
 @media (prefers-reduced-motion:reduce){
@@ -1588,9 +1623,14 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
             <p class="footnote">v2.0 · Supabase 연동 · 프로필·호감·대화·인증이 서버에 저장됩니다<br>결제는 계좌이체 입금 확인 방식이며 자동 결제가 아닙니다</p>
           </section>
         </section>
+
+        <!-- 가입 승인 대기 · 반려 (승인 전에는 이 화면만 보입니다) -->
+        <section class="view view--scroll" data-view="pending" aria-label="가입 승인 안내">
+          <div class="gate" id="signupGate"></div>
+        </section>
       </main>
 
-      <nav class="tabbar" role="tablist" aria-label="주요 메뉴">
+      <nav class="tabbar" id="tabbar" role="tablist" aria-label="주요 메뉴">
         <button class="tab is-active" data-action="tab" data-view="today" role="tab" aria-selected="true">
           <svg class="icon"><use href="#i-spark"/></svg><span>오늘</span>
         </button>
@@ -1632,6 +1672,7 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
           </div>
           <div class="admin-head__right">
             <div class="admin-stats">
+              <span class="admin-stat">가입 대기 <b id="adminSignups">0</b></span>
               <span class="admin-stat">인증 대기 <b id="adminPending">0</b></span>
               <span class="admin-stat">충전 요청 <b id="adminCharges">0</b></span>
               <span class="admin-stat">신고 접수 <b id="adminReports">0</b></span>
@@ -1642,6 +1683,9 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
         </div>
 
         <div class="admin-tabs" role="tablist">
+          <button class="admin-tab" data-action="admin-tab" data-tab="signups" role="tab" aria-selected="false">
+            가입 승인 <b id="tabSignupCount">0</b>
+          </button>
           <button class="admin-tab is-on" data-action="admin-tab" data-tab="verify" role="tab" aria-selected="true">
             직장인 인증 심사 <b id="tabVerifyCount">0</b>
           </button>
@@ -1658,6 +1702,21 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
 
         <div class="admin-audit-intro">모든 처리는 admin_logs 에 기록됩니다. 승인은 매칭권 지급·인증 마크를 서버에서 한 번에 처리해요.</div>
         <section class="audit-panel"><div class="section__head"><h2 class="section__title">운영 처리 이력</h2><span class="section__hint">담당자 · 시각 · 대상 · 결과</span></div><div id="adminAuditList"></div></section>
+
+        <div id="adminSignupPanel" hidden>
+          <div class="admin-grid">
+            <div>
+              <p class="admin-col__title">가입 대기 <span id="signupPendingLabel">0명</span></p>
+              <div id="adminSignupList"></div>
+              <p class="admin-tip"><b>승인</b> — 승인하면 그 회원은 바로 입장할 수 있어요. 반려하면 회원 화면에는 “가입 승인이 어려워요” 안내만 보입니다. 두 경우 모두 admin_logs 에 기록됩니다.</p>
+            </div>
+            <div>
+              <p class="admin-col__title">반려한 가입 <span id="signupRejectedLabel">0명</span></p>
+              <div id="adminSignupRejectedList"></div>
+              <p class="admin-tip"><b>안내</b> — 가입 신청이 들어오면 이 탭에 바로 쌓입니다. 회원이 “새로고침(승인 확인)”을 누르거나 앱을 다시 열면 승인 결과가 회원 화면에 반영돼요.</p>
+            </div>
+          </div>
+        </div>
 
         <div id="adminVerifyPanel">
           <div class="admin-grid">
@@ -2070,7 +2129,8 @@ function emptyState() {
     sent: [], received: [], matches: [], chats: {}, unread: {},
     verification: { status: 'none', method: null, company: '', email: '', docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: '' },
     heightVerification: { status: 'none', docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: '' },
-    submissions: [], reports: [], charges: [], suspendedIds: []
+    submissions: [], reports: [], charges: [], suspendedIds: [],
+    accessStatus: 'active', signups: [], signupError: ''
   };
 }
 
@@ -2559,6 +2619,8 @@ async function doLogout() {
   try { await sb.auth.signOut(); } catch (e) { console.warn(e); }
   session = null; meId = null; afterLoginDone = false;
   state = emptyState(); PROFILES = [];
+  gateWasOn = false; gateSignature = '';
+  const gateTabbar = $('#tabbar'); if (gateTabbar) gateTabbar.hidden = false;
   Object.keys(PROFILE_MAP).forEach((k) => delete PROFILE_MAP[k]);
   showAuth();
   toast('로그아웃했어요.');
@@ -2616,7 +2678,9 @@ async function afterLogin() {
     let w = await rpc('my_state');
     if (!w) { await ensureProfile(u.user); w = await rpc('my_state'); }
     wallet = w || {};
-    if (wallet.demo_seeded !== true && !adminTry) {
+    isAdmin = wallet.is_admin === true;
+    const waitingApproval = !isAdmin && (wallet.status === 'pending' || wallet.status === 'rejected');
+    if (wallet.demo_seeded !== true && !adminTry && !waitingApproval) {
       try { await rpc('seed_demo_for_me'); } catch (err) { console.warn('[seed]', err); }
     }
     try { payInfo = await rpc('get_payment_info'); } catch (err) { console.warn('[pay]', err); }
@@ -2627,8 +2691,10 @@ async function afterLogin() {
     const missingParts = refreshProfileLock();
     if (adminTry) {
       switchMode('admin');
-      switchAdminTab('verify');
+      switchAdminTab((state.signups || []).some((s) => s.status === 'pending') ? 'signups' : 'verify');
       toast('운영자 콘솔에 들어왔어요.');
+    } else if (applySignupGate(false)) {
+      /* 가입 승인 전 — 앱 화면 대신 “가입 승인 대기/반려” 안내만 보입니다. */
     } else if (missingParts.length) {
       switchView('profile');
       toast('프로필 등록을 먼저 마쳐 주세요. 사진 1장과 모든 항목이 필요해요.');
@@ -2721,6 +2787,12 @@ async function selectVerifications() {
 
 async function refreshAll() {
   if (!sb || !session) return;
+  /* 가입 대기 목록은 운영자만 부를 수 있습니다(함수 안 is_admin() 검사).
+     승인 SQL(supabase_signup_approval.sql)을 아직 실행하지 않았으면 함수가 없어 오류가 오고,
+     화면에는 실행 안내를 대신 보여 줍니다. */
+  const signupReq = isAdmin
+    ? sb.rpc('admin_signup_list')
+    : Promise.resolve({ data: [], error: null });
   const res = await Promise.all([
     selectProfiles(),
     sb.rpc('my_state'),
@@ -2730,9 +2802,10 @@ async function refreshAll() {
     sb.from('reviews').select('id,match_id,author_id,rating,content,points_awarded,created_at'),
     sb.from('charge_requests').select('id,user_id,package_name,tickets,amount_krw,depositor_name,status,note,reviewed_at,created_at').order('created_at', { ascending: false }).limit(200),
     sb.from('reports').select('id,reporter_id,target_user_id,reason,detail,status,reviewed_at,created_at').order('created_at', { ascending: false }).limit(200),
-    sb.from('admin_logs').select('id,action,target_name,actor,detail,created_at').order('created_at', { ascending: false }).limit(80)
+    sb.from('admin_logs').select('id,action,target_name,actor,detail,created_at').order('created_at', { ascending: false }).limit(80),
+    signupReq
   ]);
-  const labels = ['profiles', 'my_state', 'likes', 'messages', 'verifications', 'reviews', 'charges', 'reports', 'logs'];
+  const labels = ['profiles', 'my_state', 'likes', 'messages', 'verifications', 'reviews', 'charges', 'reports', 'logs', 'signups'];
   res.forEach((r, i) => { if (r.error) console.warn('[load]', labels[i], r.error.message); });
   const critical = res[0].error || res[1].error || res[2].error;
   if (critical) throw critical;
@@ -2746,7 +2819,9 @@ async function refreshAll() {
     reviews: res[5].data || [],
     charges: res[6].data || [],
     reports: res[7].data || [],
-    logs: res[8].data || []
+    logs: res[8].data || [],
+    signups: res[9] && !res[9].error && Array.isArray(res[9].data) ? res[9].data : [],
+    signupError: isAdmin && res[9] && res[9].error ? String(res[9].error.message || res[9].error.details || 'error') : ''
   });
 }
 
@@ -2756,6 +2831,14 @@ function applyData(d) {
   isAdmin = wallet.is_admin === true;
 
   const meRow = d.profiles.find((p) => p.id === meId) || {};
+
+  /* 입장 자격 — 'pending'(가입 승인 대기) · 'rejected'(가입 반려) 이면 앱 대신 안내 화면만 보입니다.
+     운영자(is_admin)는 승인 절차 없이 입장합니다. */
+  state.accessStatus = isAdmin
+    ? 'active'
+    : String(wallet.status || meRow.status || 'active');
+  state.signups = Array.isArray(d.signups) ? d.signups : [];
+  state.signupError = d.signupError || '';
 
   /* 내 프로필 */
   state.user = {
@@ -2984,7 +3067,8 @@ function applyData(d) {
     decidedAt: c.reviewed_at
   }));
 
-  state.suspendedIds = d.profiles.filter((p) => p.status !== 'active').map((p) => p.id);
+  /* 이용 정지 회원만 — 가입 대기·반려 회원은 운영자 콘솔의 [가입 승인] 탭에서 따로 봅니다. */
+  state.suspendedIds = d.profiles.filter((p) => p.status === 'suspended').map((p) => p.id);
   state.auditLog = d.logs.map((l) => ({ action: l.action, target: l.target_name, detail: l.detail, actor: l.actor, at: l.created_at }));
 
   /* 매칭권 이용내역 (서버 기록에서 계산) */
@@ -3028,6 +3112,7 @@ function startPolling() {
     try {
       await refreshAll();
       renderNav();
+      if (currentMode === 'user' && applySignupGate()) return;
       if (currentMode === 'user') {
         const active = document.querySelector('.view.is-active');
         if (active && active.dataset.view === 'chat') { renderChatList(); renderThread(); renderMeetBar(); }
@@ -4496,8 +4581,135 @@ function toast(message, opts = {}) {
   toastTimer = setTimeout(() => { el.classList.remove('is-on'); toastAction = null; }, opts.label ? 6500 : 3200);
 }
 
+/* ---------- 가입 승인 게이트 (가입 대기 · 반려) ----------
+   status 가 'pending'/'rejected' 이면 오늘·매칭·대화·프로필 대신 안내 화면만 보입니다.
+   운영자(is_admin)는 게이트를 타지 않습니다.
+   --------------------------------------------------------------------- */
+let gateWasOn = false;
+let gateSignature = '';
+
+function gateStatus() {
+  if (isAdmin) return 'active';
+  const s = String((state && state.accessStatus) || 'active');
+  return (s === 'pending' || s === 'rejected') ? s : 'active';
+}
+function gateActive() { return gateStatus() !== 'active'; }
+
+function signupGateHTML(status) {
+  const nick = esc(state.user.nickname || '회원');
+  const mail = esc((wallet && wallet.email) || '');
+  if (status === 'rejected') {
+    return `
+      <article class="gate__card">
+        <div class="gate__mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.6"/><path d="M8.6 8.6l6.8 6.8M15.4 8.6l-6.8 6.8"/>
+          </svg>
+        </div>
+        <p class="gate__eyebrow">990 인연</p>
+        <h1 class="gate__title">이번에는 함께하지 못했어요</h1>
+        <p class="gate__sub">${nick}님, 신청해 주셔서 고마워요.<br>운영자 확인 결과 <b>가입이 반려</b>되었습니다.</p>
+        <div class="gate__steps">
+          <p class="gate__step"><i>1</i><span>1기 선발 인원·성비, 또는 프로필 정보 확인이 어려운 경우예요.</span></p>
+          <p class="gate__step"><i>2</i><span>내용을 보완해 다시 신청하시려면 로그아웃 후 새 이메일로 가입해 주세요.</span></p>
+          <p class="gate__step"><i>3</i><span>궁금한 점은 운영자에게 문의해 주세요.</span></p>
+        </div>
+        <div class="gate__actions">
+          <button class="btn btn--ghost btn--block" data-action="check-approval">새로고침 (승인 확인)</button>
+          <button class="btn btn--primary btn--block" data-action="logout">로그아웃</button>
+        </div>
+        ${mail ? `<p class="gate__meta">신청 이메일 · <b>${mail}</b></p>` : ''}
+        <div class="gate__foot">
+          <button class="gate__link" data-action="gate-open-admin">운영자이신가요? 운영자 콘솔</button>
+        </div>
+      </article>`;
+  }
+  return `
+    <article class="gate__card">
+      <div class="gate__mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.6"/><path d="M12 7.6V12l3 1.9"/>
+        </svg>
+      </div>
+      <p class="gate__eyebrow">990 인연</p>
+      <h1 class="gate__title">가입 승인을 기다리고 있어요</h1>
+      <p class="gate__sub">${nick}님, 신청이 잘 접수됐어요.<br>운영자가 가입 내용을 확인하고 있습니다.<br><b>1기 선발·승인 확인 후</b> 입장할 수 있어요.</p>
+      <div class="gate__steps">
+        <p class="gate__step"><i>1</i><span>신청 접수 · 닉네임·성별·출생연도를 확인했어요</span></p>
+        <p class="gate__step"><i>2</i><span>운영자 확인 · 기수 인원과 성비를 맞춰 승인해요</span></p>
+        <p class="gate__step"><i>3</i><span>승인 완료 · 프로필 사진과 소개를 등록하면 시작!</span></p>
+      </div>
+      <div class="gate__actions">
+        <button class="btn btn--primary btn--block" data-action="check-approval">새로고침 (승인 확인)</button>
+        <button class="btn btn--ghost btn--block" data-action="logout">로그아웃</button>
+      </div>
+      <p class="gate__meta">승인되면 이 화면이 자동으로 바뀝니다.<br>잠시 후 다시 확인해 주세요.</p>
+      ${mail ? `<p class="gate__meta">신청 이메일 · <b>${mail}</b></p>` : ''}
+      <div class="gate__foot">
+        <button class="gate__link" data-action="gate-open-admin">운영자이신가요? 운영자 콘솔</button>
+      </div>
+    </article>`;
+}
+
+/* 게이트 상태를 화면에 반영합니다. 반환값이 true 면 "아직 입장 불가". */
+function applySignupGate(announce) {
+  const status = gateStatus();
+  const tabbar = $('#tabbar');
+  const gateView = document.querySelector('.view[data-view="pending"]');
+
+  if (status === 'active') {
+    const was = gateWasOn;
+    gateWasOn = false;
+    gateSignature = '';
+    if (tabbar) tabbar.hidden = false;
+    if (gateView && gateView.classList.contains('is-active')) {
+      switchView(profileLocked ? 'profile' : 'today');
+      if (was && announce !== false) toast('가입이 승인됐어요. 990 인연에 오신 걸 환영해요!');
+    }
+    return false;
+  }
+
+  const sig = `${status}|${state.user.nickname || ''}|${(wallet && wallet.email) || ''}`;
+  const box = $('#signupGate');
+  if (box && sig !== gateSignature) {
+    box.innerHTML = signupGateHTML(status);
+    box.classList.toggle('is-rejected', status === 'rejected');
+    gateSignature = sig;
+  }
+  gateWasOn = true;
+  if (tabbar) tabbar.hidden = true;
+  if (gateView && !gateView.classList.contains('is-active')) {
+    $$('.view').forEach((v) => v.classList.toggle('is-active', v.dataset.view === 'pending'));
+    $$('.tab').forEach((t) => { t.classList.remove('is-active'); t.setAttribute('aria-selected', 'false'); });
+    closeThread();
+  }
+  return true;
+}
+
+/* "새로고침 (승인 확인)" — 서버에서 승인 결과를 다시 읽어 옵니다. */
+let checkingApproval = false;
+async function checkSignupApproval() {
+  if (checkingApproval) return;
+  checkingApproval = true;
+  const btn = document.querySelector('[data-action="check-approval"]');
+  if (btn) { btn.disabled = true; btn.textContent = '확인 중…'; }
+  try {
+    await refreshAll();
+    renderAll();
+    if (!applySignupGate()) return;
+    toast('아직 승인 전이에요. 승인되면 바로 입장할 수 있어요.');
+  } catch (err) {
+    toast(errorText(err));
+  } finally {
+    checkingApproval = false;
+    const again = document.querySelector('[data-action="check-approval"]');
+    if (again) again.disabled = false;
+  }
+}
+
 function switchView(name) {
-  if (profileLocked && name && name !== 'profile') name = 'profile';
+  if (gateActive()) name = 'pending';
+  else if (profileLocked && name && name !== 'profile') name = 'profile';
   $$('.view').forEach((v) => v.classList.toggle('is-active', v.dataset.view === name));
   $$('.tab').forEach((t) => {
     const on = t.dataset.view === name;
@@ -4522,11 +4734,12 @@ function switchMode(mode) {
     b.setAttribute('aria-selected', String(on));
   });
   if (mode === 'admin') renderAdmin();
+  if (mode === 'user') applySignupGate();
 }
 
 function switchAdminTab(tab) {
   adminTab = tab;
-  const panels = { verify: 'adminVerifyPanel', charges: 'adminChargePanel', reports: 'adminReportsPanel', settings: 'adminSettingsPanel' };
+  const panels = { signups: 'adminSignupPanel', verify: 'adminVerifyPanel', charges: 'adminChargePanel', reports: 'adminReportsPanel', settings: 'adminSettingsPanel' };
   Object.entries(panels).forEach(([k, id]) => { const el = document.getElementById(id); if (el) el.hidden = k !== tab; });
   $$('.admin-tab').forEach((b) => {
     const on = b.dataset.tab === tab;
@@ -4894,7 +5107,8 @@ function renderNav() {
     const pendingVerify = isAdmin ? state.submissions.filter((s) => s.status === 'pending').length : 0;
     const openReports = isAdmin ? state.reports.filter((r) => r.status === 'open').length : 0;
     const pendingCharges = isAdmin ? state.charges.filter((c) => c.status === 'pending').length : 0;
-    const total = pendingVerify + openReports + pendingCharges;
+    const pendingSignups = isAdmin ? (state.signups || []).filter((s) => s.status === 'pending').length : 0;
+    const total = pendingVerify + openReports + pendingCharges + pendingSignups;
     dot.hidden = total === 0;
     dot.textContent = total;
   }
@@ -5817,6 +6031,52 @@ async function submitReport() {
 /* ==========================================================================
    운영자 콘솔
    ========================================================================== */
+const SIGNUP_REJECT_CHIPS = ['기수 인원 마감', '성비·나이 조건 미달', '프로필 정보 부족', '중복 가입 의심'];
+const signupRejectDrafts = {};
+const openSignupRejects = new Set();
+const SIGNUP_GUIDE_URL = 'https://github.com/dpwl519-wq/990_mannam/blob/main/supabase_signup_approval.sql';
+
+function signupCardHTML(s, isPending) {
+  const name = s.nickname || (s.email ? String(s.email).split('@')[0] : '회원');
+  const gender = s.gender === 'male' ? '남성' : (s.gender === 'female' ? '여성' : '성별 미입력');
+  const year = s.birth_year ? `${s.birth_year}년생` : (s.age ? `만 ${s.age}세` : '출생연도 미입력');
+  const extra = [s.region].filter(Boolean).map((v) => esc(v)).join(' · ');
+  return `
+    <article class="sub-card${isPending ? '' : ' is-done'}" data-signup="${s.id}">
+      <div class="sub-card__top">
+        <div class="sub-card__who">
+          <span class="sub-card__avatar">${avatarSVG(s.id, name)}</span>
+          <div>
+            <p class="sub-card__name">${esc(name)}</p>
+            <p class="sub-card__company">${gender} · ${year}${extra ? ' · ' + extra : ''}</p>
+          </div>
+        </div>
+        <span class="method-badge">${isPending ? '가입 대기' : '반려'}</span>
+      </div>
+      <p class="sub-card__email">${esc(s.email || '이메일 없음')}</p>
+      <p class="sub-card__time">${s.created_at ? relTime(s.created_at) + ' 신청' : '신청 시각 없음'}</p>
+      <div class="sub-card__actions">
+        ${isPending
+          ? `<button class="btn btn--mint btn--sm" data-action="approve-signup" data-id="${s.id}">승인</button>
+             <button class="btn btn--ghost btn--sm" data-action="toggle-signup-reject" data-id="${s.id}">반려</button>`
+          : `<button class="btn btn--mint btn--sm" data-action="approve-signup" data-id="${s.id}">승인으로 바꾸기</button>`}
+      </div>
+      ${isPending ? `
+      <div class="reject-box" data-signup-reject="${s.id}" hidden>
+        <p>반려 사유를 적어주세요 (회원에게는 안내 문구만 보입니다)</p>
+        <div class="reject-chips">
+          ${SIGNUP_REJECT_CHIPS.map((r) =>
+            `<button data-action="signup-reject-chip" data-id="${s.id}" data-reason="${r}">${r}</button>`).join('')}
+        </div>
+        <textarea data-signup-reason="${s.id}" placeholder="예: 이번 기수 모집 인원이 마감되었어요"></textarea>
+        <div class="reject-box__actions">
+          <button class="btn btn--ghost btn--sm" data-action="toggle-signup-reject" data-id="${s.id}">취소</button>
+          <button class="btn btn--primary btn--sm" data-action="reject-signup" data-id="${s.id}">반려 확정</button>
+        </div>
+      </div>` : ''}
+    </article>`;
+}
+
 function renderAdmin() {
   const gate = $('#adminGate');
   const consoleEl = $('#adminConsole');
@@ -5848,6 +6108,47 @@ function renderAdmin() {
   put('#reportLabel', `${state.reports.length}건`);
   put('#suspendLabel', `${state.suspendedIds.length}명`);
   put('#chargeLabel', `${pendingCharges.length}건`);
+
+  /* 가입 승인 패널 — 가입 대기(pending) · 반려(rejected) */
+  const signups = Array.isArray(state.signups) ? state.signups : [];
+  const pendingSignups = signups.filter((s) => s.status === 'pending')
+    .sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+  const rejectedSignups = signups.filter((s) => s.status === 'rejected')
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+  put('#adminSignups', pendingSignups.length);
+  put('#tabSignupCount', pendingSignups.length);
+  put('#signupPendingLabel', `${pendingSignups.length}명`);
+  put('#signupRejectedLabel', `${rejectedSignups.length}명`);
+
+  const sgl = $('#adminSignupList');
+  if (sgl) {
+    if (state.signupError) {
+      sgl.innerHTML = `<div class="admin-empty">
+        가입 승인 기능을 켜려면 <b>supabase_signup_approval.sql</b> 을 Supabase SQL Editor 에서 한 번 실행해 주세요.<br>
+        실행 후 이 탭을 열면 가입 대기 목록이 보입니다.<br>
+        <a href="${SIGNUP_GUIDE_URL}" target="_blank" rel="noopener" style="text-decoration:underline;text-underline-offset:3px">SQL 파일 열기</a>
+      </div>`;
+    } else {
+      sgl.innerHTML = pendingSignups.length
+        ? pendingSignups.map((s) => signupCardHTML(s, true)).join('')
+        : '<div class="admin-empty">가입 대기 중인 회원이 없어요.<br>새로 가입한 회원은 승인 전까지 이곳에 쌓입니다.</div>';
+    }
+  }
+  const sgr = $('#adminSignupRejectedList');
+  if (sgr) {
+    sgr.innerHTML = rejectedSignups.length
+      ? rejectedSignups.map((s) => signupCardHTML(s, false)).join('')
+      : '<div class="admin-empty">반려한 가입이 없어요.</div>';
+  }
+  /* 반려 입력창·사유 복원 */
+  openSignupRejects.forEach((id) => {
+    const box = document.querySelector(`[data-signup-reject="${id}"]`);
+    if (box) box.hidden = false;
+  });
+  Object.entries(signupRejectDrafts).forEach(([id, text]) => {
+    const ta = document.querySelector(`[data-signup-reason="${id}"]`);
+    if (ta) ta.value = text;
+  });
 
   const auditEl = $('#adminAuditList');
   if (auditEl) {
@@ -5953,9 +6254,43 @@ async function adminClaim() {
   try {
     const r = await rpc('admin_claim', { p_pin: pin });
     if (!r || !r.ok) { toast('PIN이 맞지 않아요.'); return; }
+    isAdmin = true;
     await refreshAll(); renderAll(); renderAdmin();
     toast('운영자 콘솔에 들어왔어요.');
   } catch (err) { toast(errorText(err)); }
+}
+
+/* ---------- 가입 승인 · 반려 (운영자) ---------- */
+async function approveSignup(id) {
+  if (!id) return;
+  const s = (state.signups || []).find((x) => x.id === id) || {};
+  try {
+    await rpc('admin_review_signup', { p_id: id, p_approve: true, p_note: '' });
+    openSignupRejects.delete(id);
+    await refreshAll(); renderAll(); renderAdmin();
+    toast(`${s.nickname || '회원'}님 가입을 승인했어요. 이제 입장할 수 있어요.`);
+  } catch (err) { toast(errorText(err)); }
+}
+
+async function rejectSignup(id) {
+  const ta = document.querySelector(`[data-signup-reason="${id}"]`);
+  const reason = (ta?.value || '').trim();
+  if (!reason) { toast('반려 사유를 적어 주세요.'); ta?.focus(); return; }
+  const s = (state.signups || []).find((x) => x.id === id) || {};
+  try {
+    await rpc('admin_review_signup', { p_id: id, p_approve: false, p_note: reason });
+    openSignupRejects.delete(id);
+    delete signupRejectDrafts[id];
+    await refreshAll(); renderAll(); renderAdmin();
+    toast(`${s.nickname || '회원'}님 가입을 반려했어요.`);
+  } catch (err) { toast(errorText(err)); }
+}
+
+function toggleSignupReject(id) {
+  const box = document.querySelector(`[data-signup-reject="${id}"]`);
+  if (!box) return;
+  box.hidden = !box.hidden;
+  if (box.hidden) openSignupRejects.delete(id); else openSignupRejects.add(id);
 }
 
 /* 승인/반려 — 새 파라미터(p_company · p_height)가 없는 예전 스키마에서도 동작하도록 폴백 */
@@ -6501,9 +6836,21 @@ document.addEventListener('click', (e) => {
       break;
     }
     case 'submit-review': submitReview(id); break;
+    /* 가입 승인 대기 */
+    case 'check-approval': checkSignupApproval(); break;
+    case 'gate-open-admin': switchMode('admin'); break;
     /* 운영자 */
     case 'admin-tab': switchAdminTab(el.dataset.tab); break;
     case 'admin-claim': adminClaim(); break;
+    case 'approve-signup': approveSignup(id); break;
+    case 'toggle-signup-reject': toggleSignupReject(id); break;
+    case 'reject-signup': rejectSignup(id); break;
+    case 'signup-reject-chip': {
+      const ta = document.querySelector(`[data-signup-reason="${id}"]`);
+      if (ta) ta.value = el.dataset.reason;
+      signupRejectDrafts[id] = el.dataset.reason;
+      break;
+    }
     case 'approve-sub': approveSubmission(id); break;
     case 'toggle-reject': toggleRejectBox(id); break;
     case 'reject-sub': rejectSubmission(id); break;
@@ -6527,6 +6874,7 @@ document.addEventListener('input', (e) => {
   if (e.target.id === 'depositorName') chargeName = e.target.value;
   if (e.target.id === 'heightClaim') syncHeightSubmitBtn();
   if (e.target.matches('[data-reason-input]')) rejectDrafts[e.target.dataset.reasonInput] = e.target.value;
+  if (e.target.matches('[data-signup-reason]')) signupRejectDrafts[e.target.dataset.signupReason] = e.target.value;
   if (e.target.id === 'docCompany') {
     const btn = $('#submitDocBtn');
     if (btn) btn.disabled = !(e.target.value.trim() && docDraft);

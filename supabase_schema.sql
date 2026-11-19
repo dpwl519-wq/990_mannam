@@ -34,11 +34,16 @@ create table if not exists public.admin_config (
   account_holder text default '예지',
   kakaopay_id    text default '990yeonin',
   show_demo      boolean not null default true,  -- 데모 회원을 모든 회원 화면에 보일지 (운영자 콘솔)
+  signup_approval_since timestamptz,             -- 가입 승인 기능을 켠 시각 (이전 가입자는 기존 회원으로 봅니다)
   updated_at     timestamptz not null default now(),
   constraint admin_config_single_row check (id = 1)
 );
 alter table public.admin_config add column if not exists show_demo boolean not null default true;
+alter table public.admin_config add column if not exists signup_approval_since timestamptz;
 insert into public.admin_config (id) values (1) on conflict (id) do nothing;
+/* 가입 승인 기준 시각 — 한 번만 기록되고 다시 실행해도 바뀌지 않습니다. */
+update public.admin_config set signup_approval_since = now()
+ where id = 1 and signup_approval_since is null;
 
 -- 관리자 PIN 바꾸기 예시 (원하는 값으로 바꿔 실행):
 --   update public.admin_config set admin_pin = '123456' where id = 1;
@@ -67,7 +72,7 @@ create table if not exists public.profiles (
   points          int  not null default 0,
   verified        boolean not null default false,         -- 직장인 인증(회사 메일·서류) 승인 여부
   height_verified boolean not null default false,          -- 키 인증(건강검진·신체검사서) 승인 여부 — 직장인 인증과 별개
-  status          text not null default 'active',         -- 'active' | 'suspended'
+  status          text not null default 'pending',        -- 'pending'(가입 대기) | 'active' | 'rejected' | 'suspended'
   avatar_data     text,                                   -- 사진(data URL) 배열 JSON 문자열
   phone_hash      text,
   hidden_company  boolean not null default true,           -- 같은 회사 숨기기
@@ -109,6 +114,9 @@ end $$;
 
 -- 키 인증 상태 열 — 직장인 인증(verified)과 완전히 분리해서 관리합니다(재실행 안전).
 alter table public.profiles add column if not exists height_verified boolean not null default false;
+
+comment on column public.profiles.status is
+  '''pending'' 가입 승인 대기 / ''active'' 입장 가능 / ''rejected'' 가입 반려 / ''suspended'' 이용 정지';
 
 create index if not exists profiles_status_idx on public.profiles (status, gender);
 
@@ -634,7 +642,11 @@ begin
   select coalesce(p.email,'') into v_email from public.profiles p where p.id = auth.uid();
   if (coalesce(c.admin_pin,'') <> '' and p_pin = c.admin_pin)
      or (coalesce(c.admin_email,'') <> '' and lower(v_email) = lower(c.admin_email)) then
-    update public.profiles set is_admin = true where id = auth.uid();
+    /* 운영자로 확인되면 가입 대기 상태여도 바로 입장할 수 있게 합니다. */
+    update public.profiles
+       set is_admin = true,
+           status = case when status = 'pending' then 'active' else status end
+     where id = auth.uid();
     insert into public.admin_logs (action, target_name, actor, detail)
     values ('관리자 콘솔 로그인', coalesce(v_email,''), 'admin', '');
     v_ok := true;
@@ -784,6 +796,61 @@ begin
   return jsonb_build_object('ok', true);
 end $$;
 
+-- 가입 대기 · 반려 목록 (이메일은 열 권한으로 막혀 있어 함수로만 전달합니다)
+create or replace function public.admin_signup_list() returns jsonb
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_admin() then raise exception '관리자만 볼 수 있어요.'; end if;
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+             'id',         p.id,
+             'nickname',   p.nickname,
+             'gender',     p.gender,
+             'birth_year', p.birth_year,
+             'age',        p.age,
+             'email',      p.email,
+             'job',        p.job,
+             'region',     p.region,
+             'status',     p.status,
+             'created_at', p.created_at
+           ) order by p.created_at asc)
+      from public.profiles p
+     where p.status in ('pending', 'rejected')
+       and coalesce(p.is_demo, false) = false
+  ), '[]'::jsonb);
+end $$;
+
+-- 가입 승인(active) / 가입 반려(rejected) — 사유는 admin_logs 에 기록됩니다.
+drop function if exists public.admin_review_signup(uuid, boolean);
+create or replace function public.admin_review_signup (
+  p_id uuid, p_approve boolean, p_note text default '')
+returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_row public.profiles; v_name text; v_status text;
+begin
+  if not public.is_admin() then raise exception '관리자만 처리할 수 있어요.'; end if;
+  if p_id is null then raise exception '회원을 찾을 수 없어요.'; end if;
+
+  select * into v_row from public.profiles where id = p_id for update;
+  if v_row.id is null then raise exception '회원을 찾을 수 없어요.'; end if;
+  if v_row.status not in ('pending', 'rejected') then
+    raise exception '가입 대기·반려 상태의 회원만 처리할 수 있어요.';
+  end if;
+
+  v_status := case when coalesce(p_approve, false) then 'active' else 'rejected' end;
+
+  update public.profiles set status = v_status where id = p_id;
+  v_name := coalesce(v_row.nickname, v_row.email, p_id::text);
+
+  insert into public.admin_logs (action, target_name, actor, detail)
+  values (case when v_status = 'active' then '가입 승인' else '가입 반려' end,
+          v_name, 'admin',
+          coalesce(nullif(btrim(coalesce(p_note, '')), ''),
+                   case when v_status = 'active' then '가입 승인 · 입장 가능' else '가입 반려' end));
+
+  return jsonb_build_object('ok', true, 'status', v_status);
+end $$;
+
 create or replace function public.admin_save_payment(
   p_bank_name text, p_bank_account text, p_account_holder text, p_kakaopay_id text)
 returns jsonb
@@ -815,20 +882,33 @@ begin
 end $$;
 
 -- ============================================================================
--- 11. 가입 시 프로필 자동 생성
+-- 11. 가입 시 프로필 자동 생성 — 새 회원은 'pending'(가입 대기), 운영자 이메일은 'active'
+--     (운영자 이메일은 admin_config 의 서버 설정값이라 가입자가 스스로 정할 수 없습니다)
 -- ============================================================================
 create or replace function public.handle_new_user() returns trigger
 language plpgsql security definer set search_path = public as $$
-declare v_year int := nullif(new.raw_user_meta_data->>'birth_year','')::int;
+declare
+  v_year   int  := nullif(new.raw_user_meta_data->>'birth_year','')::int;
+  v_status text := 'pending';
+  v_admin_email text;
 begin
-  insert into public.profiles (id, email, nickname, gender, birth_year, age)
+  select nullif(lower(btrim(coalesce(admin_email,''))), '')
+    into v_admin_email
+    from public.admin_config where id = 1;
+
+  if v_admin_email is not null and lower(coalesce(new.email,'')) = v_admin_email then
+    v_status := 'active';
+  end if;
+
+  insert into public.profiles (id, email, nickname, gender, birth_year, age, status)
   values (
     new.id,
     new.email,
     coalesce(nullif(new.raw_user_meta_data->>'nickname',''), split_part(coalesce(new.email,'회원'),'@',1)),
     nullif(new.raw_user_meta_data->>'gender',''),
     v_year,
-    case when v_year is not null then extract(year from now())::int - v_year else null end
+    case when v_year is not null then extract(year from now())::int - v_year else null end,
+    v_status
   )
   on conflict (id) do nothing;
   return new;
@@ -837,6 +917,29 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- 기존 회원 안전 장치 — 가입 승인 기능을 켜기 전에 가입한 계정은 한 명도 잠기지 않습니다.
+-- (신규 가입자는 auth.users.created_at 이 기준 시각보다 뒤라 여기에 걸리지 않습니다)
+update public.profiles p
+   set status = 'active'
+  from auth.users u, public.admin_config c
+ where u.id = p.id
+   and c.id = 1
+   and p.status = 'pending'
+   and u.created_at < coalesce(c.signup_approval_since, now());
+
+update public.profiles
+   set status = 'active'
+ where status = 'pending'
+   and is_admin = true;
+
+update public.profiles p
+   set status = 'active'
+  from public.admin_config c
+ where c.id = 1
+   and coalesce(c.admin_email,'') <> ''
+   and lower(coalesce(p.email,'')) = lower(c.admin_email)
+   and p.status = 'pending';
 
 -- ============================================================================
 -- 12. Row Level Security
@@ -968,7 +1071,8 @@ grant execute on function
   public.admin_claim(text), public.admin_review_verification(uuid, boolean, text, text, integer),
   public.admin_review_charge(uuid, boolean, text), public.admin_review_report(uuid, text),
   public.admin_restore_user(uuid), public.admin_save_payment(text, text, text, text),
-  public.admin_set_demo(boolean)
+  public.admin_set_demo(boolean),
+  public.admin_signup_list(), public.admin_review_signup(uuid, boolean, text)
   to authenticated;
 
 -- ============================================================================
