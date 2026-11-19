@@ -7048,20 +7048,15 @@ window.addEventListener('focus', () => {
 <script>
 /* QA 전용: 가입 승인 대기 화면을 390x844 에서 확인하기 위한 임시 주입 (배포 전 삭제) */
 (function(){
-  var tries = 0;
   var t = setInterval(function(){
-    tries++;
     try {
       if (typeof state !== 'undefined' && session && state.user && state.user.nickname) {
         state.accessStatus = 'pending';
         state.user.nickname = '김예지';
         wallet.email = 'yeji.sample@naver.com';
         applySignupGate(false);
-        document.title = 'QA-PENDING-OK';
-        clearInterval(t);
       }
-    } catch (e) { document.title = 'QA-ERR ' + e.message; clearInterval(t); }
-    if (tries > 60) { document.title = 'QA-TIMEOUT'; clearInterval(t); }
+    } catch (e) {}
   }, 300);
 })();
 </script>
