@@ -1225,7 +1225,7 @@ body{font-size:14px;line-height:1.5}
             <div class="profile-card__text">
               <p class="profile-card__name"><span id="meName">예지</span><span id="meAge">1991년(만35세)</span>
                 <span class="pill pill--mint" id="meVerifyBadge" hidden>직장인 인증</span>
-                <span class="pill pill--sage" id="meHeightBadge" hidden>키 인증</span>
+                <span class="pill pill--mint" id="meHeightBadge" hidden>키 인증</span>
               </p>
               <p class="profile-card__meta" id="meMeta">콘텐츠 기획 · 성수건축</p>
             </div>
@@ -5092,6 +5092,56 @@ function renderVerifyCard() {
           <p class="verify-card__sub">${sub}</p>
         </div>
         <div class="verify-status">${statusPill}</div>
+      </div>
+      <div class="verify-body">${body}</div>
+    </div>` + heightVerifyCardHTML();
+}
+
+/* ---------- 키 인증 (선택) 카드 ---------- */
+function heightVerifyCardHTML() {
+  const hv = state.heightVerification || { status: 'none' };
+  const pill = {
+    none: '<span class="pill pill--gray">선택</span>',
+    pending: '<span class="pill pill--yellow">심사 중</span>',
+    verified: '<span class="pill pill--mint">인증 완료</span>',
+    rejected: '<span class="pill pill--pink">반려</span>'
+  }[hv.status] || '<span class="pill pill--gray">선택</span>';
+
+  let body = '';
+  if (hv.status === 'none') {
+    body = `
+      <p>건강검진 결과표·신체검사서 사진으로 키를 인증하면<br>프로필에 <b>키 인증</b> 뱃지가 붙어요. (선택)</p>
+      <div class="verify-actions">
+        <button class="btn btn--ghost" data-action="open-height-verify">키 인증 사진 올리기</button>
+      </div>
+      <div class="verify-meta">주민번호 뒷자리·질병·주소 같은 민감정보는 꼭 가리고 <b>키가 보이는 부분만</b> 올려 주세요.<br>심사가 끝나면 화면에는 인증 뱃지만 보이고, 사진은 운영자 확인용으로만 쓰입니다.</div>`;
+  } else if (hv.status === 'pending') {
+    body = `
+      <div class="verify-meta" style="margin-top:11px">
+        <b>${esc(hv.docName || '키 인증 서류')}</b><br>
+        ${relTime(hv.submittedAt)} 접수 · 운영자 확인 중
+      </div>`;
+  } else if (hv.status === 'verified') {
+    body = `
+      <div class="verify-meta" style="margin-top:11px;background:rgba(255,255,255,.7)">
+        <b>키 인증</b> 확인 완료<br>${hv.decidedAt ? relTime(hv.decidedAt) + ' 승인' : ''} · 프로필에 키 인증 뱃지가 표시되고 있어요
+      </div>
+      <div class="verify-actions"><button class="btn btn--ghost btn--sm" data-action="open-height-verify">최신 서류로 다시 올리기</button></div>`;
+  } else {
+    body = `
+      <div class="reject-reason">반려 사유 · ${esc(hv.reason || '키가 보이는 사진인지 다시 확인해 주세요')}</div>
+      <div class="verify-actions"><button class="btn btn--ghost" data-action="open-height-verify">다시 올리기</button></div>`;
+  }
+
+  return `
+    <div class="verify-card">
+      <div class="verify-card__head">
+        <div class="verify-card__emoji"><svg class="icon"><use href="#i-leaf"/></svg></div>
+        <div>
+          <p class="verify-card__title">키 인증 <span style="font-weight:400;color:var(--ink-3);font-size:11.5px">(선택)</span></p>
+          <p class="verify-card__sub">건강검진 결과표 · 신체검사서</p>
+        </div>
+        <div class="verify-status">${pill}</div>
       </div>
       <div class="verify-body">${body}</div>
     </div>`;
