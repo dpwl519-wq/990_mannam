@@ -339,10 +339,10 @@ img{display:block;max-width:100%}
 
 /* 오늘의 인연 하루 두 장 표시 */
 .daily-progress{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 2px 9px;padding:0 2px}
-.daily-progress__text{font-size:11px;letter-spacing:.06em;color:var(--ink-3)}
-.daily-progress__text b{font-family:var(--font-title);font-size:12.5px;font-weight:700;color:var(--ink);letter-spacing:0}
+.daily-progress__text{font-size:11.5px;letter-spacing:.06em;color:var(--ink-2)}
+.daily-progress__text b{font-family:var(--font-title);font-size:13px;font-weight:700;color:var(--ink);letter-spacing:0}
 .daily-progress__bars{display:inline-flex;align-items:center;gap:5px}
-.daily-progress__bars i{display:block;width:20px;height:2px;border-radius:2px;background:var(--line-2);transition:background .3s var(--ease)}
+.daily-progress__bars i{display:block;width:22px;height:3px;border-radius:2px;background:rgba(46,40,37,.13);transition:background .3s var(--ease)}
 .daily-progress__bars i.is-on{background:var(--apricot-deep)}
 
 /* 상세 프로필 시트 — 섹션 구분 */
@@ -2409,9 +2409,9 @@ function partnerPriorityLine(p, opts) {
   const list = partnerTopPriorities(p);
   if (!list.length) return '';
   const o = opts || {};
-  const label = o.label || '이분이 중요하게 보는 순위';
+  const label = o.label === '' ? '' : (o.label || '이분이 중요하게 보는 순위');
   const cls = ['prio-line', o.className || ''].filter(Boolean).join(' ');
-  return `<div class="${cls}"><span class="prio-line__label">${esc(label)}</span>${
+  return `<div class="${cls}">${label ? `<span class="prio-line__label">${esc(label)}</span>` : ''}${
     list.map((x, i) => `<span class="prio">${i + 1}. ${esc(PRIORITY_LABEL[x.key] || x.label)}</span>`).join('')
   }</div>`;
 }
@@ -5018,7 +5018,7 @@ function cardHTML(p, depth) {
   if (p.verified === true) flags.push('직장인증');
   if (p.heightVerified === true) flags.push('키인증');
   if (p.isDemo) flags.push('데모 프로필');
-  const eyebrow = ['오늘의 인연'].concat(flags).join(' · ');
+  const eyebrow = flags.length ? flags.join(' · ') : '추천 인연';
   const meta = [p.job, p.area, p.mbti].filter((v) => v && v !== '—').map(esc).join(' · ');
   const cue = dailyCueText(p);
   const quiet = !matchReasons(p).length && priorityHitIndex(p) < 0;
@@ -5047,17 +5047,15 @@ function openProfileDetail(id) {
   const reasons = matchReasons(p);
   const y = yearOf(p.age, p.birthYear);
   const age = parseInt(p.age, 10);
-  const head = [y ? `${y}년생` : '', Number.isFinite(age) && age > 0 ? `만 ${age}세` : '', p.job, p.area].filter(Boolean).map(esc).join(' · ');
+  const head = [y ? `${y}년생` : '', Number.isFinite(age) && age > 0 ? `만 ${age}세` : ''].filter(Boolean).map(esc).join(' · ') || '나이 미기재';
   const info = [];
-  if (p.job) info.push(['직업', p.job]);
-  if (p.area) info.push(['지역', p.area]);
   if (p.height) info.push(['키', `${p.height}cm`]);
-  if (p.mbti && p.mbti !== '—') info.push(['MBTI', p.mbti]);
-  if (p.nonsmoker) info.push(['흡연', '비흡연']);
+  info.push(['흡연', p.nonsmoker ? '비흡연' : '미기재']);
   if (p.distKm !== null && p.distKm !== undefined) info.push(['거리', `${p.distKm}km`]);
   const front = dailyQueue()[0];
   openSheet(`<div class="sheet__grabber"></div><div class="sheet__head"><h2>${esc(p.name)}님의 프로필</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기">✕</button></div>
-    <p class="sheet__sub">${head} · ${esc(p.mbti || '—')}${p.isDemo ? ' · 데모 프로필' : ''}</p>
+    <p class="sheet__sub"><b>${head}</b></p>
+    <p class="sheet__sub">${esc(p.job || '')} · ${esc(p.area || '')} · ${esc(p.mbti || '—')}${p.isDemo ? ' · 데모 프로필' : ''}</p>
     ${verifyPillsHTML(p) ? `<p class="sheet__verify">${verifyPillsHTML(p)}</p>` : ''}
     ${p.isDemo
       ? `<div class="detail-gallery detail-gallery--demo"><figure>${demoPhotoMarkup(p)}<figcaption>사진은 비공개로 표시돼요</figcaption></figure></div>`
@@ -5068,7 +5066,7 @@ function openProfileDetail(id) {
       <div class="tag-row">${p.hobbies.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>
       <div class="tag-row">${p.values.map((t) => `<span class="tag tag--value">${esc(t)}</span>`).join('')}</div>
     </div>
-    ${partnerPriorityLine(p) ? `<div class="detail-sec"><h3>상대가 보는 순위</h3><div class="sheet-prio">${partnerPriorityLine(p, { label: '이분이 중요하게 보는 순위' })}</div></div>` : ''}
+    ${partnerPriorityLine(p) ? `<div class="detail-sec"><h3>상대가 보는 순위</h3><div class="sheet-prio">${partnerPriorityLine(p, { label: '' })}</div></div>` : ''}
     <div class="reason-list"><strong>추천 조건 ${reasons.length}개 일치</strong>${reasons.length ? `<ul>${reasons.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>` : '<p>현재 설정된 조건에서 확인된 일치 항목이 없습니다.</p>'}</div>
     <p class="demo-limits">추천 조건은 상대 프로필과 내가 고른 설정의 단순 비교입니다. 점수나 실제 관계 궁합을 보증하지 않아요.${p.isDemo ? ' 데모 프로필의 우선순위는 화면 확인을 위한 예시 값이에요.' : ''}</p>
     <button class="detail-report" data-action="report" data-id="${id}">이 프로필 신고하기</button>
