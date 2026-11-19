@@ -1292,8 +1292,6 @@ body{font-size:14px;line-height:1.5}
 
           <div class="photo-manage" id="photoManage"></div>
 
-          <div id="verifySection"></div>
-
           <form id="profileForm" autocomplete="off">
             <div class="form-card">
               <label class="field"><span>닉네임</span><input id="fNickname" maxlength="12" placeholder="닉네임"></label>
@@ -3873,7 +3871,6 @@ function renderProfileChrome() {
   $('#profilePoints').textContent = state.points;
   renderTasteCard();
   renderPhotoManage();
-  renderVerifyCard();
   renderSafety();
 }
 
@@ -3896,78 +3893,6 @@ function renderPhotoManage() {
       <input type="file" accept="image/*" data-photo-upload hidden>
     </label>`;
   }).join('');
-}
-
-function renderVerifyCard() {
-  const v = state.verification;
-  const wrap = $('#verifySection');
-  if (!wrap) return;
-
-  const statusPill = {
-    none: '<span class="pill pill--gray">미인증</span>',
-    pending: '<span class="pill pill--yellow">심사 중</span>',
-    verified: '<span class="pill pill--mint">인증 완료</span>',
-    rejected: '<span class="pill pill--pink">반려</span>'
-  }[v.status] || '<span class="pill pill--gray">미인증</span>';
-
-  let body = '';
-  if (v.status === 'none') {
-    body = `
-      <p>직장인 인증을 하면 프로필에 <b>인증 마크</b>가 붙고,<br>매칭 수락률이 올라갑니다.</p>
-      <div class="verify-actions">
-        <button class="btn btn--primary" data-action="open-email-verify">회사 메일로 인증</button>
-        <button class="btn btn--ghost" data-action="open-doc-verify">명함·재직증명서로 인증</button>
-      </div>
-      <div class="verify-meta">① 제출 방식 선택 → ② 이메일 코드 확인 또는 서류 제출 → ③ 운영자 심사 → ④ 승인·반려 안내<br>데모에서는 실제 메일을 보내지 않으며 운영자 심사 소요시간을 보장하지 않습니다.</div>`;
-  } else if (v.status === 'pending') {
-    const methodLabel = v.method === 'email' ? '회사 메일' : '명함·재직증명서';
-    body = `
-      <div class="steps">
-        <span class="on"><span class="dot">1</span> 제출</span><span>›</span>
-        <span class="on"><span class="dot">2</span> 심사 중</span><span>›</span>
-        <span><span class="dot">3</span> 완료</span>
-      </div>
-      <div class="verify-meta" style="margin-top:11px">
-        <b>${esc(v.company)}</b> · ${methodLabel}<br>
-        ${relTime(v.submittedAt)} 접수 · 단계 3/4 운영자 심사 대기 (데모)
-      </div>
-      <p style="margin-top:10px;font-size:9.5px;color:var(--ink-3)">승인되면 이 카드가 바로 인증 완료로 바뀝니다. 운영자 화면에서 처리 상황을 볼 수 있어요.</p>`;
-  } else if (v.status === 'verified') {
-    body = `
-      <div class="verify-meta" style="margin-top:11px;background:rgba(255,255,255,.7)">
-        <b>${esc(v.company)}</b> 재직 확인 완료<br>
-        ${v.decidedAt ? relTime(v.decidedAt) + ' 승인' : ''} · 프로필에 인증 마크가 표시되고 있어요
-      </div>`;
-  } else {
-    body = `
-      <div class="reject-reason">반려 사유 · ${esc(v.reason || '제출 서류를 다시 확인해 주세요')}</div>
-      <div class="verify-actions">
-        <button class="btn btn--primary" data-action="open-doc-verify">서류 다시 제출하기</button>
-        <button class="btn btn--ghost" data-action="open-email-verify">회사 메일로 인증</button>
-      </div>`;
-  }
-
-  const cls = { pending: 'is-pending', verified: 'is-verified', rejected: 'is-rejected' }[v.status] || '';
-  const iconId = { pending: 'i-clock', verified: 'i-badge', rejected: 'i-mail' }[v.status] || 'i-badge';
-  const sub = {
-    none: '인증하고 신뢰 마크를 받아보세요',
-    pending: '운영자가 확인하고 있어요',
-    verified: '4/4단계 승인 완료 (데모)',
-    rejected: '4/4단계 반려 · 재제출 가능'
-  }[v.status];
-
-  wrap.innerHTML = `
-    <div class="verify-card ${cls}">
-      <div class="verify-card__head">
-        <div class="verify-card__emoji"><svg class="icon"><use href="#${iconId}"/></svg></div>
-        <div>
-          <p class="verify-card__title">직장인 인증</p>
-          <p class="verify-card__sub">${sub}</p>
-        </div>
-        <div class="verify-status">${statusPill}</div>
-      </div>
-      <div class="verify-body">${body}</div>
-    </div>`;
 }
 
 function renderSafety() {
@@ -4252,7 +4177,7 @@ function switchView(name) {
   if (name === 'matches') renderMatches();
   if (name === 'chat') renderChatList();
   if (name === 'today') renderDeck();
-  if (name === 'profile') { renderVerifyCard(); renderSafety(); renderAccountSection(); }
+  if (name === 'profile') { renderSafety(); renderAccountSection(); }
 }
 
 function switchMode(mode) {
@@ -4626,19 +4551,22 @@ function renderNav() {
 function syncVerifiedFieldLocks() {
   const companyEl = $('#fCompanyView');
   if (companyEl) companyEl.value = state.user.company || '';
+  const companySt = state.verification ? state.verification.status : 'none';
   const companyBtn = $('#companyVerifyBtn');
   if (companyBtn) {
-    const st = state.verification ? state.verification.status : 'none';
-    companyBtn.textContent = st === 'verified' ? '인증 완료' : (st === 'pending' ? '심사 중' : '인증');
+    companyBtn.textContent = companySt === 'verified' ? '인증 완료'
+      : (companySt === 'pending' ? '심사 중' : (companySt === 'rejected' ? '다시 인증' : '인증'));
+    companyBtn.dataset.status = companySt;
   }
   const companyHint = $('#companyFieldHint');
   if (companyHint) {
-    const st = state.verification ? state.verification.status : 'none';
-    companyHint.innerHTML = st === 'verified'
+    companyHint.innerHTML = companySt === 'verified'
       ? '직장인 인증이 승인되어 회사명이 표시돼요. 직접 바꿀 수 없어요.'
-      : (st === 'pending'
+      : (companySt === 'pending'
         ? '제출한 직장인 인증을 운영자가 확인하고 있어요.'
-        : '회사명은 <b>회사 메일 · 재직증명서 인증</b>을 승인받으면 자동으로 입력돼요. 직접 입력할 수 없어요.');
+        : (companySt === 'rejected'
+          ? `직장인 인증이 반려되었어요${state.verification && state.verification.reason ? ` · ${esc(state.verification.reason)}` : ''}. <b>인증</b> 버튼으로 다시 제출할 수 있어요.`
+          : '회사명은 <b>회사 메일 · 재직증명서 인증</b>을 승인받으면 자동으로 입력돼요. 직접 입력할 수 없어요.'));
   }
 
   const heightEl = $('#fHeight');
@@ -4647,16 +4575,22 @@ function syncVerifiedFieldLocks() {
     heightEl.disabled = locked;
     if (locked && state.user.height) heightEl.value = state.user.height;
   }
+  const hv = (state.heightVerification || {}).status || 'none';
   const heightBtn = $('#heightVerifyBtn');
   if (heightBtn) {
-    const hv = (state.heightVerification || {}).status || 'none';
-    heightBtn.textContent = hv === 'verified' ? '인증 완료' : (hv === 'pending' ? '심사 중' : '인증');
+    heightBtn.textContent = hv === 'verified' ? '인증 완료'
+      : (hv === 'pending' ? '심사 중' : (hv === 'rejected' ? '다시 인증' : '인증'));
+    heightBtn.dataset.status = hv;
   }
   const heightHint = $('#heightFieldHint');
   if (heightHint) {
     heightHint.innerHTML = locked
-      ? '인증된 키는 바꿀 수 없어요. 다른 서류로 다시 인증하면 새 키로 바뀍니다.'
-      : '키 인증을 받으면 입력한 키가 잠기고 프로필에 <b>키 인증</b> 배지가 붙어요. (선택)';
+      ? '인증된 키는 바꿀 수 없어요. 다른 서류로 다시 인증하면 새 키로 바뀝니다.'
+      : (hv === 'pending'
+        ? '제출한 키 인증 서류를 운영자가 확인하고 있어요.'
+        : (hv === 'rejected'
+          ? `키 인증이 반려되었어요${state.heightVerification && state.heightVerification.reason ? ` · ${esc(state.heightVerification.reason)}` : ''}. <b>인증</b> 버튼으로 다시 올릴 수 있어요.`
+          : '키 인증을 받으면 입력한 키가 잠기고 프로필에 <b>키 인증</b> 배지가 붙어요. (선택)'));
   }
 }
 
@@ -4683,7 +4617,7 @@ function pickViewportAnchor(view) {
   if (!view) return null;
   const active = document.activeElement;
   if (active && active.id && view.contains(active)) return active;
-  const ids = ['verifySection', 'photoManage', 'fNickname', 'fAge', 'fJob', 'fCompanyView', 'fMbti',
+  const ids = ['photoManage', 'fNickname', 'fAge', 'fJob', 'fCompanyView', 'fMbti',
     'fHeight', 'fProvince', 'fDistrict', 'fBio', 'profileSaveBtn'];
   for (const id of ids) {
     const el = document.getElementById(id);
@@ -5691,129 +5625,6 @@ async function adminSetDemo(next) {
   } catch (err) { toast(errorText(err)); }
 }
 
-/* ---------- 직장인 인증 카드 ---------- */
-function renderVerifyCard() {
-  const v = state.verification;
-  const wrap = $('#verifySection');
-  if (!wrap) return;
-
-  const statusPill = {
-    none: '<span class="pill pill--gray">미인증</span>',
-    pending: '<span class="pill pill--yellow">심사 중</span>',
-    verified: '<span class="pill pill--mint">인증 완료</span>',
-    rejected: '<span class="pill pill--pink">반려</span>'
-  }[v.status] || '<span class="pill pill--gray">미인증</span>';
-
-  let body = '';
-  if (v.status === 'none') {
-    body = `
-      <p>직장인 인증을 하면 프로필에 <b>인증 마크</b>가 붙고,<br>매칭 수락률이 올라갑니다.</p>
-      <div class="verify-actions">
-        <button class="btn btn--primary" data-action="open-email-verify">회사 메일로 인증</button>
-        <button class="btn btn--ghost" data-action="open-doc-verify">명함·재직증명서로 인증</button>
-      </div>
-      <div class="verify-meta">① 제출 방식 선택 → ② 서류·메일 제출 → ③ 운영자 확인 → ④ 승인·반려 안내<br>회사 메일 인증은 지금 단계에서 화면 확인용이며 실제 메일 발송은 붙이지 않았습니다.</div>`;
-  } else if (v.status === 'pending') {
-    const methodLabel = v.method === 'email' ? '회사 메일' : '명함·재직증명서';
-    body = `
-      <div class="steps">
-        <span class="on"><span class="dot">1</span> 제출</span><span>›</span>
-        <span class="on"><span class="dot">2</span> 심사 중</span><span>›</span>
-        <span><span class="dot">3</span> 완료</span>
-      </div>
-      <div class="verify-meta" style="margin-top:11px">
-        <b>${esc(v.company)}</b> · ${methodLabel}<br>
-        ${relTime(v.submittedAt)} 접수 · 운영자 확인을 기다리고 있어요
-      </div>
-      <p style="margin-top:10px;font-size:9.5px;color:var(--ink-3)">승인되면 이 카드가 바로 인증 완료로 바뀝니다.</p>`;
-  } else if (v.status === 'verified') {
-    body = `
-      <div class="verify-meta" style="margin-top:11px;background:rgba(255,255,255,.7)">
-        <b>${esc(v.company || '직장')}</b> 재직 확인 완료<br>
-        ${v.decidedAt ? relTime(v.decidedAt) + ' 승인' : ''} · 프로필에 인증 마크가 표시되고 있어요
-      </div>`;
-  } else {
-    body = `
-      <div class="reject-reason">반려 사유 · ${esc(v.reason || '제출 서류를 다시 확인해 주세요')}</div>
-      <div class="verify-actions">
-        <button class="btn btn--primary" data-action="open-doc-verify">서류 다시 제출하기</button>
-        <button class="btn btn--ghost" data-action="open-email-verify">회사 메일로 인증</button>
-      </div>`;
-  }
-
-  const cls = { pending: 'is-pending', verified: 'is-verified', rejected: 'is-rejected' }[v.status] || '';
-  const iconId = { pending: 'i-clock', verified: 'i-badge', rejected: 'i-mail' }[v.status] || 'i-badge';
-  const sub = {
-    none: '인증하고 신뢰 마크를 받아보세요',
-    pending: '운영자가 확인하고 있어요',
-    verified: '승인 완료 · 프로필에 표시 중',
-    rejected: '반려 · 다시 제출할 수 있어요'
-  }[v.status];
-
-  wrap.innerHTML = `
-    <div class="verify-card ${cls}">
-      <div class="verify-card__head">
-        <div class="verify-card__emoji"><svg class="icon"><use href="#${iconId}"/></svg></div>
-        <div>
-          <p class="verify-card__title">직장인 인증</p>
-          <p class="verify-card__sub">${sub}</p>
-        </div>
-        <div class="verify-status">${statusPill}</div>
-      </div>
-      <div class="verify-body">${body}</div>
-    </div>` + heightVerifyCardHTML();
-}
-
-/* ---------- 키 인증 (선택) 카드 ---------- */
-function heightVerifyCardHTML() {
-  const hv = state.heightVerification || { status: 'none' };
-  const pill = {
-    none: '<span class="pill pill--gray">선택</span>',
-    pending: '<span class="pill pill--yellow">심사 중</span>',
-    verified: '<span class="pill pill--mint">인증 완료</span>',
-    rejected: '<span class="pill pill--pink">반려</span>'
-  }[hv.status] || '<span class="pill pill--gray">선택</span>';
-
-  let body = '';
-  if (hv.status === 'none') {
-    body = `
-      <p>건강검진 결과표·신체검사서 사진으로 키를 인증하면<br>프로필에 <b>키 인증</b> 뱃지가 붙어요. (선택)</p>
-      <div class="verify-actions">
-        <button class="btn btn--ghost" data-action="open-height-verify">키 인증 사진 올리기</button>
-      </div>
-      <div class="verify-meta">주민번호 뒷자리·질병·주소 같은 민감정보는 꼭 가리고 <b>키가 보이는 부분만</b> 올려 주세요.<br>심사가 끝나면 화면에는 인증 뱃지만 보이고, 사진은 운영자 확인용으로만 쓰입니다.</div>`;
-  } else if (hv.status === 'pending') {
-    body = `
-      <div class="verify-meta" style="margin-top:11px">
-        <b>${hv.claimedHeight ? `${hv.claimedHeight}cm` : '키 미기재'}</b> · ${esc(hv.docName || '키 인증 서류')}<br>
-        ${relTime(hv.submittedAt)} 접수 · 운영자 확인 중
-      </div>`;
-  } else if (hv.status === 'verified') {
-    body = `
-      <div class="verify-meta" style="margin-top:11px;background:rgba(255,255,255,.7)">
-        <b>키 인증</b> 확인 완료${hv.claimedHeight ? ` · ${hv.claimedHeight}cm` : ''}<br>${hv.decidedAt ? relTime(hv.decidedAt) + ' 승인' : ''} · 프로필 키가 잠기고 뱃지가 표시돼요
-      </div>
-      <div class="verify-actions"><button class="btn btn--ghost btn--sm" data-action="open-height-verify">최신 서류로 다시 올리기</button></div>`;
-  } else {
-    body = `
-      <div class="reject-reason">반려 사유 · ${esc(hv.reason || '키가 보이는 사진인지 다시 확인해 주세요')}</div>
-      <div class="verify-actions"><button class="btn btn--ghost" data-action="open-height-verify">다시 올리기</button></div>`;
-  }
-
-  return `
-    <div class="verify-card">
-      <div class="verify-card__head">
-        <div class="verify-card__emoji"><svg class="icon"><use href="#i-leaf"/></svg></div>
-        <div>
-          <p class="verify-card__title">키 인증 <span style="font-weight:400;color:var(--ink-3);font-size:11.5px">(선택)</span></p>
-          <p class="verify-card__sub">건강검진 결과표 · 신체검사서</p>
-        </div>
-        <div class="verify-status">${pill}</div>
-      </div>
-      <div class="verify-body">${body}</div>
-    </div>`;
-}
-
 /* ---------- 매칭권 이용내역 · 운영자 보조 ---------- */
 function showTicketHistory() {
   const labels = { initial: '초기 지급', use: '호감 전송', refund: '무응답 반환', topup: '입금 충전' };
@@ -5827,6 +5638,14 @@ function showTicketHistory() {
 /* ---------- 키 인증 (선택) 시트 ---------- */
 function openHeightSheet() {
   heightDraft = null;
+  const hv = state.heightVerification || {};
+  const hvNote = hv.status === 'pending'
+    ? `<p class="sheet__notice">이미 제출한 키 인증을 운영자가 확인하고 있어요${hv.submittedAt ? ` (${relTime(hv.submittedAt)} 접수)` : ''}.</p>`
+    : (hv.status === 'rejected'
+      ? `<p class="sheet__notice">반려 사유 · ${esc(hv.reason || '키가 보이는 사진인지 다시 확인해 주세요')}<br>아래에서 사진을 다시 올려 주세요.</p>`
+      : (hv.status === 'verified'
+        ? `<p class="sheet__notice"><b>키 인증</b> 확인 완료${hv.claimedHeight ? ` · ${hv.claimedHeight}cm` : ''}. 다른 서류로 다시 인증하면 새 키로 바뀝니다.</p>`
+        : ''));
   openSheet(`
     <div class="sheet__grabber"></div>
     <div class="sheet__head">
@@ -5834,6 +5653,7 @@ function openHeightSheet() {
       <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
     </div>
     <p class="sheet__sub">건강검진 결과표나 신체검사서에서 <b>키가 보이는 부분</b>만 사진으로 올려 주세요.<br>운영자가 확인하면 프로필에 <b>키 인증</b> 뱃지가 붙어요.</p>
+    ${hvNote}
     <p class="sheet__notice">주민번호 뒷자리·질병·주소 같은 민감정보는 꼭 가리고 올려 주세요. 심사가 끝나면 화면에는 인증 뱃지만 보여요.</p>
     <div class="sheet-field">
       <label for="heightClaim">인증할 키 (cm)</label>
@@ -5923,6 +5743,10 @@ function openWorkVerifySheet() {
   const v = state.verification || {};
   const pendingNote = v.status === 'pending'
     ? `<p class="sheet__notice">이미 제출한 인증을 운영자가 확인하고 있어요${v.submittedAt ? ` (${relTime(v.submittedAt)} 접수)` : ''}.</p>` : '';
+  const rejectedNote = v.status === 'rejected'
+    ? `<p class="sheet__notice">반려 사유 · ${esc(v.reason || '제출 서류를 다시 확인해 주세요')}<br>아래에서 방식을 골라 다시 제출할 수 있어요.</p>` : '';
+  const verifiedNote = v.status === 'verified'
+    ? `<p class="sheet__notice"><b>${esc(v.company || '직장')}</b> 재직 확인 완료 · 인증된 회사명은 바꿀 수 없어요. 다른 회사로 옮겼다면 새 서류로 다시 인증해 주세요.</p>` : '';
   openSheet(`
     <div class="sheet__grabber"></div>
     <div class="sheet__head">
@@ -5930,7 +5754,7 @@ function openWorkVerifySheet() {
       <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
     </div>
     <p class="sheet__sub">회사명은 이 인증으로만 입력돼요.<br>승인되면 프로필에 <b>회사명이 자동으로</b> 채워지고 <b>직장인 인증</b> 배지가 붙습니다.</p>
-    ${pendingNote}
+    ${pendingNote}${rejectedNote}${verifiedNote}
     <div class="verify-actions">
       <button class="btn btn--primary" data-action="open-email-verify">회사 메일로 인증</button>
       <button class="btn btn--ghost" data-action="open-doc-verify">명함·재직증명서로 인증</button>
