@@ -283,6 +283,24 @@ img{display:block;max-width:100%}
 }
 .card-name span{font-size:13.5px;font-weight:400;color:var(--ink-2);letter-spacing:.02em;flex:0 0 auto}
 .card-meta{margin-top:4px;font-size:11px;font-weight:400;color:var(--ink-2);letter-spacing:.02em}
+/* 사진 없는 오늘의 인연 카드 (사진은 카드를 눌렀을 때 상세에서) */
+.card--no-photo .card-head{padding-top:22px}
+.card--no-photo .card-body{padding-top:12px}
+.card--no-photo .swipe-label{top:18px}
+.card-pill-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.card-chip{
+  display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;
+  background:rgba(230,217,200,.42);color:#7A6640;font-size:9px;letter-spacing:.05em;
+}
+.card-chip b{font-family:var(--font-title);font-size:10.5px;font-weight:700;letter-spacing:0}
+.card-chip--demo{background:rgba(234,191,168,.34);color:var(--apricot-ink)}
+/* 매칭 우선순위 초기화 */
+.prio-reset{
+  display:inline-flex;align-items:center;margin-left:6px;padding:3px 9px;border-radius:999px;
+  background:#fff;box-shadow:0 0 0 1px var(--line-2);color:var(--ink-3);
+  font-size:10px;letter-spacing:.03em;vertical-align:middle;transition:color .2s,box-shadow .2s;
+}
+.prio-reset:active{color:var(--ink);box-shadow:0 0 0 1px var(--line-2),inset 0 0 0 99px rgba(46,40,37,.03)}
 
 .swipe-label{
   position:absolute;top:52px;padding:5px 13px;border-radius:999px;
@@ -1534,7 +1552,7 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
                   <div class="chips-select chips-select--dense" id="mbtiChips"></div>
                   <p class="sheet-hint">여러 개 고를 수 있어요 · 아무것도 고르지 않으면 <b>상관없음</b></p>
                 </div>
-                <div class="field field--col"><span>매칭 우선순위</span>
+                <div class="field field--col"><span>매칭 우선순위 <button type="button" class="prio-reset" data-action="reset-priorities" aria-label="매칭 우선순위 초기화">초기화</button></span>
                   <div class="chips-select" id="priorityChips"></div>
                   <p class="priority-summary" id="prioritySummary"></p>
                   <p class="sheet-hint">순서대로 최대 3개 · 궁합과 카드 순서가 바로 바뀝니다<br>외모는 사진을 올린 프로필, 나이는 위의 선호 나이, 키는 178cm 이상을 기준으로 해요.<br>수락·거절에서 고른 이유가 쌓이면 위 카드의 취향 순위가 스스로 바뀝니다.</p>
@@ -1543,11 +1561,11 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
                 <div class="field field--col"><span>선호 지역 (최대 3곳)</span>
                   <div class="region-pick">
                     <select id="prefProvince" class="field__select" aria-label="선호 지역 시도"></select>
-                    <select id="prefDistrict" class="field__select" aria-label="선호 지역 구시군"></select>
+                    <select id="prefDistrict" class="field__select" aria-label="선호 지역 구시군" data-allow-all="1"></select>
                     <button type="button" class="btn btn--sm btn--primary" data-action="add-pref-area">+ 추가</button>
                   </div>
                   <div class="chips-select" id="areaChips"></div>
-                  <p class="sheet-hint">최대 3곳 · 비워 두면 지역은 상관없어요</p>
+                  <p class="sheet-hint">최대 3곳 · 구·시·군에서 <b>전체</b>를 고르면 그 시·도 전체 · 비워 두면 지역은 상관없어요</p>
                 </div>
               </div>
             </section>
@@ -1898,10 +1916,12 @@ const PROVINCE_ALIAS = {
   '제주': '제주도'
 };
 
-/* "서울 성동구" · "성수동" · "서울 전역" → "서울시 성동구" · "서울시 전역" (이미 정리된 값은 그대로) */
+/* "서울 성동구" · "성수동" · "서울 전체" → "서울시 성동구" · "서울시 전체" (이미 정리된 값은 그대로) */
 function normalizeRegion(value) {
   let v = String(value || '').trim().replace(/\s+/g, ' ');
   if (!v) return '';
+  /* 예전에 쓰던 "…전역" 은 화면 라벨과 맞춰 "…전체" 로 */
+  v = v.replace(/\s*전역$/, ' 전체');
   if (Object.keys(REGION_MAP).some((p) => v === p || v.startsWith(p + ' '))) return v;
   if (REGION_ALIAS[v]) return REGION_ALIAS[v];
   for (const [alias, full] of Object.entries(REGION_ALIAS)) {
@@ -1913,8 +1933,9 @@ function normalizeRegion(value) {
   }
   return v;
 }
-/* "전역"처럼 구·시·군을 고르지 않은 선호 지역 */
-function isAnywhereArea(value) { return /전역$/.test(String(value || '').trim()); }
+/* 구·시·군을 고르지 않고 시·도 전체를 고른 선호 지역 ("서울시 전체"/예전 "서울시 전역") */
+const AREA_ALL = '전체';
+function isAnywhereArea(value) { return /(전역|전체)$/.test(String(value || '').trim()); }
 
 function regionDistricts(province) { return REGION_MAP[province] || REGION_MAP[PROVINCE_ALIAS[province]] || []; }
 function parseRegion(value) {
@@ -1922,6 +1943,7 @@ function parseRegion(value) {
   if (!v) return { province: '', district: '' };
   const prov = Object.keys(REGION_MAP).find((p) => v === p || v.startsWith(p + ' '));
   if (prov) {
+    if (isAnywhereArea(v)) return { province: prov, district: AREA_ALL };
     const rest = v.slice(prov.length).trim();
     const d = regionDistricts(prov).find((x) => rest === x || rest.startsWith(x)) || '';
     return { province: prov, district: d };
@@ -1940,19 +1962,21 @@ function buildProvinceOptions(provSel) {
     Object.keys(REGION_MAP).map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
   provSel.dataset.built = '1';
 }
-/* 구·시·군 목록은 시·도가 실제로 바뀔 때만 다시 만듭니다 */
+/* 구·시·군 목록은 시·도가 실제로 바뀔 때만 다시 만듭니다 (선호 지역은 맨 앞에 "전체") */
 function syncDistricts(provSel, distSel, keepValue) {
   if (!provSel || !distSel) return;
   const province = provSel.value || '';
   const list = regionDistricts(province);
-  const want = keepValue !== undefined ? keepValue : (list.includes(distSel.value) ? distSel.value : '');
+  const withAll = distSel.dataset.allowAll === '1';
+  const options = (withAll && list.length) ? [AREA_ALL, ...list] : list;
+  const want = keepValue !== undefined ? keepValue : (options.includes(distSel.value) ? distSel.value : '');
   if (distSel.dataset.province !== province) {
     distSel.innerHTML = '<option value="">구·시·군 선택</option>' +
-      list.map((d) => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
+      options.map((d) => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
     distSel.dataset.province = province;
   }
   distSel.disabled = !list.length;
-  if (list.includes(want) && distSel.value !== want) distSel.value = want;
+  if (options.includes(want) && distSel.value !== want) distSel.value = want;
 }
 function fillRegionSelects(provSel, distSel, value) {
   if (!provSel || !distSel) return;
@@ -2036,7 +2060,7 @@ function emptyState() {
     user: {
       nickname: '', age: null, job: '', company: '', bio: '', mbti: '', height: null,
       region: '', gender: null, birthYear: null, photos: [],
-      prefs: { ageMin: 30, ageMax: 40, mbti: [], priorities: [], areas: ['서울시 전역'], values: [] }
+      prefs: { ageMin: 30, ageMax: 40, mbti: [], priorities: [], areas: ['서울시 전체'], values: [] }
     },
     safety: { hideSameCompany: true, blockedNumbers: [], blockedProfiles: [] },
     tickets: 0, points: 0, verified: false, heightVerified: false,
@@ -2108,7 +2132,7 @@ function normalizePrefs(raw) {
     ageMax: Number(p.ageMax) || 40,
     mbti: (Array.isArray(p.mbti) ? p.mbti : []).filter((t) => MBTI_TYPES.includes(t)),
     priorities: (Array.isArray(p.priorities) ? p.priorities : []).filter((k) => PRIORITY_LABEL[k]).slice(0, 3),
-    areas: (Array.isArray(p.areas) && p.areas.length) ? p.areas.map(normalizeRegion) : ['서울시 전역'],
+    areas: (Array.isArray(p.areas) && p.areas.length) ? p.areas.map(normalizeRegion) : ['서울시 전체'],
     values: Array.isArray(p.values) ? p.values : [],
     taste: normalizeTaste(p.taste)
   };
@@ -4664,27 +4688,20 @@ function cardHTML(p, depth) {
   const badgeText = hit >= 0
     ? `내 ${hit + 1}순위 ${PRIORITY_LABEL[topKeys[hit]]} · 잘 맞는 인연`
     : '오늘의 추천';
-  const photoIndex = photoState[p.id] || 0;
-  const photo = photoAt(p, photoIndex);
-  const photoCount = (p.photos || []).length || 1;
   const reasons = matchReasons(p);
   return `
-    <article class="card" data-id="${p.id}" data-depth="${depth}" style="--depth:${depth}" aria-label="${esc(p.name)} 프로필">
-      <div class="card-photo">
-        <div class="card-art">${photoMarkup(p, photoIndex)}</div>
-        ${verifyStickersHTML(p)}
-        ${p.isDemo ? '<span class="card-sticker" style="top:46px;left:14px;color:#8C5B4A">데모 프로필</span>' : ''}
-        <span class="card-sticker card-sticker--score"><b>${reasons.length}개</b> 추천 조건 일치</span>
-        <div class="swipe-label swipe-label--like">호감</div>
-        <div class="swipe-label swipe-label--pass">건너뛰기</div>
-        <span class="photo-caption">${esc(p.isDemo ? p.area : (photo.caption || p.area))}</span>
-        ${photoCount > 1 && !p.isDemo ? `<div class="photo-dots">${Array.from({ length: photoCount }, (_, i) =>
-          `<button class="photo-dot${i === photoIndex ? ' is-on' : ''}" data-action="photo" data-id="${p.id}" data-index="${i}" aria-label="사진 ${i + 1}"></button>`).join('')}</div>` : ''}
-      </div>
+    <article class="card card--no-photo" data-id="${p.id}" data-depth="${depth}" style="--depth:${depth}" aria-label="${esc(p.name)} 프로필">
+      <div class="swipe-label swipe-label--like">호감</div>
+      <div class="swipe-label swipe-label--pass">건너뛰기</div>
       <div class="card-head">
         <span class="card-badge ${hit >= 0 ? 'card-badge--hit' : ''}">${badgeText}</span>
         <h2 class="card-name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span></h2>
         <p class="card-meta">${esc(p.job)} · ${esc(p.area)} · ${p.mbti}</p>
+        <div class="card-pill-row">
+          <span class="card-chip"><b>${reasons.length}개</b> 추천 조건 일치</span>
+          ${p.isDemo ? '<span class="card-chip card-chip--demo">데모 프로필</span>' : ''}
+          ${verifyPillsHTML(p)}
+        </div>
         ${partnerPriorityLine(p)}
       </div>
       <div class="card-body">
@@ -4696,7 +4713,7 @@ function cardHTML(p, depth) {
           ${p.values.map((t) => `<span class="tag tag--value">${esc(t)}</span>`).join('')}
         </div>
         <p class="match-reason"><span>${esc(reasons.slice(0, 2).join(' · ') || '설정한 조건과 일치하는 항목이 아직 없어요')}</span></p>
-        <button class="btn btn--ghost btn--sm" data-action="detail-profile" data-id="${p.id}" style="margin-top:9px">상세 프로필 · 추천 근거 보기</button>
+        <button class="btn btn--ghost btn--sm" data-action="detail-profile" data-id="${p.id}" style="margin-top:9px">상세 프로필 · 사진 보기</button>
         <button class="report-link" data-action="report" data-id="${p.id}">이 프로필 신고하기</button>
       </div>
     </article>`;
@@ -5086,17 +5103,28 @@ function togglePriority(key) {
   else current.push(key);
   persistPrefs({ priorities: current });
 }
+/* 매칭 우선순위 1·2·3순위를 한 번에 비웁니다 */
+function resetPriorities() {
+  if (!(state.user.prefs.priorities || []).length) { toast('이미 초기화됐어요. 아래에서 다시 고르면 돼요.'); return; }
+  persistPrefs({ priorities: [] });
+  toast('매칭 우선순위를 초기화했어요. 다시 고를 수 있어요.');
+}
 
-/* 선호 지역 — 최대 3곳, prefs.areas(priorities jsonb) 에 "서울 강남구" 형태로 저장 */
+/* 선호 지역 — 최대 3곳, prefs.areas(priorities jsonb) 에 "서울시 강남구" · "서울시 전체" 형태로 저장 */
 function addPrefArea() {
   const p = ($('#prefProvince')?.value || '').trim();
-  const d = ($('#prefDistrict')?.value || '').trim();
-  if (!p || !d) { toast('시·도와 구·시·군을 골라 주세요.'); return; }
+  if (!p) { toast('시·도를 골라 주세요.'); return; }
+  /* 구·시·군을 고르지 않았으면 그 시·도 전체로 저장 */
+  const d = ($('#prefDistrict')?.value || '').trim() || AREA_ALL;
   const value = `${p} ${d}`;
-  const cur = (state.user.prefs.areas || []).filter((a) => a && !isAnywhereArea(a));
-  if (cur.includes(value)) { toast('이미 추가한 지역이에요.'); return; }
-  if (cur.length >= 3) { toast('선호 지역은 3곳까지 고를 수 있어요.'); return; }
-  persistPrefs({ areas: [...cur, value] });
+  const areas = (state.user.prefs.areas || []).filter(Boolean);
+  if (areas.includes(value)) { toast('이미 추가한 지역이에요.'); return; }
+  /* 같은 시·도 안에서 전체 ↔ 구 선택이 겹치지 않게 갈아 끼웁니다 (구는 여러 곳 골라도 됨) */
+  const sameProvince = (a) => parseRegion(a).province === p;
+  const dropAll = d === AREA_ALL;
+  const next = areas.filter((a) => !(sameProvince(a) && (dropAll || isAnywhereArea(a))));
+  if (next.length >= 3) { toast('선호 지역은 3곳까지 고를 수 있어요.'); return; }
+  persistPrefs({ areas: [...next, value] });
   const dist = $('#prefDistrict'); if (dist) dist.value = '';
   toast(`${value} 추가했어요.`);
 }
@@ -6435,6 +6463,7 @@ document.addEventListener('click', (e) => {
     case 'toggle-value': togglePref('values', el.dataset.value); break;
     case 'toggle-mbti': toggleMbti(el.dataset.value); break;
     case 'toggle-priority': togglePriority(el.dataset.value); break;
+    case 'reset-priorities': resetPriorities(); break;
     case 'toggle-demo-global': adminSetDemo(); break;
     /* 안전 설정 */
     case 'toggle-same-company': toggleSameCompany(); break;
