@@ -1003,6 +1003,17 @@ body{font-size:14px;line-height:1.5}
 .field--col{padding:12px 0}
 .field--col > span{margin-bottom:8px}
 .field__empty{display:inline-block;padding:4px 0;font-size:11.5px;color:var(--ink-3)}
+/* 인증 버튼이 붙는 필드 (회사 · 키) */
+.field__with-btn{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:1 1 auto;min-width:0}
+.field__with-btn input{flex:1 1 auto;min-width:0;max-width:130px}
+.field__with-btn .btn{flex:0 0 auto;height:30px;font-size:11px;padding:0 11px;display:inline-flex;align-items:center}
+.field__hint{margin:-4px 0 10px;font-size:11px;line-height:1.7;color:var(--ink-3)}
+.field__hint b{font-weight:500;color:var(--ink-2)}
+.field input:disabled{color:var(--ink-3);-webkit-text-fill-color:var(--ink-3);opacity:1}
+/* 운영자 승인 화면 — 회사명·키 확인 입력 */
+.sub-card__confirm{display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 10px;border-radius:9px;background:rgba(46,40,37,.03)}
+.sub-card__confirm span{flex:0 0 auto;font-size:11px;color:var(--ink-3)}
+.sub-card__confirm input{flex:1 1 auto;min-width:0;font-size:12px;text-align:right}
 .toggle-row{padding:12px 0;gap:10px}
 .toggle-title{font-size:12.5px;line-height:1.4}
 .toggle-desc{font-size:11px;line-height:1.5;margin-top:3px}
@@ -1222,7 +1233,6 @@ body{font-size:14px;line-height:1.5}
               <p class="eyebrow">나의 소개</p>
               <h1 class="view-title">내 프로필</h1>
             </div>
-            <button class="text-btn" data-action="save-profile">저장</button>
           </header>
           <svg class="wave" viewBox="0 0 320 8" preserveAspectRatio="none" aria-hidden="true"><path d="M0 4 q20 -4 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
 
@@ -1248,7 +1258,14 @@ body{font-size:14px;line-height:1.5}
               <label class="field"><span>닉네임</span><input id="fNickname" maxlength="12" placeholder="닉네임"></label>
               <label class="field"><span>나이</span><input id="fAge" type="number" min="19" max="99" inputmode="numeric" placeholder="나이"></label>
               <label class="field"><span>직업</span><input id="fJob" maxlength="20" placeholder="직업"></label>
-              <label class="field"><span>회사</span><input id="fCompany" maxlength="24" placeholder="회사명"></label>
+              <div class="field">
+                <span>회사</span>
+                <div class="field__with-btn">
+                  <input id="fCompanyView" readonly aria-label="회사 (직장인 인증 시 자동 입력)" placeholder="직장인 인증 완료 시 자동 입력">
+                  <button type="button" class="btn btn--ghost btn--sm" data-action="open-work-verify" id="companyVerifyBtn">인증</button>
+                </div>
+              </div>
+              <p class="field__hint" id="companyFieldHint">회사명은 <b>회사 메일 · 재직증명서 인증</b>을 승인받으면 자동으로 입력돼요. 직접 입력할 수 없어요.</p>
               <label class="field"><span>MBTI</span>
                 <select id="fMbti" class="field__select">
                   <option value="">선택 안 함</option>
@@ -1270,7 +1287,13 @@ body{font-size:14px;line-height:1.5}
                   <option value="ENTJ">ENTJ</option>
                 </select>
               </label>
-              <label class="field"><span>키</span><input id="fHeight" type="number" min="140" max="210" inputmode="numeric" placeholder="cm"></label>
+              <div class="field"><span>키</span>
+                <div class="field__with-btn">
+                  <input id="fHeight" type="number" min="140" max="210" inputmode="numeric" placeholder="cm">
+                  <button type="button" class="btn btn--ghost btn--sm" data-action="open-height-verify" id="heightVerifyBtn">인증</button>
+                </div>
+              </div>
+              <p class="field__hint" id="heightFieldHint">키 인증을 받으면 입력한 키가 잠기고 프로필에 <b>키 인증</b> 배지가 붙어요. (선택)</p>
               <label class="field"><span>활동 지역 (시·도)</span>
                 <select id="fProvince" class="field__select" aria-label="활동 지역 시도"></select>
               </label>
@@ -1281,6 +1304,8 @@ body{font-size:14px;line-height:1.5}
                 <textarea id="fBio" rows="3" maxlength="120" placeholder="어떤 사람인지 소개해 주세요"></textarea>
               </label>
             </div>
+            <button type="submit" class="btn btn--primary btn--block" id="profileSaveBtn" style="margin-top:14px">프로필 저장</button>
+            <p class="footnote" style="margin-top:10px;text-align:center">사진 1장과 필수 항목을 채우면 다른 화면이 열려요<br>회사와 인증된 키는 인증 승인 후 자동으로 채워져요</p>
           </form>
 
           <section class="section" style="margin-top:24px">
@@ -1339,8 +1364,6 @@ body{font-size:14px;line-height:1.5}
                 </div>
                 <div class="contact-sync">
                   <button type="button" class="text-btn text-btn--sm" data-action="pick-contacts" id="contactPickBtn">연락처에서 불러오기</button>
-                  <button type="button" class="text-btn text-btn--sm" data-action="vcf-upload">연락처 파일(.vcf)</button>
-                  <input type="file" id="vcfInput" accept=".vcf,text/vcard,text/x-vcard,text/plain" hidden>
                 </div>
                 <p class="sheet-hint">번호는 <b>마스킹과 해시</b>로만 저장하고 원본은 남기지 않아요.</p>
                 <p class="sheet-hint" id="contactSyncHint"></p>
@@ -1491,6 +1514,17 @@ body{font-size:14px;line-height:1.5}
               <button class="btn btn--primary btn--block" data-action="save-payment" style="margin-top:10px">저장</button>
             </div>
             <div>
+              <div class="form-card" style="margin-bottom:12px">
+                <p class="section__title" style="font-family:var(--font-title);font-size:16px;margin-bottom:6px">데모 회원 노출</p>
+                <div class="toggle-row">
+                  <div class="toggle-row__text">
+                    <p class="toggle-title">데모 회원 보이기</p>
+                    <p class="toggle-desc">끄면 <b>모든 회원</b>의 오늘의 인연·매칭·대화에서 예시 프로필이 사라져요</p>
+                  </div>
+                  <button class="switch" id="demoGlobalSwitch" data-action="toggle-demo-global" aria-pressed="true" aria-label="데모 회원 보이기"><span></span></button>
+                </div>
+                <p class="sheet-hint" id="demoGlobalState" style="margin-top:8px">현재 · 모든 회원 화면에 데모 회원이 <b>보입니다</b></p>
+              </div>
               <p class="admin-tip"><b>상품</b> — 첫 체험 1장 990원 · 3장 묶음 2,500원 · 5장 묶음 4,900원. 금액은 서버 함수에서 검증되므로 앱을 고쳐도 임의 금액을 넣을 수 없어요.</p>
             </div>
           </div>
@@ -1650,38 +1684,63 @@ const PACKS = [
   { n: 5, price: 4900, name: '5장 묶음',   tag: '꿀혜택' }
 ];
 
-const AREA_OPTIONS = ['성수·성동', '망원·마포', '판교·분당', '일산', '서울 전역'];
 
-/* 시·도 → 구·시·군 (지역 콤보박스). 저장은 "서울 강남구" 한 줄 */
+/* 시·도 → 구·시·군 (지역 콤보박스). 저장은 "서울시 강남구" 한 줄 */
 const REGION_MAP = {
-  '서울': ['종로구', '중구', '용산구', '성동구', '광진구', '동대문구', '중랑구', '성북구', '강북구', '도봉구', '노원구', '은평구', '서대문구', '마포구', '양천구', '강서구', '구로구', '금천구', '영등포구', '동작구', '관악구', '서초구', '강남구', '송파구', '강동구'],
-  '경기': ['수원시', '성남시', '고양시', '용인시', '부천시', '안산시', '안양시', '남양주시', '화성시', '평택시', '의정부시', '시흥시', '파주시', '광주시', '김포시', '이천시', '양주시', '오산시', '구리시', '안성시', '포천시', '의왕시', '하남시', '여주시', '동두천시', '과천시', '광명시', '군포시', '양평군', '가평군', '연천군'],
-  '인천': ['중구', '동구', '미추홀구', '연수구', '남동구', '부평구', '계양구', '서구', '강화군', '옹진군'],
-  '부산': ['중구', '서구', '동구', '영도구', '부산진구', '동래구', '남구', '북구', '해운대구', '사하구', '금정구', '강서구', '연제구', '수영구', '사상구', '기장군'],
-  '대구': ['중구', '동구', '서구', '남구', '북구', '수성구', '달서구', '달성군', '군위군'],
-  '대전': ['동구', '중구', '서구', '유성구', '대덕구'],
-  '광주': ['동구', '서구', '남구', '북구', '광산구'],
-  '울산': ['중구', '남구', '동구', '북구', '울주군'],
-  '세종': ['세종시'],
-  '강원': ['춘천시', '원주시', '강릉시', '동해시', '태백시', '속초시', '삼척시', '홍천군', '횡성군', '영월군', '평창군', '정선군', '철원군', '화천군', '양구군', '인제군', '고성군', '양양군'],
-  '충북': ['청주시', '충주시', '제천시', '보은군', '옥천군', '영동군', '증평군', '진천군', '괴산군', '음성군', '단양군'],
-  '충남': ['천안시', '공주시', '보령시', '아산시', '서산시', '논산시', '계룡시', '당진시', '금산군', '부여군', '서천군', '청양군', '홍성군', '예산군', '태안군'],
-  '전북': ['전주시', '군산시', '익산시', '정읍시', '남원시', '김제시', '완주군', '진안군', '무주군', '장수군', '임실군', '순창군', '고창군', '부안군'],
-  '전남': ['목포시', '여수시', '순천시', '나주시', '광양시', '담양군', '곡성군', '구례군', '고흥군', '보성군', '화순군', '장흥군', '강진군', '해남군', '영암군', '무안군', '함평군', '영광군', '장성군', '완도군', '진도군', '신안군'],
-  '경북': ['포항시', '경주시', '김천시', '안동시', '구미시', '영주시', '영천시', '상주시', '문경시', '경산시', '의성군', '청송군', '영양군', '영덕군', '청도군', '고령군', '성주군', '칠곡군', '예천군', '봉화군', '울진군', '울릉군'],
-  '경남': ['창원시', '진주시', '통영시', '사천시', '김해시', '밀양시', '거제시', '양산시', '의령군', '함안군', '창녕군', '고성군', '남해군', '하동군', '산청군', '함양군', '거창군', '합천군'],
-  '제주': ['제주시', '서귀포시']
+  '서울시': ['종로구', '중구', '용산구', '성동구', '광진구', '동대문구', '중랑구', '성북구', '강북구', '도봉구', '노원구', '은평구', '서대문구', '마포구', '양천구', '강서구', '구로구', '금천구', '영등포구', '동작구', '관악구', '서초구', '강남구', '송파구', '강동구'],
+  '경기도': ['수원시', '성남시', '고양시', '용인시', '부천시', '안산시', '안양시', '남양주시', '화성시', '평택시', '의정부시', '시흥시', '파주시', '광주시', '김포시', '이천시', '양주시', '오산시', '구리시', '안성시', '포천시', '의왕시', '하남시', '여주시', '동두천시', '과천시', '광명시', '군포시', '양평군', '가평군', '연천군'],
+  '인천시': ['중구', '동구', '미추홀구', '연수구', '남동구', '부평구', '계양구', '서구', '강화군', '옹진군'],
+  '부산시': ['중구', '서구', '동구', '영도구', '부산진구', '동래구', '남구', '북구', '해운대구', '사하구', '금정구', '강서구', '연제구', '수영구', '사상구', '기장군'],
+  '대구시': ['중구', '동구', '서구', '남구', '북구', '수성구', '달서구', '달성군', '군위군'],
+  '대전시': ['동구', '중구', '서구', '유성구', '대덕구'],
+  '광주시': ['동구', '서구', '남구', '북구', '광산구'],
+  '울산시': ['중구', '남구', '동구', '북구', '울주군'],
+  '세종시': ['세종시'],
+  '강원도': ['춘천시', '원주시', '강릉시', '동해시', '태백시', '속초시', '삼척시', '홍천군', '횡성군', '영월군', '평창군', '정선군', '철원군', '화천군', '양구군', '인제군', '고성군', '양양군'],
+  '충청북도': ['청주시', '충주시', '제천시', '보은군', '옥천군', '영동군', '증평군', '진천군', '괴산군', '음성군', '단양군'],
+  '충청남도': ['천안시', '공주시', '보령시', '아산시', '서산시', '논산시', '계룡시', '당진시', '금산군', '부여군', '서천군', '청양군', '홍성군', '예산군', '태안군'],
+  '전라북도': ['전주시', '군산시', '익산시', '정읍시', '남원시', '김제시', '완주군', '진안군', '무주군', '장수군', '임실군', '순창군', '고창군', '부안군'],
+  '전라남도': ['목포시', '여수시', '순천시', '나주시', '광양시', '담양군', '곡성군', '구례군', '고흥군', '보성군', '화순군', '장흥군', '강진군', '해남군', '영암군', '무안군', '함평군', '영광군', '장성군', '완도군', '진도군', '신안군'],
+  '경상북도': ['포항시', '경주시', '김천시', '안동시', '구미시', '영주시', '영천시', '상주시', '문경시', '경산시', '의성군', '청송군', '영양군', '영덕군', '청도군', '고령군', '성주군', '칠곡군', '예천군', '봉화군', '울진군', '울릉군'],
+  '경상남도': ['창원시', '진주시', '통영시', '사천시', '김해시', '밀양시', '거제시', '양산시', '의령군', '함안군', '창녕군', '고성군', '남해군', '하동군', '산청군', '함양군', '거창군', '합천군'],
+  '제주도': ['제주시', '서귀포시']
 };
 /* 기존에 쓰던 동네 이름을 가까운 구로 임의 연결 */
 const REGION_ALIAS = {
-  '성수': '서울 성동구', '성수동': '서울 성동구', '성동': '서울 성동구',
-  '망원': '서울 마포구', '망원동': '서울 마포구', '연남': '서울 마포구', '연남동': '서울 마포구', '마포': '서울 마포구',
-  '판교': '경기 성남시', '분당': '경기 성남시', '일산': '경기 고양시', '서울 전역': ''
+  '성수': '서울시 성동구', '성수동': '서울시 성동구', '성동': '서울시 성동구',
+  '망원': '서울시 마포구', '망원동': '서울시 마포구', '연남': '서울시 마포구', '연남동': '서울시 마포구', '마포': '서울시 마포구',
+  '판교': '경기도 성남시', '분당': '경기도 성남시', '일산': '경기도 고양시'
+};
+/* 시·도 짧은 이름 → 정식 표기 */
+const PROVINCE_ALIAS = {
+  '서울': '서울시', '부산': '부산시', '대구': '대구시', '인천': '인천시',
+  '광주': '광주시', '대전': '대전시', '울산': '울산시', '세종': '세종시',
+  '경기': '경기도', '강원': '강원도', '충북': '충청북도', '충남': '충청남도',
+  '전북': '전라북도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도',
+  '제주': '제주도'
 };
 
-function regionDistricts(province) { return REGION_MAP[province] || []; }
+/* "서울 성동구" · "성수동" · "서울 전역" → "서울시 성동구" · "서울시 전역" (이미 정리된 값은 그대로) */
+function normalizeRegion(value) {
+  let v = String(value || '').trim().replace(/\s+/g, ' ');
+  if (!v) return '';
+  if (Object.keys(REGION_MAP).some((p) => v === p || v.startsWith(p + ' '))) return v;
+  if (REGION_ALIAS[v]) return REGION_ALIAS[v];
+  for (const [alias, full] of Object.entries(REGION_ALIAS)) {
+    if (v === alias || v.includes(alias)) return full;
+  }
+  for (const [short, full] of Object.entries(PROVINCE_ALIAS)) {
+    if (v === short) return full;
+    if (v.startsWith(short + ' ')) return full + v.slice(short.length);
+  }
+  return v;
+}
+/* "전역"처럼 구·시·군을 고르지 않은 선호 지역 */
+function isAnywhereArea(value) { return /전역$/.test(String(value || '').trim()); }
+
+function regionDistricts(province) { return REGION_MAP[province] || REGION_MAP[PROVINCE_ALIAS[province]] || []; }
 function parseRegion(value) {
-  const v = String(value || '').trim();
+  const v = normalizeRegion(value);
   if (!v) return { province: '', district: '' };
   const prov = Object.keys(REGION_MAP).find((p) => v === p || v.startsWith(p + ' '));
   if (prov) {
@@ -1693,28 +1752,36 @@ function parseRegion(value) {
     const hit = list.find((d) => v.includes(d.replace(/(구|시|군)$/, '')));
     if (hit) return { province: p, district: hit };
   }
-  for (const [alias, full] of Object.entries(REGION_ALIAS)) {
-    if (!full || !v.includes(alias)) continue;
-    const [p, d] = full.split(' ');
-    return { province: p, district: d };
-  }
   return { province: '', district: '' };
+}
+/* 시·도 목록은 처음 한 번만 만듭니다 — 다시 그리면서 포커스·스크롤이 튀지 않도록 */
+function buildProvinceOptions(provSel) {
+  if (!provSel) return;
+  if (provSel.dataset.built === '1' && provSel.options.length) return;
+  provSel.innerHTML = '<option value="">시·도 선택</option>' +
+    Object.keys(REGION_MAP).map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  provSel.dataset.built = '1';
+}
+/* 구·시·군 목록은 시·도가 실제로 바뀔 때만 다시 만듭니다 */
+function syncDistricts(provSel, distSel, keepValue) {
+  if (!provSel || !distSel) return;
+  const province = provSel.value || '';
+  const list = regionDistricts(province);
+  const want = keepValue !== undefined ? keepValue : (list.includes(distSel.value) ? distSel.value : '');
+  if (distSel.dataset.province !== province) {
+    distSel.innerHTML = '<option value="">구·시·군 선택</option>' +
+      list.map((d) => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
+    distSel.dataset.province = province;
+  }
+  distSel.disabled = !list.length;
+  if (list.includes(want) && distSel.value !== want) distSel.value = want;
 }
 function fillRegionSelects(provSel, distSel, value) {
   if (!provSel || !distSel) return;
   const { province, district } = parseRegion(value);
-  provSel.innerHTML = '<option value="">시·도 선택</option>' +
-    Object.keys(REGION_MAP).map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
-  provSel.value = province || '';
-  syncDistricts(provSel, distSel);
-  if (district) distSel.value = district;
-}
-function syncDistricts(provSel, distSel) {
-  if (!provSel || !distSel) return;
-  const list = regionDistricts(provSel.value);
-  distSel.innerHTML = '<option value="">구·시·군 선택</option>' +
-    list.map((d) => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
-  distSel.disabled = !list.length;
+  buildProvinceOptions(provSel);
+  if (provSel.value !== (province || '')) provSel.value = province || '';
+  syncDistricts(provSel, distSel, district);
 }
 const VALUE_OPTIONS = ['다정한 대화', '진솔함', '유머 코드', '안정적인 생활', '같은 취미'];
 const MBTI_TYPES = ['ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
@@ -1753,7 +1820,6 @@ const ART_KEY_BY_ID = {
   [DEMO_IDS.woojin]: 'woojin', [DEMO_IDS.jihoo]: 'jihoo', [DEMO_IDS.yuna]: 'yuna'
 };
 const FALLBACK_MOTIFS = ['letter', 'coffee', 'book', 'plant', 'tulip', 'glass', 'moon', 'arch'];
-const UI_KEY = '990yeonin/ui/v1';
 
 /* ==========================================================================
    1. 상태 · 데이터 매핑
@@ -1764,12 +1830,13 @@ function emptyState() {
     user: {
       nickname: '', age: null, job: '', company: '', bio: '', mbti: '', height: null,
       region: '', gender: null, birthYear: null, photos: [],
-      prefs: { ageMin: 30, ageMax: 40, mbti: [], priorities: [], areas: ['서울 전역'], values: [] }
+      prefs: { ageMin: 30, ageMax: 40, mbti: [], priorities: [], areas: ['서울시 전역'], values: [] }
     },
     safety: { hideSameCompany: true, blockedNumbers: [], blockedProfiles: [] },
     tickets: 0, points: 0, verified: false, heightVerified: false,
     deck: [], lastPassed: null, passed: [], verifiedIds: [], heightVerifiedIds: [],
     ticketLedger: [], endedChats: [], chatRead: {}, auditLog: [], meetings: {},
+    showDemo: true,
     sent: [], received: [], matches: [], chats: {}, unread: {},
     verification: { status: 'none', method: null, company: '', email: '', docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: '' },
     heightVerification: { status: 'none', docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: '' },
@@ -1789,7 +1856,6 @@ let isAdmin = false;
 let afterLoginDone = false;
 let polling = null;
 let payInfo = null;
-let uiPrefs = { showDemo: true };
 
 /* ---------- 작은 유틸 ---------- */
 function parseJsonArray(v) {
@@ -1836,7 +1902,7 @@ function normalizePrefs(raw) {
     ageMax: Number(p.ageMax) || 40,
     mbti: (Array.isArray(p.mbti) ? p.mbti : []).filter((t) => MBTI_TYPES.includes(t)),
     priorities: (Array.isArray(p.priorities) ? p.priorities : []).filter((k) => PRIORITY_LABEL[k]).slice(0, 3),
-    areas: (Array.isArray(p.areas) && p.areas.length) ? p.areas : ['서울 전역'],
+    areas: (Array.isArray(p.areas) && p.areas.length) ? p.areas.map(normalizeRegion) : ['서울시 전역'],
     values: Array.isArray(p.values) ? p.values : []
   };
   if (prefs.ageMin > prefs.ageMax) { const t = prefs.ageMin; prefs.ageMin = prefs.ageMax; prefs.ageMax = t; }
@@ -1863,7 +1929,7 @@ function toProfile(r) {
     job: r.job || '직장인',
     company: r.company || '',
     phone: '',
-    area: r.region || '서울',
+    area: normalizeRegion(r.region) || '서울시',
     mbti: r.mbti || '—',
     jobStable: !!r.job_stable,
     distKm: r.dist_km === null || r.dist_km === undefined ? null : Number(r.dist_km),
@@ -2296,6 +2362,21 @@ async function selectProfiles() {
   return r;
 }
 
+const VERIFICATION_COLS = 'id,user_id,method,company,company_email,doc_name,doc_preview,status,reviewed_at,note,created_at,claimed_height';
+const VERIFICATION_COLS_BASE = 'id,user_id,method,company,company_email,doc_name,doc_preview,status,reviewed_at,note,created_at';
+let claimedHeightColAvailable = true;
+async function selectVerifications() {
+  let r = await sb.from('verifications')
+    .select(claimedHeightColAvailable ? VERIFICATION_COLS : VERIFICATION_COLS_BASE)
+    .order('created_at', { ascending: false }).limit(200);
+  if (r.error && claimedHeightColAvailable) {
+    const retry = await sb.from('verifications').select(VERIFICATION_COLS_BASE)
+      .order('created_at', { ascending: false }).limit(200);
+    if (!retry.error) { claimedHeightColAvailable = false; return retry; }
+  }
+  return r;
+}
+
 async function refreshAll() {
   if (!sb || !session) return;
   const res = await Promise.all([
@@ -2303,7 +2384,7 @@ async function refreshAll() {
     sb.rpc('my_state'),
     sb.from('likes_matches').select('id,from_user,to_user,status,matched_at,expires_at,met_confirmed_by_from,met_confirmed_by_to,planned_at,created_at'),
     sb.from('messages').select('id,match_id,sender_id,body,read_at,created_at').order('created_at', { ascending: true }).limit(1000),
-    sb.from('verifications').select('id,user_id,method,company,company_email,doc_name,doc_preview,status,reviewed_at,note,created_at').order('created_at', { ascending: false }).limit(200),
+    selectVerifications(),
     sb.from('reviews').select('id,match_id,author_id,rating,content,points_awarded,created_at'),
     sb.from('charge_requests').select('id,user_id,package_name,tickets,amount_krw,depositor_name,status,note,reviewed_at,created_at').order('created_at', { ascending: false }).limit(200),
     sb.from('reports').select('id,reporter_id,target_user_id,reason,detail,status,reviewed_at,created_at').order('created_at', { ascending: false }).limit(200),
@@ -2353,6 +2434,8 @@ function applyData(d) {
   state.points = Number(wallet.points ?? 0);
   state.verified = wallet.verified === true;
   state.heightVerified = wallet.height_verified === true;
+  /* 데모 회원 노출은 운영자 콘솔의 전역 설정입니다 (show_demo) */
+  state.showDemo = wallet.show_demo !== false;
 
   state.safety = {
     hideSameCompany: wallet.hidden_company !== false,
@@ -2435,11 +2518,12 @@ function applyData(d) {
   state.heightVerification = myHeight ? {
     status: state.heightVerified ? 'verified' : (myHeight.status === 'rejected' ? 'rejected' : 'pending'),
     docName: myHeight.doc_name || '',
+    claimedHeight: myHeight.claimed_height === null || myHeight.claimed_height === undefined ? null : Number(myHeight.claimed_height),
     docPreview: myHeight.doc_preview || '',
     submittedAt: myHeight.created_at,
     decidedAt: myHeight.reviewed_at,
     reason: myHeight.note || ''
-  } : { status: state.heightVerified ? 'verified' : 'none', docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: '' };
+  } : { status: state.heightVerified ? 'verified' : 'none', docName: '', docPreview: '', claimedHeight: null, submittedAt: null, decidedAt: null, reason: '' };
   state.verification = myVer ? {
     status: myVer.status === 'approved' ? 'verified' : (myVer.status === 'rejected' ? 'rejected' : 'pending'),
     method: myVer.method,
@@ -2464,6 +2548,7 @@ function applyData(d) {
       ownerName: isMine ? (state.user.nickname || '나') : (p ? p.name : (v.company || '회원')),
       method: v.method,
       company: v.company || '',
+      claimedHeight: v.claimed_height === null || v.claimed_height === undefined ? null : Number(v.claimed_height),
       email: v.company_email || '',
       docName: v.doc_name || '',
       docPreview: v.doc_preview || '',
@@ -2532,7 +2617,7 @@ function applyData(d) {
       && !mineSet.has(r.id) && !matchedSet.has(r.id) && !passedMeSet.has(r.id))
     .filter((r) => !!r.gender)   /* 성별을 고르지 않은 운영자 전용 계정은 인연 덱에서 제외 */
     .filter((r) => !myGender || !r.gender || r.gender !== myGender)
-    .filter((r) => uiPrefs.showDemo || !r.is_demo)
+    .filter((r) => state.showDemo !== false || !r.is_demo)
     .map((r) => r.id);
 
   deckSignature = '';
@@ -2625,14 +2710,15 @@ function matchReasons(p) {
   if (p.age >= Number(prefs.ageMin) && p.age <= Number(prefs.ageMax)) reasons.push(`선호 연령 ${prefs.ageMin}~${prefs.ageMax}세에 해당`);
   if ((prefs.mbti || []).includes(p.mbti)) reasons.push(`선호 MBTI ${p.mbti} 일치`);
   const wantArea = parseRegion(p.area);
-  const areaHit = (prefs.areas || []).filter((a) => a && a !== '서울 전역').some((a) => {
+  const areaHit = (prefs.areas || []).filter((a) => a && !isAnywhereArea(a)).some((a) => {
     if (a === p.area) return true;
     const want = parseRegion(a);
     return !!want.district && want.district === wantArea.district &&
       (!want.province || !wantArea.province || want.province === wantArea.province);
   });
   if (areaHit) reasons.push(`선호 지역 ${p.area} 일치`);
-  if ((prefs.areas || []).includes('서울 전역') && wantArea.province === '서울') reasons.push(`선호 지역 서울 · ${p.area}`);
+  const anywhereProv = (prefs.areas || []).filter(isAnywhereArea).map((a) => parseRegion(a).province).filter(Boolean);
+  if (anywhereProv.length && wantArea.province && anywhereProv.includes(wantArea.province)) reasons.push(`선호 지역 ${parseRegion(anywhereProv[0]).province} · ${p.area}`);
   (prefs.priorities || []).forEach(key => { if (matchesPriority(p,key) === true) {
     const criterion = {looks:'외모 우선: 사진 등록 프로필',job:'직장 우선 조건 충족 (샘플)',age:`나이 우선 조건 충족 (${p.age}세)`,personality:`성격 우선: ${p.mbti}`,area:`거리 우선 조건 충족 (샘플 ${p.distKm}km)`,hobby:'취미 우선 조건 충족 (샘플)',habit:'비흡연 조건 충족',style:`키 우선 조건 충족 (${p.height}cm)`};
     const text = criterion[key];
@@ -3409,7 +3495,7 @@ function fillProfileForm() {
   $('#fNickname').value = u.nickname || '';
   $('#fAge').value = u.age || '';
   $('#fJob').value = u.job || '';
-  $('#fCompany').value = u.company || '';
+  const companyView = $('#fCompanyView'); if (companyView) companyView.value = u.company || '';
   $('#fBio').value = u.bio || '';
   $('#fAgeMin').value = u.prefs.ageMin || '';
   $('#fAgeMax').value = u.prefs.ageMax || '';
@@ -3501,6 +3587,7 @@ function renderProfileChrome() {
   $('#meVerifyBadge').hidden = !myVerified();
   const hb = $('#meHeightBadge');
   if (hb) hb.hidden = !myHeightVerified();
+  syncVerifiedFieldLocks();
   $('#ticketBalance').textContent = state.tickets;
   $('#ticketCount').textContent = state.tickets;
   $('#pointsCount').textContent = state.points;
@@ -3722,6 +3809,9 @@ function submissionCardHTML(s, isPending) {
   const avatar = isMine ? avatarSVG('me', who) : avatarSVG(s.owner, profile ? profile.name : s.ownerName);
   const name = isMine ? `${state.user.nickname} (나)` : s.ownerName;
   const methodBadge = s.method === 'height' ? '키 인증' : (s.method === 'email' ? '회사 메일' : '명함·서류');
+  const subline = s.method === 'height'
+    ? `키 ${s.claimedHeight ? `${s.claimedHeight}cm` : '미기재'}`
+    : esc(s.company || '회사명 미기재');
 
   if (!isPending) {
     const ok = s.status === 'approved';
@@ -3732,7 +3822,7 @@ function submissionCardHTML(s, isPending) {
             <span class="sub-card__avatar">${avatar}</span>
             <div>
               <p class="sub-card__name">${esc(name)}</p>
-              <p class="sub-card__company">${esc(s.company)}</p>
+              <p class="sub-card__company">${subline}</p>
             </div>
           </div>
           <span class="method-badge">${methodBadge}</span>
@@ -3755,7 +3845,7 @@ function submissionCardHTML(s, isPending) {
           <span class="sub-card__avatar">${avatar}</span>
           <div>
             <p class="sub-card__name">${esc(name)}${isMine ? '<span class="mini-badge">나</span>' : ''}</p>
-            <p class="sub-card__company">${esc(s.company)}</p>
+            <p class="sub-card__company">${subline}</p>
           </div>
         </div>
         <span class="method-badge">${methodBadge}</span>
@@ -3768,6 +3858,9 @@ function submissionCardHTML(s, isPending) {
                <span>${esc(s.docName || '제출 서류')}<br>눌러서 크게 보기</span>
              </button>`
           : '<p class="sub-card__email">첨부 이미지 없음 (데모 데이터)</p>')}
+      ${s.method === 'height'
+        ? `<label class="sub-card__confirm"><span>확인한 키</span><input type="number" min="140" max="210" inputmode="numeric" data-approve-height="${s.id}" value="${s.claimedHeight || ''}" placeholder="cm"></label>`
+        : `<label class="sub-card__confirm"><span>확인한 회사명</span><input maxlength="30" data-approve-company="${s.id}" value="${esc(s.company || '')}" placeholder="회사명"></label>`}
       <p class="sub-card__time">${relTime(s.at)} 제출</p>
       <div class="sub-card__actions">
         <button class="btn btn--mint btn--sm" data-action="approve-sub" data-id="${s.id}">승인</button>
@@ -3928,13 +4021,13 @@ const PROFILE_REQUIRED_FIELDS = [
   { key: 'nickname', label: '닉네임', sel: '#fNickname' },
   { key: 'age', label: '나이', sel: '#fAge' },
   { key: 'job', label: '직업', sel: '#fJob' },
-  { key: 'company', label: '회사', sel: '#fCompany' },
   { key: 'region', label: '지역', sel: '#fProvince' },
   { key: 'mbti', label: 'MBTI', sel: '#fMbti' },
   { key: 'height', label: '키', sel: '#fHeight' },
   { key: 'bio', label: '한 줄 소개', sel: '#fBio' },
   { key: 'photo', label: '프로필 사진', sel: '#photoManage' }
 ];
+/* 회사명은 직장인 인증 승인으로만 채워지므로 필수 항목이 아닙니다 */
 let profileLocked = false;
 
 function profileFilled() {
@@ -3943,7 +4036,6 @@ function profileFilled() {
     nickname: Boolean((u.nickname || '').trim()),
     age: Number(u.age) > 0 || Number(u.birthYear) > 0,
     job: Boolean((u.job || '').trim()),
-    company: Boolean((u.company || '').trim()),
     region: Boolean((u.region || '').trim()),
     mbti: Boolean((u.mbti || '').trim()),
     height: Number(u.height) > 0,
@@ -4248,13 +4340,50 @@ function renderNav() {
 }
 
 /* ---------- 프로필 ---------- */
+/* 회사 · 인증된 키는 잠김 — 값과 안내문·인증 버튼 상태를 함께 맞춥니다 */
+function syncVerifiedFieldLocks() {
+  const companyEl = $('#fCompanyView');
+  if (companyEl) companyEl.value = state.user.company || '';
+  const companyBtn = $('#companyVerifyBtn');
+  if (companyBtn) {
+    const st = state.verification ? state.verification.status : 'none';
+    companyBtn.textContent = st === 'verified' ? '인증 완료' : (st === 'pending' ? '심사 중' : '인증');
+  }
+  const companyHint = $('#companyFieldHint');
+  if (companyHint) {
+    const st = state.verification ? state.verification.status : 'none';
+    companyHint.innerHTML = st === 'verified'
+      ? '직장인 인증이 승인되어 회사명이 표시돼요. 직접 바꿀 수 없어요.'
+      : (st === 'pending'
+        ? '제출한 직장인 인증을 운영자가 확인하고 있어요.'
+        : '회사명은 <b>회사 메일 · 재직증명서 인증</b>을 승인받으면 자동으로 입력돼요. 직접 입력할 수 없어요.');
+  }
+
+  const heightEl = $('#fHeight');
+  const locked = myHeightVerified();
+  if (heightEl) {
+    heightEl.disabled = locked;
+    if (locked && state.user.height) heightEl.value = state.user.height;
+  }
+  const heightBtn = $('#heightVerifyBtn');
+  if (heightBtn) {
+    const hv = (state.heightVerification || {}).status || 'none';
+    heightBtn.textContent = hv === 'verified' ? '인증 완료' : (hv === 'pending' ? '심사 중' : '인증');
+  }
+  const heightHint = $('#heightFieldHint');
+  if (heightHint) {
+    heightHint.innerHTML = locked
+      ? '인증된 키는 바꿀 수 없어요. 다른 서류로 다시 인증하면 새 키로 바뀍니다.'
+      : '키 인증을 받으면 입력한 키가 잠기고 프로필에 <b>키 인증</b> 배지가 붙어요. (선택)';
+  }
+}
+
 function fillProfileForm() {
   const u = state.user;
   const set = (sel, v) => { const el = $(sel); if (el) el.value = v === null || v === undefined ? '' : v; };
   set('#fNickname', u.nickname);
   set('#fAge', u.age);
   set('#fJob', u.job);
-  set('#fCompany', u.company);
   set('#fBio', u.bio);
   set('#fMbti', u.mbti || '');
   set('#fHeight', u.height);
@@ -4264,13 +4393,29 @@ function fillProfileForm() {
   renderPrefChips();
   renderProfileChrome();
   renderAccountSection();
+  syncVerifiedFieldLocks();
+}
+
+/* 다시 그리면서 화면이 튀지 않도록 — 스크롤 위치와 포커스를 그대로 돌려놓습니다 */
+function withViewportStable(fn) {
+  const view = document.querySelector('.view.is-active') || document.querySelector('.view[data-view="profile"]');
+  const top = view ? view.scrollTop : 0;
+  const active = document.activeElement;
+  const activeId = active && active.id ? active.id : '';
+  fn();
+  if (view) view.scrollTop = top;
+  if (activeId) {
+    const el = document.getElementById(activeId);
+    if (el && el !== document.activeElement && !el.disabled) {
+      try { el.focus({ preventScroll: true }); } catch (e) { try { el.focus(); } catch (e2) { /* 무시 */ } }
+    }
+  }
 }
 
 async function saveProfile() {
   const nickname = ($('#fNickname').value || '').trim();
   const age = parseInt($('#fAge').value, 10);
   const job = ($('#fJob').value || '').trim();
-  const company = ($('#fCompany').value || '').trim();
   const bio = ($('#fBio').value || '').trim();
   const mbti = ($('#fMbti').value || '').trim();
   const height = parseInt($('#fHeight').value, 10);
@@ -4282,21 +4427,21 @@ async function saveProfile() {
 
   if (!nickname) { toast('닉네임을 입력해 주세요.'); $('#fNickname').focus(); return; }
   if (!Number.isFinite(age) || age < 19 || age > 99) { toast('나이는 19~99세 사이로 입력해 주세요'); $('#fAge').focus(); return; }
-  /* 프로필 등록 — 사진 1장과 모든 항목이 필요합니다 */
+  /* 프로필 등록 — 사진 1장과 필수 항목이 필요합니다 (회사는 직장인 인증으로 채워집니다) */
+  const need = (key) => PROFILE_REQUIRED_FIELDS.find((f) => f.key === key);
   const missing = [];
-  if (!job) missing.push(PROFILE_REQUIRED_FIELDS[2]);
-  if (!company) missing.push(PROFILE_REQUIRED_FIELDS[3]);
-  if (!region || !province || !district) missing.push(PROFILE_REQUIRED_FIELDS[4]);
-  if (!mbti) missing.push(PROFILE_REQUIRED_FIELDS[5]);
-  if (!Number.isFinite(height) || height <= 0) missing.push(PROFILE_REQUIRED_FIELDS[6]);
-  if (!bio) missing.push(PROFILE_REQUIRED_FIELDS[7]);
-  if (!(state.user.photos || []).length) missing.push(PROFILE_REQUIRED_FIELDS[8]);
+  if (!job) missing.push(need('job'));
+  if (!region || !province || !district) missing.push(need('region'));
+  if (!mbti) missing.push(need('mbti'));
+  if (!Number.isFinite(height) || height <= 0) missing.push(need('height'));
+  if (!bio) missing.push(need('bio'));
+  if (!(state.user.photos || []).length) missing.push(need('photo'));
   if (missing.length) {
     toast(`프로필을 마치려면 ${missing.map((m) => m.label).join(', ')}을(를) 채워 주세요.`);
     const el = $(missing[0].sel);
     if (el) {
       el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      if (el.focus && el.tagName !== 'DIV') el.focus();
+      if (el.focus && el.tagName !== 'DIV' && !el.disabled) el.focus({ preventScroll: true });
     }
     return;
   }
@@ -4307,17 +4452,20 @@ async function saveProfile() {
     ageMin: Number.isFinite(ageMin) ? ageMin : state.user.prefs.ageMin,
     ageMax: Number.isFinite(ageMax) ? ageMax : state.user.prefs.ageMax
   };
+  /* 회사명은 직장인 인증 승인으로만 들어갑니다(여기서 보내지 않음).
+     키 인증을 받은 키는 잠기므로 기존 값을 유지합니다. */
   const patch = {
     nickname, age,
-    job: job || null, company: company || null, bio: bio || null,
-    mbti: mbti || null, height: Number.isFinite(height) ? height : null,
+    job: job || null, bio: bio || null,
+    mbti: mbti || null,
     region: region || null, priorities: prefs
   };
+  if (!myHeightVerified()) patch.height = Number.isFinite(height) ? height : null;
   try {
     const { error } = await sb.from('profiles').update(patch).eq('id', meId).select('id');
     if (error) throw error;
     await refreshAll();
-    fillProfileForm(); renderAll();
+    withViewportStable(() => { fillProfileForm(); renderAll(); });
     const stillMissing = refreshProfileLock();
     if (stillMissing.length) {
       toast('프로필을 저장했어요.');
@@ -4370,7 +4518,7 @@ function addPrefArea() {
   const d = ($('#prefDistrict')?.value || '').trim();
   if (!p || !d) { toast('시·도와 구·시·군을 골라 주세요.'); return; }
   const value = `${p} ${d}`;
-  const cur = (state.user.prefs.areas || []).filter((a) => a && a !== '서울 전역');
+  const cur = (state.user.prefs.areas || []).filter((a) => a && !isAnywhereArea(a));
   if (cur.includes(value)) { toast('이미 추가한 지역이에요.'); return; }
   if (cur.length >= 3) { toast('선호 지역은 3곳까지 고를 수 있어요.'); return; }
   persistPrefs({ areas: [...cur, value] });
@@ -4387,13 +4535,6 @@ function renderAccountSection() {
   const email = (session && session.user && session.user.email) || '';
   el.innerHTML = `
     <div class="form-card">
-      <div class="toggle-row">
-        <div class="toggle-row__text">
-          <p class="toggle-title">데모 인연 함께 보기</p>
-          <p class="toggle-desc">실제 가입자가 적을 때 화면을 채워 주는 예시 프로필이에요</p>
-        </div>
-        <button class="switch" data-action="toggle-demo" aria-pressed="${uiPrefs.showDemo}" aria-label="데모 인연 보기"><span></span></button>
-      </div>
       <p class="sheet-hint" style="margin-top:6px">계정 · ${esc(email || '이메일 없음')}${isAdmin ? ' · 운영자' : ''}</p>
       <button class="btn btn--ghost btn--sm" data-action="logout" style="margin-top:10px">로그아웃</button>
     </div>`;
@@ -4437,7 +4578,7 @@ function removeBlockedNumber(hash) {
   toast('차단을 해제했어요');
 }
 
-/* ---------- 연락처 동기화 · .vcf 불러오기 (번호는 기기 안에서 해시로만) ---------- */
+/* ---------- 연락처 동기화 (번호는 기기 안에서 해시로만) ---------- */
 const MAX_BLOCKED_PHONES = 500;
 
 function canPickContacts() {
@@ -4452,7 +4593,7 @@ function renderContactSync() {
   if (btn) btn.setAttribute('aria-disabled', String(!ok));
   hint.innerHTML = ok
     ? '연락처에서 <b>번호만</b> 골라 기기 안에서 해시로 바꿔 저장해요. 이름은 가져오거나 저장하지 않아요.'
-    : '이 브라우저는 연락처 자동 불러오기를 지원하지 않아요(iOS Safari). 아이폰은 연락처 앱 → 연락처 내보내기(.vcf) 후 파일로 올리거나, 번호를 직접 입력해 주세요.';
+    : '이 브라우저는 연락처 자동 불러오기를 지원하지 않아요(iOS Safari). 아래에 번호를 직접 입력해 주세요.';
 }
 
 /* 여러 번호 → 해시만 골라 차단 목록에 추가 */
@@ -4487,7 +4628,7 @@ async function blockPhoneNumbers(rawList, source) {
 
 async function pickContacts() {
   if (!canPickContacts()) {
-    toast('이 브라우저는 연락처 불러오기를 지원하지 않아요. 연락처 파일(.vcf)이나 직접 입력을 이용해 주세요.');
+    toast('이 브라우저는 연락처 불러오기를 지원하지 않아요. 번호를 직접 입력해 주세요.');
     return;
   }
   try {
@@ -4500,34 +4641,6 @@ async function pickContacts() {
     console.warn('[contacts]', err);
     if (err && (err.name === 'AbortError' || err.name === 'NotAllowedError')) return;
     toast('연락처를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.');
-  }
-}
-
-function parseVcf(text) {
-  const out = [];
-  String(text || '')
-    .replace(/\r/g, '')
-    .replace(/\n[ \t]/g, '')            // 접힌 줄 이어붙이기
-    .split('\n')
-    .forEach((line) => {
-      const m = /^(?:[A-Za-z0-9-]+\.)?TEL[^:]*:(.+)$/i.exec(line.trim());
-      if (!m) return;
-      const raw = m[1].replace(/^tel:/i, '').split(';')[0].trim();
-      if (raw) out.push(raw);
-    });
-  return out;
-}
-
-async function onVcfFile(file) {
-  if (!file) return;
-  if (file.size > 8 * 1024 * 1024) { toast('파일이 너무 커요. 8MB 이하 파일로 올려 주세요.'); return; }
-  try {
-    const numbers = parseVcf(await file.text());
-    if (!numbers.length) { toast('이 파일에서 번호를 찾지 못했어요. .vcf 연락처 파일인지 확인해 주세요.'); return; }
-    await blockPhoneNumbers(numbers, '연락처 파일');
-  } catch (err) {
-    console.warn('[vcf]', err);
-    toast('파일을 읽지 못했어요. 다른 파일로 시도해 주세요.');
   }
 }
 
@@ -4829,7 +4942,7 @@ async function redeemPoints() {
   } catch (err) { toast(errorText(err)); }
 }
 
-/* ---------- 직장인 인증 ---------- */
+/* ---------- 인증 제출 ---------- */
 async function submitVerification(payload) {
   const row = {
     user_id: meId,
@@ -4838,13 +4951,22 @@ async function submitVerification(payload) {
     company_email: payload.email || null,
     doc_name: payload.docName || null,
     doc_preview: payload.docPreview || null,
+    claimed_height: Number.isFinite(payload.height) ? payload.height : null,
     status: 'pending'
   };
+  /* 예전 스키마(claimed_height 없는 상태)에서도 접수가 되도록 한 번 더 시도합니다 */
+  const insertRow = async (r) => sb.from('verifications').insert(r).select('id');
   try {
-    const { error } = await sb.from('verifications').insert(row).select('id');
+    let { error } = await insertRow(row);
+    if (error && /claimed_height|column .* does not exist/i.test(error.message || '')) {
+      const { claimed_height, ...legacy } = row;
+      ({ error } = await insertRow(legacy));
+    }
     if (error) throw error;
     await refreshAll(); renderAll(); closeSheet();
-    toast('인증 서류를 접수했어요. 운영자 확인 후 알려드릴게요.');
+    toast(payload.method === 'height'
+      ? '키 인증 서류를 접수했어요. 운영자가 확인하면 키가 잠기고 배지가 붙어요.'
+      : '인증 서류를 접수했어요. 운영자 확인 후 알려드릴게요.');
   } catch (err) { toast(errorText(err)); }
 }
 
@@ -4983,6 +5105,13 @@ function renderAdmin() {
     pay.dataset.filled = '1';
   }
 
+  const demoSwitch = $('#demoGlobalSwitch');
+  if (demoSwitch) demoSwitch.setAttribute('aria-pressed', String(state.showDemo !== false));
+  const demoState = $('#demoGlobalState');
+  if (demoState) demoState.innerHTML = state.showDemo !== false
+    ? '현재 · 모든 회원 화면에 데모 회원이 <b>보입니다</b>'
+    : '현재 · 모든 회원 화면에서 데모 회원이 <b>숨겨져 있습니다</b>';
+
   pendingV.forEach((s) => {
     if (!openRejects.has(s.id)) return;
     const box = document.querySelector(`[data-reject="${s.id}"]`);
@@ -5005,11 +5134,39 @@ async function adminClaim() {
   } catch (err) { toast(errorText(err)); }
 }
 
-async function approveSubmission(id) {
+/* 승인/반려 — 새 파라미터(p_company · p_height)가 없는 예전 스키마에서도 동작하도록 폴백 */
+async function adminReviewVerification(id, approve, note, company, height) {
   try {
-    await rpc('admin_review_verification', { p_id: id, p_approve: true, p_note: '' });
+    return await rpc('admin_review_verification', {
+      p_id: id, p_approve: approve, p_note: note || '',
+      p_company: company || null,
+      p_height: Number.isFinite(height) && height > 0 ? height : null
+    });
+  } catch (err) {
+    const msg = String((err && (err.message || err.details || err.hint)) || err || '');
+    if (/Could not find the function|does not exist|PGRST202|schema cache/i.test(msg)) {
+      return rpc('admin_review_verification', { p_id: id, p_approve: approve, p_note: note || '' });
+    }
+    throw err;
+  }
+}
+
+async function approveSubmission(id) {
+  const cEl = document.querySelector(`[data-approve-company="${id}"]`);
+  const hEl = document.querySelector(`[data-approve-height="${id}"]`);
+  const s = (state.submissions || []).find((x) => x.id === id) || {};
+  const company = cEl ? cEl.value.trim() : (s.company || '');
+  const height = hEl ? parseInt(hEl.value, 10) : (s.claimedHeight || null);
+  if (s.method === 'height' && (!Number.isFinite(height) || height < 140 || height > 210)) {
+    toast('확인한 키를 140~210cm 사이로 적어 주세요.'); hEl?.focus(); return;
+  }
+  if (s.method !== 'height' && !company) {
+    toast('확인한 회사명을 적어 주세요. 회사명은 승인 시 프로필에 자동 입력됩니다.'); cEl?.focus(); return;
+  }
+  try {
+    await adminReviewVerification(id, true, '', company, height);
     await refreshAll(); renderAll(); renderAdmin();
-    toast('인증을 승인했어요.');
+    toast(s.method === 'height' ? '키 인증을 승인했어요. 프로필 키가 잠깁니다.' : '직장인 인증을 승인했어요. 회사명이 프로필에 입력됩니다.');
   } catch (err) { toast(errorText(err)); }
 }
 async function rejectSubmission(id) {
@@ -5017,7 +5174,7 @@ async function rejectSubmission(id) {
   const reason = (ta?.value || '').trim();
   if (!reason) { toast('반려 사유를 적어주세요.'); ta?.focus(); return; }
   try {
-    await rpc('admin_review_verification', { p_id: id, p_approve: false, p_note: reason });
+    await adminReviewVerification(id, false, reason);
     openRejects.delete(id); delete rejectDrafts[id];
     await refreshAll(); renderAll(); renderAdmin();
     toast('반려 처리했어요. 사유가 사용자 화면에 표시됩니다.');
@@ -5074,19 +5231,16 @@ async function savePaymentInfo() {
   } catch (err) { toast(errorText(err)); }
 }
 
-/* ---------- 초기화 / 데모 토글 ---------- */
-function toggleDemoProfiles() {
-  uiPrefs.showDemo = !uiPrefs.showDemo;
-  saveUiPrefs();
-  refreshAll().then(() => { renderAll(); toast(uiPrefs.showDemo ? '데모 인연을 함께 보여드려요.' : '데모 인연을 숨겼어요.'); }).catch((err) => toast(errorText(err)));
-}
-
-function saveUiPrefs() { try { localStorage.setItem(UI_KEY, JSON.stringify(uiPrefs)); } catch (e) { /* 무시 */ } }
-function loadUiPrefs() {
+/* ---------- 데모 회원 노출 (운영자 콘솔 · 모든 회원 공통) ---------- */
+async function adminSetDemo(next) {
+  const want = next === undefined ? !state.showDemo : Boolean(next);
   try {
-    const raw = localStorage.getItem(UI_KEY);
-    if (raw) uiPrefs = { ...uiPrefs, ...JSON.parse(raw) };
-  } catch (e) { /* 무시 */ }
+    await rpc('admin_set_demo', { p_show: want });
+    state.showDemo = want;
+    deckSignature = '';
+    await refreshAll(); renderAll(); renderAdmin();
+    toast(want ? '데모 회원을 모든 화면에 표시합니다.' : '데모 회원을 모든 회원 화면에서 숨겼어요.');
+  } catch (err) { toast(errorText(err)); }
 }
 
 /* ---------- 직장인 인증 카드 ---------- */
@@ -5183,13 +5337,13 @@ function heightVerifyCardHTML() {
   } else if (hv.status === 'pending') {
     body = `
       <div class="verify-meta" style="margin-top:11px">
-        <b>${esc(hv.docName || '키 인증 서류')}</b><br>
+        <b>${hv.claimedHeight ? `${hv.claimedHeight}cm` : '키 미기재'}</b> · ${esc(hv.docName || '키 인증 서류')}<br>
         ${relTime(hv.submittedAt)} 접수 · 운영자 확인 중
       </div>`;
   } else if (hv.status === 'verified') {
     body = `
       <div class="verify-meta" style="margin-top:11px;background:rgba(255,255,255,.7)">
-        <b>키 인증</b> 확인 완료<br>${hv.decidedAt ? relTime(hv.decidedAt) + ' 승인' : ''} · 프로필에 키 인증 뱃지가 표시되고 있어요
+        <b>키 인증</b> 확인 완료${hv.claimedHeight ? ` · ${hv.claimedHeight}cm` : ''}<br>${hv.decidedAt ? relTime(hv.decidedAt) + ' 승인' : ''} · 프로필 키가 잠기고 뱃지가 표시돼요
       </div>
       <div class="verify-actions"><button class="btn btn--ghost btn--sm" data-action="open-height-verify">최신 서류로 다시 올리기</button></div>`;
   } else {
@@ -5233,6 +5387,11 @@ function openHeightSheet() {
     </div>
     <p class="sheet__sub">건강검진 결과표나 신체검사서에서 <b>키가 보이는 부분</b>만 사진으로 올려 주세요.<br>운영자가 확인하면 프로필에 <b>키 인증</b> 뱃지가 붙어요.</p>
     <p class="sheet__notice">주민번호 뒷자리·질병·주소 같은 민감정보는 꼭 가리고 올려 주세요. 심사가 끝나면 화면에는 인증 뱃지만 보여요.</p>
+    <div class="sheet-field">
+      <label for="heightClaim">인증할 키 (cm)</label>
+      <input id="heightClaim" type="number" min="140" max="210" inputmode="numeric" placeholder="예: 172" value="${state.user.height || ''}">
+      <p class="sheet-hint">서류에 적힌 키와 같아야 해요. 승인되면 이 값으로 프로필 키가 고정됩니다.</p>
+    </div>
     <label class="upload-box" for="heightFile" id="heightUploadBox">
       <span class="upload-box__emoji"><svg><use href="#i-clip"/></svg></span>
       <span class="upload-box__text">사진 선택하기</span>
@@ -5263,17 +5422,25 @@ function openHeightSheet() {
             <button data-action="open-height-verify">다시 선택</button>
           </div>
         </div>`;
-      const btn = $('#submitHeightBtn');
-      if (btn) btn.disabled = false;
+      syncHeightSubmitBtn();
     } catch (err) {
       toast('이미지를 읽지 못했어요. 다른 파일로 시도해 주세요.');
     }
   });
 }
 
+function syncHeightSubmitBtn() {
+  const btn = $('#submitHeightBtn');
+  if (!btn) return;
+  const h = parseInt($('#heightClaim')?.value || '', 10);
+  btn.disabled = !(heightDraft && Number.isFinite(h) && h >= 140 && h <= 210);
+}
+
 async function submitHeightVerify() {
+  const h = parseInt($('#heightClaim')?.value || '', 10);
   if (!heightDraft) { toast('키 인증 사진을 먼저 올려 주세요.'); return; }
-  await submitVerification({ method: 'height', company: '키 인증', email: '', docName: heightDraft.name, docPreview: heightDraft.dataUrl });
+  if (!Number.isFinite(h) || h < 140 || h > 210) { toast('인증할 키를 140~210cm 사이로 적어 주세요.'); $('#heightClaim')?.focus(); return; }
+  await submitVerification({ method: 'height', company: '키 인증', email: '', docName: heightDraft.name, docPreview: heightDraft.dataUrl, height: h });
   heightDraft = null;
 }
 
@@ -5303,6 +5470,26 @@ function previewDoc(id) {
 
 
 /* ---------- 직장인 인증 제출 서류 ---------- */
+/* 회사 칸의 '인증' 버튼 — 회사 메일 / 명함·재직증명서 중 선택 */
+function openWorkVerifySheet() {
+  const v = state.verification || {};
+  const pendingNote = v.status === 'pending'
+    ? `<p class="sheet__notice">이미 제출한 인증을 운영자가 확인하고 있어요${v.submittedAt ? ` (${relTime(v.submittedAt)} 접수)` : ''}.</p>` : '';
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head">
+      <h2>직장인 인증</h2>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <p class="sheet__sub">회사명은 이 인증으로만 입력돼요.<br>승인되면 프로필에 <b>회사명이 자동으로</b> 채워지고 <b>직장인 인증</b> 배지가 붙습니다.</p>
+    ${pendingNote}
+    <div class="verify-actions">
+      <button class="btn btn--primary" data-action="open-email-verify">회사 메일로 인증</button>
+      <button class="btn btn--ghost" data-action="open-doc-verify">명함·재직증명서로 인증</button>
+    </div>
+    <p class="sheet__note">회사 메일 인증은 지금 단계에서 화면 인증번호로 확인하고, 최종 승인은 운영자가 합니다.</p>`);
+}
+
 function openEmailSheet() {
   openSheet(`
     <div class="sheet__grabber"></div>
@@ -5314,6 +5501,7 @@ function openEmailSheet() {
     <div class="sheet-field">
       <label for="emailCompany">회사명</label>
       <input id="emailCompany" placeholder="예: 성수건축" value="${esc(emailDraft.company || state.user.company || '')}" maxlength="30">
+      <p class="sheet-hint">승인되면 이 회사명이 프로필에 자동으로 입력돼요. 운영자가 메일 도메인과 서류를 확인합니다.</p>
     </div>
     <div class="sheet-field">
       <label for="emailAddr">회사 이메일</label>
@@ -5382,6 +5570,7 @@ function openDocSheet() {
     <div class="sheet-field">
       <label for="docCompany">회사명</label>
       <input id="docCompany" placeholder="예: 늘봄초등학교" maxlength="30" value="${esc(state.user.company || '')}">
+      <p class="sheet-hint">승인되면 이 회사명이 프로필에 자동으로 입력돼요.</p>
     </div>
     <label class="upload-box" for="docFile" id="uploadBox">
       <span class="upload-box__emoji"><svg><use href="#i-clip"/></svg></span>
@@ -5484,7 +5673,6 @@ document.addEventListener('click', (e) => {
     case 'admin-close': closeAdminPanel(true); break;
     case 'admin-create': doAdminCreate(); break;
     case 'pick-contacts': pickContacts(); break;
-    case 'vcf-upload': { const f = $('#vcfInput'); if (f) f.click(); break; }
     case 'logout': doLogout(); break;
     /* 화면 */
     case 'mode': switchMode(el.dataset.mode); break;
@@ -5539,11 +5727,12 @@ document.addEventListener('click', (e) => {
     case 'add-pref-area': addPrefArea(); break;
     case 'remove-area': removePrefArea(el.dataset.value); break;
     case 'open-height-verify': openHeightSheet(); break;
+    case 'open-work-verify': openWorkVerifySheet(); break;
     case 'submit-height': submitHeightVerify(); break;
     case 'toggle-value': togglePref('values', el.dataset.value); break;
     case 'toggle-mbti': toggleMbti(el.dataset.value); break;
     case 'toggle-priority': togglePriority(el.dataset.value); break;
-    case 'toggle-demo': toggleDemoProfiles(); break;
+    case 'toggle-demo-global': adminSetDemo(); break;
     /* 안전 설정 */
     case 'toggle-same-company': toggleSameCompany(); break;
     case 'add-block': addBlockedNumber(); break;
@@ -5604,6 +5793,7 @@ document.addEventListener('click', (e) => {
 
 document.addEventListener('input', (e) => {
   if (e.target.id === 'depositorName') chargeName = e.target.value;
+  if (e.target.id === 'heightClaim') syncHeightSubmitBtn();
   if (e.target.matches('[data-reason-input]')) rejectDrafts[e.target.dataset.reasonInput] = e.target.value;
   if (e.target.id === 'docCompany') {
     const btn = $('#submitDocBtn');
@@ -5614,7 +5804,6 @@ document.addEventListener('input', (e) => {
 document.addEventListener('change', async (e) => {
   if (e.target.id === 'fProvince') { syncDistricts($('#fProvince'), $('#fDistrict')); return; }
   if (e.target.id === 'prefProvince') { syncDistricts($('#prefProvince'), $('#prefDistrict')); return; }
-  if (e.target.id === 'vcfInput') { const f = e.target.files && e.target.files[0]; e.target.value = ''; onVcfFile(f); return; }
   if (!e.target.matches('[data-photo-upload]')) return;
   const file = e.target.files && e.target.files[0];
   if (!file) return;
@@ -5725,7 +5914,6 @@ window.addEventListener('focus', () => {
    6. 시작
    ========================================================================== */
 (async function start() {
-  loadUiPrefs();
   const loginForm = $('#loginForm');
   const signupForm = $('#signupForm');
   const adminEntryForm = $('#adminEntryForm');

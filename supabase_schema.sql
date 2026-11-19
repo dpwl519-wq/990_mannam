@@ -33,9 +33,11 @@ create table if not exists public.admin_config (
   bank_account   text default '3333-00-0000000',
   account_holder text default '예지',
   kakaopay_id    text default '990yeonin',
+  show_demo      boolean not null default true,  -- 데모 회원을 모든 회원 화면에 보일지 (운영자 콘솔)
   updated_at     timestamptz not null default now(),
   constraint admin_config_single_row check (id = 1)
 );
+alter table public.admin_config add column if not exists show_demo boolean not null default true;
 insert into public.admin_config (id) values (1) on conflict (id) do nothing;
 
 -- 관리자 PIN 바꾸기 예시 (원하는 값으로 바꿔 실행):
@@ -60,7 +62,7 @@ create table if not exists public.profiles (
   mbti            text,
   height          int,
   bio             text,
-  priorities      jsonb not null default '{"priorities":[],"mbti":[],"ageMin":30,"ageMax":40,"areas":["서울 전역"],"values":[]}'::jsonb,
+  priorities      jsonb not null default '{"priorities":[],"mbti":[],"ageMin":30,"ageMax":40,"areas":["서울시 전역"],"values":[]}'::jsonb,
   match_tickets   int  not null default 3,
   points          int  not null default 0,
   verified        boolean not null default false,         -- 직장인 인증(회사 메일·서류) 승인 여부
@@ -121,6 +123,7 @@ create table if not exists public.verifications (
   company_email text,
   doc_name      text,
   doc_preview   text,                                     -- 서류 이미지 data URL(축소본)
+  claimed_height int,                                     -- 키 인증(method='height')일 때 회원이 적은 키(cm)
   status        text not null default 'pending',           -- 'pending' | 'approved' | 'rejected'
   reviewed_by   text,
   reviewed_at   timestamptz,
@@ -129,6 +132,7 @@ create table if not exists public.verifications (
 );
 create index if not exists verifications_status_idx on public.verifications (status, created_at desc);
 create index if not exists verifications_user_idx on public.verifications (user_id, created_at desc);
+alter table public.verifications add column if not exists claimed_height int;
 
 -- ============================================================================
 -- 3. likes_matches — 호감 · 건너뛰기 · 매칭 (한 쌍당 한 줄)
@@ -249,6 +253,74 @@ language sql stable security definer set search_path = public as $$
   select coalesce((select p.is_admin from public.profiles p where p.id = auth.uid()), false);
 $$;
 
+-- 회사명 · 인증된 키 · 인증 플래그는 인증 절차로만 바뀝니다.
+-- 앱을 고쳐 직접 요청해도 서버에서 막습니다(관리자 승인 함수는 대상 회원이 아니므로 영향 없음).
+create or replace function public.guard_verified_profile_fields() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is not null and old.id = auth.uid() then
+    new.company := old.company;
+    new.verified := old.verified;
+    new.height_verified := old.height_verified;
+    if coalesce(old.height_verified, false) then
+      new.height := old.height;
+    end if;
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists profiles_guard_verified on public.profiles;
+create trigger profiles_guard_verified before update on public.profiles
+  for each row execute function public.guard_verified_profile_fields();
+
+-- 지역 이름 통일 — "서울 성동구" · "성수동" → "서울시 성동구"
+-- (이미 "서울시 성동구" 처럼 정리된 값은 그대로 둡니다: 재실행 안전)
+create or replace function public.normalize_region(p_value text) returns text
+language plpgsql immutable as $$
+declare
+  v text := regexp_replace(btrim(coalesce(p_value, '')), '\s+', ' ', 'g');
+  pr record;
+begin
+  if v = '' then return ''; end if;
+  /* 동네 이름 → 시·군·구 */
+  v := case v
+    when '성수' then '서울시 성동구'
+    when '성수동' then '서울시 성동구'
+    when '성동' then '서울시 성동구'
+    when '망원' then '서울시 마포구'
+    when '망원동' then '서울시 마포구'
+    when '연남' then '서울시 마포구'
+    when '연남동' then '서울시 마포구'
+    when '마포' then '서울시 마포구'
+    when '판교' then '경기도 성남시'
+    when '분당' then '경기도 성남시'
+    when '일산' then '경기도 고양시'
+    else v end;
+  /* 시·도 짧은 이름 → 정식 표기 */
+  for pr in select * from (values
+      ('서울','서울시'), ('부산','부산시'), ('대구','대구시'), ('인천','인천시'),
+      ('광주','광주시'), ('대전','대전시'), ('울산','울산시'), ('세종','세종시'),
+      ('경기','경기도'), ('강원','강원도'), ('충북','충청북도'), ('충남','충청남도'),
+      ('전북','전라북도'), ('전남','전라남도'), ('경북','경상북도'), ('경남','경상남도'),
+      ('제주','제주도')) as t(old, full) loop
+    if v = pr.old then return pr.full; end if;
+    if v = pr.full then return v; end if;
+    if position(pr.old || ' ' in v) = 1 then return pr.full || substr(v, length(pr.old) + 1); end if;
+  end loop;
+  return v;
+end $$;
+
+-- 회사 메일 도메인에서 회사 이름 추정 (승인 시 회사명 입력이 비어 있을 때만 쓰는 마지막 수단)
+create or replace function public.company_from_email(p_email text) returns text
+language sql immutable as $$
+  select case
+    when p_email is null or position('@' in p_email) = 0 then null
+    else nullif(regexp_replace(
+      regexp_replace(lower(split_part(p_email, '@', 2)), '\.(co|or|ac|go|ne|es|com|net|org|kr)$', '', 'g'),
+      '\.', ' ', 'g'), '')
+  end;
+$$;
+
 -- 내 지갑·안전 설정 (남에게 보이면 안 되는 값만 모아서 반환)
 create or replace function public.my_state() returns jsonb
 language sql stable security definer set search_path = public as $$
@@ -258,6 +330,7 @@ language sql stable security definer set search_path = public as $$
     'points', p.points,
     'verified', p.verified,
     'height_verified', p.height_verified,
+    'show_demo', coalesce((select ac.show_demo from public.admin_config ac where ac.id = 1), true),
     'status', p.status,
     'hidden_company', p.hidden_company,
     'blocked_phones', p.blocked_phones,
@@ -554,10 +627,14 @@ begin
   return jsonb_build_object('ok', v_ok);
 end $$;
 
-create or replace function public.admin_review_verification(p_id uuid, p_approve boolean, p_note text default '')
+drop function if exists public.admin_review_verification(uuid, boolean, text);
+drop function if exists public.admin_review_verification(uuid, boolean, text, text);
+
+create or replace function public.admin_review_verification(
+  p_id uuid, p_approve boolean, p_note text default '', p_company text default null, p_height int default null)
 returns jsonb
 language plpgsql security definer set search_path = public as $$
-declare v_row public.verifications; v_name text; v_is_height boolean;
+declare v_row public.verifications; v_name text; v_is_height boolean; v_company text; v_height int;
 begin
   if not public.is_admin() then raise exception '관리자만 처리할 수 있어요.'; end if;
   select * into v_row from public.verifications where id = p_id for update;
@@ -572,12 +649,33 @@ begin
 
   -- 승인 결과는 인증 종류별로 따로 기록합니다.
   --   키 인증(method = 'height')  → height_verified 만 true (verified 는 그대로)
-  --   직장인 인증(email · doc)     → verified 만 true (height_verified 는 그대로)
+  --   직장인 인증(email · doc)     → verified 를 켜고, 확인된 회사명을 프로필에 기록
   if p_approve then
     if v_is_height then
-      update public.profiles set height_verified = true where id = v_row.user_id;
+      -- 키: 관리자가 확인한 값 → 회원이 적은 값 순서로 쓰고, 그 값으로 프로필 키를 고정합니다.
+      v_height := coalesce(nullif(p_height, 0), nullif(v_row.claimed_height, 0));
+      update public.profiles
+         set height_verified = true,
+             height = coalesce(v_height, height)
+       where id = v_row.user_id;
+      if v_height is not null then
+        update public.verifications set claimed_height = v_height where id = p_id;
+      end if;
     else
-      update public.profiles set verified = true where id = v_row.user_id;
+      -- 회사명은 회원이 프로필에서 직접 고칠 수 없습니다(열 단위 권한으로 차단).
+      -- 승인 화면에서 관리자가 확인한 값 → 제출할 때 적은 회사명 → 메일 도메인 추정 → 기존 값
+      v_company := coalesce(
+        nullif(btrim(coalesce(p_company, '')), ''),
+        nullif(btrim(coalesce(v_row.company, '')), ''),
+        public.company_from_email(v_row.company_email)
+      );
+      update public.profiles
+         set verified = true,
+             company  = coalesce(v_company, company)
+       where id = v_row.user_id;
+      if v_company is not null then
+        update public.verifications set company = v_company where id = p_id;
+      end if;
     end if;
   end if;
 
@@ -585,7 +683,7 @@ begin
   insert into public.admin_logs (action, target_name, actor, detail)
   values (case when p_approve then '인증 승인' else '인증 반려' end,
           coalesce(v_name, v_row.user_id::text), 'admin',
-          coalesce(p_note, case when v_is_height then '키 인증' else v_row.company end, ''));
+          coalesce(p_note, case when v_is_height then '키 인증' else coalesce(v_company, v_row.company) end, ''));
 
   return jsonb_build_object('ok', true);
 end $$;
@@ -687,6 +785,18 @@ begin
   insert into public.admin_logs (action, target_name, actor, detail)
   values ('입금 계좌 변경', 'admin_config', 'admin', coalesce(p_bank_name,'') || ' ' || coalesce(p_bank_account,''));
   return jsonb_build_object('ok', true);
+end $$;
+
+-- 데모 회원 노출 ON/OFF — 모든 회원 화면에 바로 적용됩니다.
+create or replace function public.admin_set_demo(p_show boolean) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_show boolean := coalesce(p_show, true);
+begin
+  if not public.is_admin() then raise exception '관리자만 바꿀 수 있어요.'; end if;
+  update public.admin_config set show_demo = v_show, updated_at = now() where id = 1;
+  insert into public.admin_logs (action, target_name, actor, detail)
+  values ('데모 회원 노출', 'admin_config', 'admin', case when v_show then 'ON' else 'OFF' end);
+  return jsonb_build_object('ok', true, 'show_demo', v_show);
 end $$;
 
 -- ============================================================================
@@ -795,18 +905,19 @@ grant select (id, nickname, gender, birth_year, age, job, company, region, mbti,
               hobbies, values_list, photo_captions, dist_km, job_stable,
               nonsmoker, is_demo, created_at)
   on public.profiles to authenticated;
-grant insert (id, nickname, gender, birth_year, age, job, company, region, mbti,
+grant insert (id, nickname, gender, birth_year, age, job, region, mbti,
               height, bio, priorities, avatar_data, phone_hash, hobbies,
               values_list, photo_captions, dist_km, job_stable, nonsmoker)
   on public.profiles to authenticated;
-grant update (nickname, gender, birth_year, age, job, company, region, mbti,
+-- 회사명은 직장인 인증 승인 함수만 기록합니다(본인이 임의로 바꿀 수 없음).
+grant update (nickname, gender, birth_year, age, job, region, mbti,
               height, bio, priorities, avatar_data, phone_hash, hobbies,
               values_list, photo_captions, dist_km, job_stable, nonsmoker)
   on public.profiles to authenticated;
 
 revoke all on public.verifications from anon, authenticated;
 grant select on public.verifications to authenticated;
-grant insert (user_id, method, company, company_email, doc_name, doc_preview, status)
+grant insert (user_id, method, company, company_email, doc_name, doc_preview, claimed_height, status)
   on public.verifications to authenticated;
 
 revoke all on public.likes_matches from anon, authenticated;
@@ -839,9 +950,10 @@ grant execute on function
   public.confirm_met(uuid), public.submit_review(uuid, int, text),
   public.request_charge(int, int, text), public.redeem_points(),
   public.update_safety(boolean, jsonb, jsonb), public.get_payment_info(),
-  public.admin_claim(text), public.admin_review_verification(uuid, boolean, text),
+  public.admin_claim(text), public.admin_review_verification(uuid, boolean, text, text, integer),
   public.admin_review_charge(uuid, boolean, text), public.admin_review_report(uuid, text),
-  public.admin_restore_user(uuid), public.admin_save_payment(text, text, text, text)
+  public.admin_restore_user(uuid), public.admin_save_payment(text, text, text, text),
+  public.admin_set_demo(boolean)
   to authenticated;
 
 -- ============================================================================
