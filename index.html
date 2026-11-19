@@ -294,6 +294,66 @@ img{display:block;max-width:100%}
 }
 .card-chip b{font-family:var(--font-title);font-size:10.5px;font-weight:700;letter-spacing:0}
 .card-chip--demo{background:rgba(234,191,168,.34);color:var(--apricot-ink)}
+
+/* 오늘의 인연 — 미니멀 에디토리얼 카드 (태그·뱃지 없이 이름·소개 중심) */
+.card--editorial{
+  padding:0;
+  background:
+    radial-gradient(120% 62% at 50% -10%, rgba(234,191,168,.15) 0%, rgba(234,191,168,0) 62%),
+    radial-gradient(90% 50% at 50% 108%, rgba(201,214,201,.16) 0%, rgba(201,214,201,0) 70%),
+    var(--card);
+}
+.card--editorial .swipe-label{top:16px}
+.card-ed__top{flex:0 0 auto;padding:26px 24px 0;text-align:center}
+.card-ed__eyebrow{font-size:10px;font-weight:400;line-height:1.5;letter-spacing:.2em;color:var(--ink-3)}
+.card-ed__body{
+  flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:12px 26px 0;text-align:center;overflow:hidden;
+}
+.card-ed__name{
+  max-width:100%;font-family:var(--font-title);font-size:31px;font-weight:700;line-height:1.24;
+  letter-spacing:-.02em;color:var(--ink);overflow-wrap:anywhere;word-break:keep-all;
+}
+.card-ed__age{margin-top:8px;font-size:12.5px;line-height:1.5;color:var(--ink-2);letter-spacing:.04em}
+.card-ed__rule{display:block;width:24px;height:1px;margin:19px auto 16px;background:var(--sand)}
+.card-ed__meta{
+  max-width:100%;font-size:12.5px;line-height:1.6;color:var(--ink-2);letter-spacing:.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.card-ed__quote{
+  width:100%;margin-top:18px;padding:17px 18px;border-radius:14px;
+  background:rgba(243,235,224,.62);
+  font-family:var(--font-title);font-size:14.5px;line-height:1.95;color:var(--ink);letter-spacing:-.01em;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+}
+.card-ed__foot{flex:0 0 auto;padding:16px 24px 24px;text-align:center}
+.card-ed__cue{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;max-width:100%;
+  font-size:11.5px;line-height:1.6;color:var(--sage-ink);letter-spacing:.01em;
+}
+.card-ed__cue::before{content:'';flex:0 0 auto;width:4px;height:4px;border-radius:50%;background:var(--sage)}
+.card-ed__cue.is-quiet{color:var(--ink-3)}
+.card-ed__cue.is-quiet::before{background:var(--line-2)}
+.card-ed__open{margin-top:10px;font-size:11px;line-height:1.5;color:var(--ink-3);letter-spacing:.03em}
+.card-ed__open span{margin-left:3px;color:var(--ink-2)}
+
+/* 오늘의 인연 하루 두 장 표시 */
+.daily-progress{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 2px 9px;padding:0 2px}
+.daily-progress__text{font-size:11px;letter-spacing:.06em;color:var(--ink-3)}
+.daily-progress__text b{font-family:var(--font-title);font-size:12.5px;font-weight:700;color:var(--ink);letter-spacing:0}
+.daily-progress__bars{display:inline-flex;align-items:center;gap:5px}
+.daily-progress__bars i{display:block;width:20px;height:2px;border-radius:2px;background:var(--line-2);transition:background .3s var(--ease)}
+.daily-progress__bars i.is-on{background:var(--apricot-deep)}
+
+/* 상세 프로필 시트 — 섹션 구분 */
+.detail-sec{margin-top:19px}
+.detail-sec > h3{font-size:11px;font-weight:500;color:var(--ink-3);letter-spacing:.1em}
+.detail-info{margin-top:10px;display:grid;grid-template-columns:62px 1fr;gap:8px 12px;font-size:12.5px;line-height:1.6}
+.detail-info dt{color:var(--ink-3);font-size:12px}
+.detail-info dd{margin:0;color:var(--ink)}
+.sheet__verify{margin-top:10px}
+.detail-report{display:inline-block;margin-top:18px;font-size:11px;color:var(--ink-3);letter-spacing:.02em;text-decoration:underline;text-underline-offset:3px}
+.detail-report:active{color:var(--apricot-ink)}
 /* 매칭 우선순위 초기화 */
 .prio-reset{
   display:inline-flex;align-items:center;margin-left:6px;padding:3px 9px;border-radius:999px;
@@ -1401,6 +1461,11 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
             <span>매칭권 한 장이면 충분해요</span>
             <span class="promo__arrow">›</span>
           </button>
+
+          <div class="daily-progress" id="dailyProgress" hidden>
+            <span class="daily-progress__text">오늘의 인연 <b>1</b> / 2</span>
+            <span class="daily-progress__bars" aria-hidden="true"><i class="is-on"></i><i></i></span>
+          </div>
 
           <div class="deck" id="deck"></div>
 
@@ -3479,48 +3544,64 @@ function dateLabel(iso) {
   return `${d.getMonth() + 1}월 ${d.getDate()}일`;
 }
 
-/* ---------- 4-1. 오늘의 매칭 ---------- */
-function cardHTML(p, depth) {
-  const prefs = state.user.prefs;
-  const topKeys = tasteTopKeys(prefs, 3);
-  const hit = priorityHitIndex(p);
-  const badgeText = hit >= 0
-    ? `내 ${hit + 1}순위 ${PRIORITY_LABEL[topKeys[hit]]} · 잘 맞는 인연`
-    : '오늘의 추천';
-  const photoIndex = photoState[p.id] || 0;
-  const photo = photoAt(p, photoIndex);
-  const photoCount = (p.photos || []).length || 1;
-  return `
-    <article class="card" data-id="${p.id}" data-depth="${depth}" style="--depth:${depth}" aria-label="${esc(p.name)} 프로필">
-      <div class="card-photo">
-        <div class="card-art">${plateSVG(artFor(p.id, photoIndex))}</div>
-        ${verifyStickersHTML(p)}
-        <span class="card-sticker card-sticker--score"><b>${matchReasons(p).length}개</b> 추천 조건 일치</span>
-        <div class="swipe-label swipe-label--like">호감</div>
-        <div class="swipe-label swipe-label--pass">건너뛰기</div>
-        <span class="photo-caption">${esc(photo.caption || p.area)}</span>
-        ${photoCount > 1 ? `<div class="photo-dots">${Array.from({ length: photoCount }, (_, i) =>
-          `<button class="photo-dot${i === photoIndex ? ' is-on' : ''}" data-action="photo" data-id="${p.id}" data-index="${i}" aria-label="사진 ${i + 1}"></button>`).join('')}</div>` : ''}
-      </div>
-      <div class="card-head">
-        <span class="card-badge ${hit >= 0 ? 'card-badge--hit' : ''}">${badgeText}</span>
-        <h2 class="card-name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span></h2>
-        <p class="card-meta">${esc(p.job)} · ${esc(p.area)} · ${p.mbti}</p>
-        ${partnerPriorityLine(p)}
-      </div>
-      <div class="card-body">
-        <p class="card-bio">${esc(p.bio)}</p>
-        <div class="tag-row"><span class="tag-label">취미</span>
-          ${p.hobbies.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}
-        </div>
-        <div class="tag-row"><span class="tag-label">가치관</span>
-          ${p.values.map((t) => `<span class="tag tag--value">${esc(t)}</span>`).join('')}
-        </div>
-        <p class="match-reason"><span>${esc(matchReasons(p).slice(0,2).join(" · ") || "설정한 조건과 일치하는 항목이 아직 없어요")}</span></p>
-        <button class="btn btn--ghost btn--sm" data-action="detail-profile" data-id="${p.id}" style="margin-top:9px">상세 프로필 · 추천 근거 보기</button>
-        <button class="report-link" data-action="report" data-id="${p.id}">이 프로필 신고하기</button>
-      </div>
-    </article>`;
+/* ---------- 4-1. 오늘의 인연 (하루 두 장) ---------- */
+const DAILY_CARDS = 2;
+let dailyCache = null;
+
+function dailyDateKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+function dailyUserId() { return (state.user && state.user.id) || meId || 'guest'; }
+
+/* 오늘 배정된 두 명을 사용자별로 기억합니다 (날짜가 바뀌면 새로 시작) */
+function dailyRecord() {
+  const key = `990.today.${dailyUserId()}`;
+  const date = dailyDateKey();
+  if (dailyCache && dailyCache.key === key && dailyCache.date === date) return dailyCache;
+  let ids = [];
+  try {
+    const raw = JSON.parse(localStorage.getItem(key) || '{}');
+    if (raw && raw.date === date && Array.isArray(raw.ids)) {
+      ids = raw.ids.filter((id) => typeof id === 'string').slice(0, DAILY_CARDS);
+    }
+  } catch (err) { ids = []; }
+  dailyCache = { key, date, ids };
+  return dailyCache;
+}
+function saveDailyRecord(rec) {
+  try { localStorage.setItem(rec.key, JSON.stringify({ date: rec.date, ids: rec.ids })); } catch (err) { /* 저장할 수 없으면 이번 실행 동안만 유지 */ }
+}
+
+/* 후보가 모자라면 있는 만큼만, 두 장을 넘기지는 않습니다 */
+function ensureDailyServed(visible) {
+  const rec = dailyRecord();
+  const pool = (visible || visibleDeck()).map((p) => p.id).filter((id) => !rec.ids.includes(id));
+  let changed = false;
+  while (rec.ids.length < DAILY_CARDS && pool.length) { rec.ids.push(pool.shift()); changed = true; }
+  if (changed) saveDailyRecord(rec);
+  return rec;
+}
+
+/* 오늘 배정된 사람 중 아직 카드로 남아 있는 사람 (배정 순서 유지 · 건너뛰기 취소하면 다시 돌아옴) */
+function dailyQueue() {
+  const rec = dailyRecord();
+  const byId = {};
+  visibleDeck().forEach((p) => { byId[p.id] = p; });
+  return rec.ids.map((id) => byId[id]).filter(Boolean);
+}
+
+function renderDailyProgress(now) {
+  const el = $('#dailyProgress');
+  if (!el) return;
+  const rec = dailyRecord();
+  if (!rec.ids.length) { el.hidden = true; return; }
+  el.hidden = false;
+  const step = Math.max(1, Math.min(now, DAILY_CARDS));
+  el.setAttribute('aria-label', `오늘의 인연 ${step} / ${DAILY_CARDS}`);
+  const txt = el.querySelector('.daily-progress__text');
+  if (txt) txt.innerHTML = `오늘의 인연 <b>${step}</b> / ${DAILY_CARDS}`;
+  el.querySelectorAll('.daily-progress__bars i').forEach((b, i) => b.classList.toggle('is-on', i < step));
 }
 
 function renderDeck() {
@@ -3530,7 +3611,19 @@ function renderDeck() {
   const safety = $('#safetyNote');
   const visible = visibleDeck();
   const hidden = hiddenDeckCount();
-  const signature = [visible.map((p) => `${p.id}:${matchReasons(p).join('/')}`).join(','), state.deck.length, hidden, state.verifiedIds.join(','), (state.heightVerifiedIds || []).join(','), tasteTopKeys(state.user.prefs, 3).join('>')].join('|');
+  const rec = ensureDailyServed(visible);
+  const queue = dailyQueue();
+  const step = queue.length
+    ? rec.ids.indexOf(queue[0].id) + 1
+    : Math.min(rec.ids.length, DAILY_CARDS);
+  renderDailyProgress(step);
+  const prefs = (state.user && state.user.prefs) || {};
+  const signature = [
+    queue.map((p) => `${p.id}:${matchReasons(p).join('/')}`).join(','),
+    rec.ids.join('>'), state.deck.length, hidden,
+    state.verifiedIds.join(','), (state.heightVerifiedIds || []).join(','),
+    tasteTopKeys(prefs, 3).join('>')
+  ].join('|');
   const undoButton = $('#undoPassBtn'); if (undoButton) undoButton.disabled = !state.lastPassed;
   if (signature === deckSignature) {
     safety.hidden = hidden === 0;
@@ -3542,20 +3635,8 @@ function renderDeck() {
   safety.hidden = hidden === 0;
   if (hidden) safety.textContent = `안전 설정으로 ${hidden}분을 가려 두었어요`;
 
-  if (state.deck.length === 0) {
-    actions.hidden = true; note.hidden = true; safety.hidden = true;
-    const pending = state.received.filter((r) => r.status === 'pending' && !isHidden(PROFILE_MAP[r.id])).length;
-    deck.innerHTML = `
-      <div class="empty">
-        ${emptyArt('moon')}
-        <h3>오늘의 인연은 여기까지</h3>
-        <p>내일 아침 9시에 새로운 인연을<br>한 분 더 소개해 드릴게요.${pending ? '<br>받은 호감을 먼저 살펴보시겠어요?' : ''}</p>
-        <button class="btn btn--primary" data-action="tab" data-view="matches">매칭 현황 보기</button>
-      </div>`;
-    return;
-  }
-
-  if (visible.length === 0) {
+  /* 안전 설정으로 오늘 볼 사람이 모두 가려진 경우 */
+  if (state.deck.length > 0 && visible.length === 0) {
     actions.hidden = true; note.hidden = true;
     deck.innerHTML = `
       <div class="empty">
@@ -3567,8 +3648,33 @@ function renderDeck() {
     return;
   }
 
+  if (!queue.length) {
+    actions.hidden = true; note.hidden = true;
+    if (rec.ids.length) {
+      /* 오늘의 두 장을 모두 확인한 경우 — 세 번째 카드는 보여 주지 않습니다 */
+      deck.innerHTML = `
+        <div class="empty">
+          ${emptyArt('moon')}
+          <h3>오늘의 인연 ${rec.ids.length}명을 모두 확인했어요</h3>
+          <p>내일 새로운 인연 두 분이 도착해요.<br>오늘은 여기까지, 천천히 쉬어가요.</p>
+          <button class="btn btn--ghost" data-action="tab" data-view="matches">매칭 현황 보기</button>
+        </div>`;
+      return;
+    }
+    safety.hidden = true;
+    const pending = state.received.filter((r) => r.status === 'pending' && !isHidden(PROFILE_MAP[r.id])).length;
+    deck.innerHTML = `
+      <div class="empty">
+        ${emptyArt('moon')}
+        <h3>오늘의 인연은 여기까지</h3>
+        <p>내일 아침 9시에 새로운 인연 두 분을<br>소개해 드릴게요.${pending ? '<br>받은 호감을 먼저 살펴보시겠어요?' : ''}</p>
+        <button class="btn btn--primary" data-action="tab" data-view="matches">매칭 현황 보기</button>
+      </div>`;
+    return;
+  }
+
   actions.hidden = false; note.hidden = false;
-  const cards = visible.slice(0, 3).map((p, i) => cardHTML(p, i)).reverse();
+  const cards = queue.slice(0, 2).map((p, i) => cardHTML(p, i)).reverse();
   deck.innerHTML = cards.join('');
 }
 
@@ -4894,40 +5000,43 @@ function setCardPhoto(id, idx) {
   card.querySelectorAll('.photo-dot').forEach((d, i) => d.classList.toggle('is-on', i === idx));
 }
 
-function cardHTML(p, depth) {
-  const prefs = state.user.prefs;
-  const topKeys = tasteTopKeys(prefs, 3);
-  const hit = priorityHitIndex(p);
-  const badgeText = hit >= 0
-    ? `내 ${hit + 1}순위 ${PRIORITY_LABEL[topKeys[hit]]} · 잘 맞는 인연`
-    : '오늘의 추천';
+/* 한 줄로 조용히 전하는 오늘의 이유 */
+function dailyCueText(p) {
   const reasons = matchReasons(p);
+  const keys = tasteTopKeys(state.user.prefs, 3);
+  const hit = priorityHitIndex(p);
+  if (hit >= 0 && keys[hit]) return `내 ${hit + 1}순위 ‘${PRIORITY_LABEL[keys[hit]]}’ 조건이 맞아요`;
+  if (reasons.length) return `추천 조건 ${reasons.length}가지가 맞아요`;
+  return '설정한 조건과 겹치는 항목은 아직 없어요';
+}
+
+function cardHTML(p, depth) {
+  const y = yearOf(p.age, p.birthYear);
+  const age = parseInt(p.age, 10);
+  const ageLine = [y ? `${y}년생` : '', Number.isFinite(age) && age > 0 ? `만 ${age}세` : ''].filter(Boolean).join(' · ');
+  const flags = [];
+  if (p.verified === true) flags.push('직장인증');
+  if (p.heightVerified === true) flags.push('키인증');
+  if (p.isDemo) flags.push('데모 프로필');
+  const eyebrow = ['오늘의 인연'].concat(flags).join(' · ');
+  const meta = [p.job, p.area, p.mbti].filter((v) => v && v !== '—').map(esc).join(' · ');
+  const cue = dailyCueText(p);
+  const quiet = !matchReasons(p).length && priorityHitIndex(p) < 0;
   return `
-    <article class="card card--no-photo" data-id="${p.id}" data-depth="${depth}" style="--depth:${depth}" aria-label="${esc(p.name)} 프로필">
+    <article class="card card--editorial" data-id="${p.id}" data-depth="${depth}" style="--depth:${depth}" aria-label="${esc(p.name)} 프로필 · 눌러서 상세 보기">
       <div class="swipe-label swipe-label--like">호감</div>
       <div class="swipe-label swipe-label--pass">건너뛰기</div>
-      <div class="card-head">
-        <span class="card-badge ${hit >= 0 ? 'card-badge--hit' : ''}">${badgeText}</span>
-        <h2 class="card-name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span></h2>
-        <p class="card-meta">${esc(p.job)} · ${esc(p.area)} · ${p.mbti}</p>
-        <div class="card-pill-row">
-          <span class="card-chip"><b>${reasons.length}개</b> 추천 조건 일치</span>
-          ${p.isDemo ? '<span class="card-chip card-chip--demo">데모 프로필</span>' : ''}
-          ${verifyPillsHTML(p)}
-        </div>
-        ${partnerPriorityLine(p)}
+      <div class="card-ed__top"><span class="card-ed__eyebrow">${esc(eyebrow)}</span></div>
+      <div class="card-ed__body">
+        <h2 class="card-ed__name">${esc(p.name)}</h2>
+        ${ageLine ? `<p class="card-ed__age">${esc(ageLine)}</p>` : ''}
+        <span class="card-ed__rule" aria-hidden="true"></span>
+        ${meta ? `<p class="card-ed__meta">${meta}</p>` : ''}
+        <p class="card-ed__quote">${esc((p.bio || '').trim() || '아직 소개를 작성하지 않았어요.')}</p>
       </div>
-      <div class="card-body">
-        <p class="card-bio">${esc(p.bio || '아직 소개를 작성하지 않았어요.')}</p>
-        <div class="tag-row"><span class="tag-label">취미</span>
-          ${p.hobbies.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}
-        </div>
-        <div class="tag-row"><span class="tag-label">가치관</span>
-          ${p.values.map((t) => `<span class="tag tag--value">${esc(t)}</span>`).join('')}
-        </div>
-        <p class="match-reason"><span>${esc(reasons.slice(0, 2).join(' · ') || '설정한 조건과 일치하는 항목이 아직 없어요')}</span></p>
-        <button class="btn btn--ghost btn--sm" data-action="detail-profile" data-id="${p.id}" style="margin-top:9px">상세 프로필 · 사진 보기</button>
-        <button class="report-link" data-action="report" data-id="${p.id}">이 프로필 신고하기</button>
+      <div class="card-ed__foot">
+        <p class="card-ed__cue${quiet ? ' is-quiet' : ''}">${esc(cue)}</p>
+        <p class="card-ed__open">눌러서 사진 · 상세 프로필 보기 <span aria-hidden="true">→</span></p>
       </div>
     </article>`;
 }
@@ -4936,18 +5045,34 @@ function openProfileDetail(id) {
   const p = PROFILE_MAP[id];
   if (!p) return;
   const reasons = matchReasons(p);
-  openSheet(`<div class="sheet__grabber"></div><div class="sheet__head"><h2>${esc(p.name)}님의 상세 프로필</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기">✕</button></div>
-    <p class="sheet__sub">${yearLabel(p.age, p.birthYear)} · ${esc(p.job)} · ${esc(p.area)} · ${esc(p.mbti)}${p.isDemo ? ' · 데모 프로필' : ''}</p>
-    ${verifyPillsHTML(p) ? `<p class="sheet__sub" style="margin-top:8px">${verifyPillsHTML(p)}</p>` : ''}
+  const y = yearOf(p.age, p.birthYear);
+  const age = parseInt(p.age, 10);
+  const head = [y ? `${y}년생` : '', Number.isFinite(age) && age > 0 ? `만 ${age}세` : '', p.job, p.area].filter(Boolean).map(esc).join(' · ');
+  const info = [];
+  if (p.job) info.push(['직업', p.job]);
+  if (p.area) info.push(['지역', p.area]);
+  if (p.height) info.push(['키', `${p.height}cm`]);
+  if (p.mbti && p.mbti !== '—') info.push(['MBTI', p.mbti]);
+  if (p.nonsmoker) info.push(['흡연', '비흡연']);
+  if (p.distKm !== null && p.distKm !== undefined) info.push(['거리', `${p.distKm}km`]);
+  const front = dailyQueue()[0];
+  openSheet(`<div class="sheet__grabber"></div><div class="sheet__head"><h2>${esc(p.name)}님의 프로필</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기">✕</button></div>
+    <p class="sheet__sub">${head} · ${esc(p.mbti || '—')}${p.isDemo ? ' · 데모 프로필' : ''}</p>
+    ${verifyPillsHTML(p) ? `<p class="sheet__verify">${verifyPillsHTML(p)}</p>` : ''}
     ${p.isDemo
       ? `<div class="detail-gallery detail-gallery--demo"><figure>${demoPhotoMarkup(p)}<figcaption>사진은 비공개로 표시돼요</figcaption></figure></div>`
       : `<div class="detail-gallery">${(p.photos || []).map((photo, i) => `<figure>${photoMarkup(p, i)}<figcaption>${esc(photo.caption || '')}</figcaption></figure>`).join('')}</div>`}
-    <p class="sheet__sub">${esc(p.bio || '아직 소개가 없어요.')}</p>
-    <p class="sheet__sub">취미: ${p.hobbies.map(esc).join(', ')}<br>가치관: ${p.values.map(esc).join(', ')}<br>흡연: ${p.nonsmoker ? '비흡연' : '미기재'}${p.height ? ' · 키: ' + p.height + 'cm' : ''}${p.distKm !== null ? ' · 거리: ' + p.distKm + 'km' : ''}</p>
-    ${partnerPriorityLine(p) ? `<div class="sheet-prio">${partnerPriorityLine(p, { label: '이분이 중요하게 보는 순위' })}</div>` : ''}
+    <div class="detail-sec"><h3>소개</h3><p class="sheet__sub">${esc(p.bio || '아직 소개가 없어요.')}</p></div>
+    <div class="detail-sec"><h3>기본 정보</h3><dl class="detail-info">${info.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>
+    <div class="detail-sec"><h3>취미 · 가치관</h3>
+      <div class="tag-row">${p.hobbies.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>
+      <div class="tag-row">${p.values.map((t) => `<span class="tag tag--value">${esc(t)}</span>`).join('')}</div>
+    </div>
+    ${partnerPriorityLine(p) ? `<div class="detail-sec"><h3>상대가 보는 순위</h3><div class="sheet-prio">${partnerPriorityLine(p, { label: '이분이 중요하게 보는 순위' })}</div></div>` : ''}
     <div class="reason-list"><strong>추천 조건 ${reasons.length}개 일치</strong>${reasons.length ? `<ul>${reasons.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>` : '<p>현재 설정된 조건에서 확인된 일치 항목이 없습니다.</p>'}</div>
     <p class="demo-limits">추천 조건은 상대 프로필과 내가 고른 설정의 단순 비교입니다. 점수나 실제 관계 궁합을 보증하지 않아요.${p.isDemo ? ' 데모 프로필의 우선순위는 화면 확인을 위한 예시 값이에요.' : ''}</p>
-    <div class="detail-actions"><button class="btn btn--ghost" data-action="close-sheet">닫기</button><button class="btn btn--primary" data-action="detail-like" data-id="${id}" ${state.deck.includes(id) ? '' : 'disabled'}>호감 보내기</button></div>`);
+    <button class="detail-report" data-action="report" data-id="${id}">이 프로필 신고하기</button>
+    <div class="detail-actions"><button class="btn btn--ghost" data-action="close-sheet">닫기</button><button class="btn btn--primary" data-action="detail-like" data-id="${id}" ${front && front.id === id ? '' : 'disabled'}>호감 보내기</button></div>`);
 }
 
 function renderMeetBar() {
@@ -5636,7 +5761,7 @@ async function revertTasteReply(entry) {
 /* 버튼·스와이프 → 바로 실행하지 않고 사유 팝업을 먼저 띄웁니다 */
 function commit(kind) {
   if (busy) return;
-  const target = visibleDeck()[0];
+  const target = dailyQueue()[0];
   if (!target) return;
   if (kind === 'like' && state.tickets < TICKET_COST) { openTopUp('insufficient'); return; }
   openReasonSheet(kind === 'like' ? 'like' : 'pass', target.id);
@@ -6745,7 +6870,7 @@ document.addEventListener('click', (e) => {
     case 'detail-profile': openProfileDetail(id); break;
     case 'detail-like': {
       closeSheet();
-      const top = visibleDeck()[0];
+      const top = dailyQueue()[0];
       if (top && top.id === id) commit('like'); else toast('현재 맨 앞 카드에서만 호감을 보낼 수 있어요.');
       break;
     }
