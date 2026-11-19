@@ -1402,8 +1402,10 @@ body.mode-admin .toast{bottom:24px}
 <div class="auth" id="authGate" hidden>
   <div class="auth__card">
     <p class="auth__brand">990 인연 <span>직장인 소개팅</span></p>
+    <div id="authIntro">
     <h1 class="auth__title">천천히, 진짜로<br>이어지는 인연</h1>
     <p class="auth__sub">직장인 인증을 마친 사람들만 만나는 자리예요.<br>매칭권 한 장이면 충분합니다.</p>
+    </div>
 
     <div id="authMember">
     <div class="seg auth__seg" role="tablist" aria-label="로그인 또는 회원가입">
@@ -1801,8 +1803,10 @@ function openAdminPanel(msg) {
   adminEntryNotice = msg || '';
   const member = document.getElementById('authMember');
   const foot = document.getElementById('authFoot');
+  const intro = document.getElementById('authIntro');
   if (member) member.hidden = true;
   if (foot) foot.hidden = true;
+  if (intro) intro.hidden = true;
   panel.hidden = false;
   setAdminEntryMsg(adminEntryNotice);
   const em = document.getElementById('adEmail');
@@ -1815,10 +1819,12 @@ function closeAdminPanel(reset) {
   const panel = document.getElementById('adminEntryPanel');
   const member = document.getElementById('authMember');
   const foot = document.getElementById('authFoot');
+  const intro = document.getElementById('authIntro');
   adminEntryNotice = '';
   if (panel) panel.hidden = true;
   if (member) member.hidden = false;
   if (foot) foot.hidden = false;
+  if (intro) intro.hidden = false;
   setAdminEntryMsg('');
   const btn = document.getElementById('adminEntryBtn');
   if (btn) btn.disabled = false;
