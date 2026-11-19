@@ -344,6 +344,8 @@ img{display:block;max-width:100%}
 }
 .card-ed__more span{margin-left:1px}
 .card--editorial.is-bio-clamped .card-ed__more{display:inline-flex}
+/* 소개가 길어 '더보기'가 뜨면 아래의 같은 안내 줄은 겹치지 않게 숨깁니다 (카드 높이도 줄어듦) */
+.card--editorial.is-bio-clamped .card-ed__open{display:none}
 .card-ed__foot{flex:0 0 auto;padding:16px 24px 24px;text-align:center}
 .card-ed__cue{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;max-width:100%;
@@ -5182,7 +5184,7 @@ function cardHTML(p, depth) {
         <span class="card-ed__rule" aria-hidden="true"></span>
         ${meta ? `<p class="card-ed__meta">${meta}</p>` : ''}
         <p class="card-ed__quote">${esc((p.bio || '').trim() || '아직 소개를 작성하지 않았어요.')}</p>
-        <button type="button" class="card-ed__more" data-action="detail-profile" data-id="${p.id}">소개 더보기<span aria-hidden="true">→</span></button>
+        <button type="button" class="card-ed__more" data-action="detail-profile" data-id="${p.id}">사진 · 소개 더보기<span aria-hidden="true">→</span></button>
       </div>
       <div class="card-ed__foot">
         ${noPrefs
