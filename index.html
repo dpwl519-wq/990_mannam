@@ -1218,6 +1218,15 @@ body{font-size:14px;line-height:1.5}
 .avatar--tap{cursor:pointer;transition:transform .18s var(--ease)}
 .avatar--tap:active{transform:scale(.94)}
 button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto}
+
+/* 매칭 · 대화 목록 — 카드 안쪽 여백과 사진·이름 줄 맞춤 */
+.row{padding:12px 14px;align-items:flex-start;gap:11px}
+.row > .avatar{width:48px;height:48px;flex:0 0 48px;margin-top:1px}
+.row > .status-pill,.row > .btn,.row > .row__actions{align-self:center}
+.row__main{padding-top:1px}
+.row__name .pill{font-size:10.5px;line-height:1.3;padding:2px 7px;margin-left:1px;flex:0 0 auto}
+.row__name .pill.pill--mint{color:var(--sage-ink)}
+.row__name .pill.pill--key{color:var(--butter-ink)}
 </style>
 </head>
 <body>
@@ -1389,8 +1398,8 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
             <div class="profile-card__text">
               <p class="profile-card__name"><span id="meName">예지</span><span id="meAge">1991년(만35세)</span>
                 <button class="profile-card__edit" data-action="open-identity" aria-label="닉네임·나이 수정">수정</button>
-                <span class="pill pill--mint" id="meVerifyBadge" hidden>직장인 인증</span>
-                <span class="pill pill--key" id="meHeightBadge" hidden>키 인증</span>
+                <span class="pill pill--mint" id="meVerifyBadge" hidden>직장인증</span>
+                <span class="pill pill--key" id="meHeightBadge" hidden>키인증</span>
               </p>
               <p class="profile-card__meta" id="meMeta">콘텐츠 기획 · 성수건축</p>
             </div>
@@ -2718,25 +2727,71 @@ function applyData(d) {
   const theirs = d.likes.filter((l) => l.to_user === meId);
   const matched = d.likes.filter((l) => l.status === 'matched');
 
-  state.sent = mine
+  /* 같은 상대가 두 줄로 들어와도 목록에는 한 번만 보이게 정리합니다 */
+  const oneRowPerPartner = (list) => {
+    const seen = new Map();
+    list.forEach((x) => {
+      const prev = seen.get(x.id);
+      if (!prev || new Date(x.at) > new Date(prev.at)) seen.set(x.id, x);
+    });
+    return [...seen.values()];
+  };
+
+  state.sent = oneRowPerPartner(mine
     .filter((l) => l.status !== 'passed')
     .map((l) => ({
       id: l.to_user, at: l.created_at, matchId: l.id,
       status: l.status === 'expired_refunded' ? 'refunded' : (l.status === 'matched' ? 'matched' : 'pending')
-    }))
+    })))
     .sort((a, b) => new Date(a.at) - new Date(b.at));
 
-  state.received = theirs
+  state.received = oneRowPerPartner(theirs
     .filter((l) => l.status === 'liked')
-    .map((l) => ({ id: l.from_user, at: l.created_at, matchId: l.id, status: 'pending' }))
+    .map((l) => ({ id: l.from_user, at: l.created_at, matchId: l.id, status: 'pending' })))
     .sort((a, b) => new Date(b.at) - new Date(a.at));
 
-  state.matches = matched
-    .map((l) => {
+  /* 한 사람당 한 줄로 정리합니다.
+     - 나와 상관없는 매칭 줄은 뺍니다 (데모 데이터에서 전체 줄을 읽어올 때 섞여 들어옴)
+     - 같은 상대의 매칭 줄이 둘 이상이면(예전 데이터·시드 중복) 하나로 합치고,
+       대화는 그 줄들의 메시지를 모두 모아 한 방에서 보여줍니다. */
+  const msgCount = new Map();
+  d.messages.forEach((x) => msgCount.set(x.match_id, (msgCount.get(x.match_id) || 0) + 1));
+  const byPartner = new Map();
+  matched
+    .filter((l) => l.from_user === meId || l.to_user === meId)
+    .forEach((l) => {
       const partner = l.from_user === meId ? l.to_user : l.from_user;
-      return { id: partner, matchId: l.id, at: l.matched_at || l.created_at, via: l.from_user === meId ? 'mutual' : 'accepted', row: l };
-    })
-    .filter((m) => PROFILE_MAP[m.id]);
+      const at = l.matched_at || l.created_at;
+      const item = byPartner.get(partner);
+      if (!item) {
+        byPartner.set(partner, {
+          id: partner, matchId: l.id, at,
+          via: l.from_user === meId ? 'mutual' : 'accepted',
+          row: l, rows: [l]
+        });
+        return;
+      }
+      item.rows.push(l);
+      if (new Date(at) > new Date(item.at)) {
+        item.matchId = l.id; item.at = at; item.row = l;
+        item.via = l.from_user === meId ? 'mutual' : 'accepted';
+      }
+    });
+  byPartner.forEach((item) => {
+    item.matchIds = item.rows.map((r) => r.id);
+    /* 대화가 남아 있는 방을 대표 방으로 씁니다 (없으면 가장 최근 매칭) */
+    const withMsgs = item.rows
+      .filter((r) => msgCount.get(r.id))
+      .sort((a, b) => new Date(b.matched_at || b.created_at) - new Date(a.matched_at || a.created_at));
+    if (withMsgs.length) {
+      const pick = withMsgs[0];
+      item.matchId = pick.id;
+      item.at = pick.matched_at || pick.created_at;
+      item.row = pick;
+      item.via = pick.from_user === meId ? 'mutual' : 'accepted';
+    }
+  });
+  state.matches = [...byPartner.values()].filter((m) => PROFILE_MAP[m.id]);
 
   const passRows = mine.filter((l) => l.status === 'passed')
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -2746,7 +2801,8 @@ function applyData(d) {
   /* 대화 */
   state.chats = {}; state.unread = {}; state.chatRead = {};
   state.matches.forEach((m) => {
-    const msgs = d.messages.filter((x) => x.match_id === m.matchId);
+    const roomIds = m.matchIds && m.matchIds.length ? m.matchIds : [m.matchId];
+    const msgs = d.messages.filter((x) => roomIds.includes(x.match_id));
     state.chats[m.id] = msgs.map((x) => ({
       from: x.sender_id === meId ? 'me' : 'them', text: x.body, at: x.created_at, read: !!x.read_at
     }));
@@ -3395,8 +3451,7 @@ function renderMatches() {
           <li class="row" data-action="detail-profile" data-id="${p.id}" style="cursor:pointer">
             <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
             <div class="row__main">
-              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span></p>
-              ${verifyPillsHTML(p) ? `<p class="row__badges">${verifyPillsHTML(p)}</p>` : ''}
+              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span>${verifyPillsHTML(p)}</p>
               <p class="row__sub">${esc(p.job)} · ${esc(p.area)} · ${relTime(r.at)}</p>
               ${partnerPriorityLine(p, { label: '이분의 우선순위' })}
             </div>
@@ -3427,8 +3482,7 @@ function renderMatches() {
           <li class="row" data-action="detail-profile" data-id="${p.id}" style="cursor:pointer">
             <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
             <div class="row__main">
-              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span></p>
-              ${verifyPillsHTML(p) ? `<p class="row__badges">${verifyPillsHTML(p)}</p>` : ''}
+              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span>${verifyPillsHTML(p)}</p>
               <p class="row__sub">${sub}</p>
             </div>
             ${pill}
@@ -3448,8 +3502,7 @@ function renderMatches() {
           <li class="row" data-action="detail-profile" data-id="${p.id}" style="cursor:pointer">
             <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
             <div class="row__main">
-              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span></p>
-              ${verifyPillsHTML(p) ? `<p class="row__badges">${verifyPillsHTML(p)}</p>` : ''}
+              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span>${verifyPillsHTML(p)}</p>
               <p class="row__sub">${m.via === 'accepted' ? '받은 호감 수락' : '서로 호감'} · ${relTime(m.at)}${meetLabel}</p>
             </div>
             <button class="btn btn--sm btn--primary" data-action="open-chat" data-id="${p.id}">대화하기</button>
@@ -3531,8 +3584,7 @@ function renderChatList() {
           <li class="row" data-action="open-chat" data-id="${p.id}" style="cursor:pointer">
             <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
             <div class="row__main">
-              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span></p>
-              ${verifyPillsHTML(p) ? `<p class="row__badges">${verifyPillsHTML(p)}</p>` : ''}
+              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span>${verifyPillsHTML(p)}</p>
               <p class="row__sub">${last ? esc(last.text) : '첫 대화를 기다리고 있어요'}</p>
             </div>
             ${unread
@@ -4464,8 +4516,8 @@ function myHeightVerified() { return state.heightVerified === true; }
 function verifyStickersHTML(p) {
   if (!p) return '';
   const items = [];
-  if (p.verified === true) items.push('<span class="card-sticker card-sticker--verified">직장인 인증</span>');
-  if (p.heightVerified === true) items.push('<span class="card-sticker card-sticker--height">키 인증</span>');
+  if (p.verified === true) items.push('<span class="card-sticker card-sticker--verified">직장인증</span>');
+  if (p.heightVerified === true) items.push('<span class="card-sticker card-sticker--height">키인증</span>');
   return items.length ? `<div class="card-stickers">${items.join('')}</div>` : '';
 }
 
@@ -4473,8 +4525,8 @@ function verifyStickersHTML(p) {
 function verifyPillsHTML(p) {
   if (!p) return '';
   const items = [];
-  if (p.verified === true) items.push('<span class="pill pill--mint">직장인 인증</span>');
-  if (p.heightVerified === true) items.push('<span class="pill pill--key">키 인증</span>');
+  if (p.verified === true) items.push('<span class="pill pill--mint">직장인증</span>');
+  if (p.heightVerified === true) items.push('<span class="pill pill--key">키인증</span>');
   return items.length ? `<span class="verify-pills">${items.join('')}</span>` : '';
 }
 function ledger() { /* 매칭권 내역은 서버 기록에서 계산합니다 */ }
@@ -4672,8 +4724,7 @@ function renderChatList() {
           <li class="row" data-action="open-chat" data-id="${p.id}" style="cursor:pointer">
             <button class="avatar avatar--tap" data-action="detail-profile" data-id="${p.id}" aria-label="${esc(p.name)} 프로필 보기">${avatarSVG(p.id, p.name)}</button>
             <div class="row__main">
-              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span></p>
-              ${verifyPillsHTML(p) ? `<p class="row__badges">${verifyPillsHTML(p)}</p>` : ''}
+              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span>${verifyPillsHTML(p)}</p>
               <p class="row__sub">${last ? esc(last.text) : '첫 대화를 기다리고 있어요'}</p>
             </div>
             ${unread
@@ -5838,7 +5889,7 @@ function openHeightSheet() {
     : (hv.status === 'rejected'
       ? `<p class="sheet__notice">반려 사유 · ${esc(hv.reason || '키가 보이는 사진인지 다시 확인해 주세요')}<br>아래에서 사진을 다시 올려 주세요.</p>`
       : (hv.status === 'verified'
-        ? `<p class="sheet__notice"><b>키 인증</b> 확인 완료${hv.claimedHeight ? ` · ${hv.claimedHeight}cm` : ''}. 다른 서류로 다시 인증하면 새 키로 바뀝니다.</p>`
+        ? `<p class="sheet__notice"><b>키인증</b> 확인 완료${hv.claimedHeight ? ` · ${hv.claimedHeight}cm` : ''}. 다른 서류로 다시 인증하면 새 키로 바뀝니다.</p>`
         : ''));
   openSheet(`
     <div class="sheet__grabber"></div>
@@ -5846,7 +5897,7 @@ function openHeightSheet() {
       <h2>키 인증 (선택)</h2>
       <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
     </div>
-    <p class="sheet__sub">건강검진 결과표나 신체검사서에서 <b>키가 보이는 부분</b>만 사진으로 올려 주세요.<br>운영자가 확인하면 프로필에 <b>키 인증</b> 뱃지가 붙어요.</p>
+    <p class="sheet__sub">건강검진 결과표나 신체검사서에서 <b>키가 보이는 부분</b>만 사진으로 올려 주세요.<br>운영자가 확인하면 프로필에 <b>키인증</b> 뱃지가 붙어요.</p>
     ${hvNote}
     <p class="sheet__notice">주민번호 뒷자리·질병·주소 같은 민감정보는 꼭 가리고 올려 주세요. 심사가 끝나면 화면에는 인증 뱃지만 보여요.</p>
     <div class="sheet-field">
@@ -5947,7 +5998,7 @@ function openWorkVerifySheet() {
       <h2>직장인 인증</h2>
       <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
     </div>
-    <p class="sheet__sub">회사명은 이 인증으로만 입력돼요.<br>승인되면 프로필에 <b>회사명이 자동으로</b> 채워지고 <b>직장인 인증</b> 배지가 붙습니다.</p>
+    <p class="sheet__sub">회사명은 이 인증으로만 입력돼요.<br>승인되면 프로필에 <b>회사명이 자동으로</b> 채워지고 <b>직장인증</b> 배지가 붙습니다.</p>
     ${pendingNote}${rejectedNote}${verifiedNote}
     <div class="verify-actions">
       <button class="btn btn--primary" data-action="open-email-verify">회사 메일로 인증</button>
