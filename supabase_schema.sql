@@ -145,7 +145,7 @@ create table if not exists public.likes_matches (
   from_user             uuid not null references public.profiles(id) on delete cascade,
   to_user               uuid not null references public.profiles(id) on delete cascade,
   status                text not null default 'liked'
-                        check (status in ('liked','matched','passed','expired_refunded')),
+                        check (status in ('liked','matched','passed','expired_refunded','ended')),
   matched_at            timestamptz,
   expires_at            timestamptz,
   met_confirmed_by_from boolean not null default false,
@@ -445,6 +445,21 @@ begin
     update public.likes_matches set status = 'passed' where id = p_match;
     return jsonb_build_object('status','passed');
   end if;
+end $$;
+
+-- 대화 종료 (양쪽 공통) — 누가 호출해도 같은 방이 닫힙니다
+create or replace function public.end_chat(p_match uuid) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare v_row public.likes_matches;
+begin
+  if auth.uid() is null then raise exception '로그인이 필요해요.'; end if;
+  select * into v_row from public.likes_matches where id = p_match for update;
+  if v_row.id is null then raise exception '대화방을 찾을 수 없어요.'; end if;
+  if auth.uid() not in (v_row.from_user, v_row.to_user) then raise exception '이 대화를 종료할 수 없어요.'; end if;
+  if v_row.status = 'ended' then return jsonb_build_object('status','ended','already',true); end if;
+  if v_row.status <> 'matched' then raise exception '매칭된 대화만 종료할 수 있어요.'; end if;
+  update public.likes_matches set status = 'ended' where id = p_match;
+  return jsonb_build_object('status','ended','already',false);
 end $$;
 
 -- 메시지 보내기 / 읽음 처리

@@ -925,6 +925,44 @@ body.mode-admin .toast{bottom:24px}
 .thread-ended{margin:10px 18px;padding:14px;border-radius:12px;background:var(--sand-soft);font-size:12px;text-align:center;line-height:1.7}
 .demo-limits{margin-top:16px;padding:12px;border:1px solid var(--line-2);border-radius:10px;font-size:11.5px;line-height:1.8;color:var(--ink-2)}
 @media(max-width:370px){.view--today{padding-left:13px;padding-right:13px}.card-head{padding-left:16px;padding-right:16px}.card-body{padding-left:16px;padding-right:16px}.deck-actions{padding-top:8px}.undo-row span{display:none}}
+
+/* 사진 보호 — 저장·드래그 차단 + 옅은 워터마크 */
+.photo-shield{position:relative;width:100%;height:100%;overflow:hidden}
+.photo-shield img{
+  width:100%;height:100%;object-fit:cover;display:block;
+  -webkit-touch-callout:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;pointer-events:none;
+}
+.photo-shield__mark{
+  position:absolute;right:8px;bottom:9px;padding:2px 8px;border-radius:999px;
+  background:rgba(255,252,248,.42);color:rgba(46,40,37,.45);
+  font-size:9.5px;letter-spacing:.04em;pointer-events:none;user-select:none;
+  backdrop-filter:blur(1.5px);
+}
+.detail-gallery figure .photo-shield{height:175px}
+.card-art img,.avatar img,.doc-preview img{
+  -webkit-touch-callout:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;
+}
+
+/* 종료된 대화 안내 · 대화 메뉴 */
+.thread-ended{
+  flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:7px;
+  margin:10px 18px 14px;padding:16px 18px;border-radius:14px;text-align:center;
+  background:rgba(230,217,200,.34);box-shadow:inset 0 0 0 1px rgba(138,116,82,.16);
+}
+.thread-ended b{font-family:var(--font-title);font-size:13.5px;color:var(--butter-ink)}
+.thread-ended span{font-size:12px;line-height:1.6;color:var(--ink-2)}
+.thread-ended .btn{margin-top:4px}
+.menu-list{display:flex;flex-direction:column;gap:6px;margin-top:16px}
+.menu-item{
+  display:flex;align-items:center;gap:11px;width:100%;padding:14px 15px;border-radius:12px;
+  background:rgba(255,253,251,.8);box-shadow:0 0 0 1px var(--line);
+  font-size:13px;color:var(--ink);text-align:left;
+}
+.menu-item:active{background:#fff}
+.menu-item .icon{color:var(--ink-3)}
+.menu-item__chev{margin-left:auto;color:#C3B8AE;font-size:15px;line-height:1}
+.menu-item--danger{color:var(--apricot-ink)}
+.menu-item--danger .icon{color:var(--apricot-ink)}
 </style>
 <style id="app-ui">
 /* ── 로그인 · 가입 ──────────────────────────────────────────────── */
@@ -1252,6 +1290,7 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.4 9.6 17 19 7.4"/></symbol>
   <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.4l7 2.6v5.4c0 4.3-2.9 7.4-7 8.7-4.1-1.3-7-4.4-7-8.7V6z"/></symbol>
   <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M3.8 8.4h9.4M17.6 8.4h2.6M3.8 15.6h3.2M11.4 15.6h8.8"/><circle cx="15.4" cy="8.4" r="2.2"/><circle cx="9.2" cy="15.6" r="2.2"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5.4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18.6" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
   <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4.4 8.2h2.8l1.5-2.1h6.6l1.5 2.1h2.8a1.5 1.5 0 0 1 1.5 1.5v8.2a1.5 1.5 0 0 1-1.5 1.5H4.4a1.5 1.5 0 0 1-1.5-1.5v-8.2a1.5 1.5 0 0 1 1.5-1.5Z"/><circle cx="12" cy="13.7" r="3.1"/></symbol>
   <symbol id="i-badge" viewBox="0 0 24 24"><path d="M12 3.4l7 2.6v5.4c0 4.3-2.9 7.4-7 8.7-4.1-1.3-7-4.4-7-8.7V6z"/><path d="M8.8 11.6 11 13.8l4.2-4.4"/></symbol>
   <symbol id="i-clip" viewBox="0 0 24 24"><path d="M16.6 7.8 10 14.4a2.3 2.3 0 0 0 3.2 3.2l6.6-6.6a4.2 4.2 0 0 0-6-6l-6.8 6.8a6.1 6.1 0 0 0 8.6 8.6l5.2-5.2"/></symbol>
@@ -1353,13 +1392,17 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
                 <p class="thread-head__name" id="threadName">서지후</p>
                 <p class="thread-head__sub" id="threadSub">매칭됨</p>
               </button>
-              <button class="btn btn--ghost btn--sm" id="threadSafetyBtn" data-action="chat-safety">안전</button>
-              <button class="icon-btn" id="threadReportBtn" data-action="report" aria-label="신고하기">
-                <svg class="icon"><use href="#i-flag"/></svg>
+              <button class="icon-btn" id="threadMoreBtn" data-action="chat-menu" aria-label="대화 메뉴">
+                <svg class="icon"><use href="#i-more"/></svg>
               </button>
             </header>
             <div class="meet-bar" id="meetBar"></div>
             <div class="thread-body" id="threadBody"></div>
+            <div class="thread-ended" id="threadEnded" hidden>
+              <b>종료된 대화예요</b>
+              <span>상대방이 나가기를 해 더 이상 대화할 수 없어요.</span>
+              <button class="btn btn--ghost btn--sm" data-action="detail-profile" id="threadEndedProfile">상대 프로필 보기</button>
+            </div>
             <div class="chips" id="chipArea">
               <p class="chips__label">이런 말로 시작해 보세요</p>
               <div class="chips__row" id="chipRow"></div>
@@ -1995,7 +2038,7 @@ function emptyState() {
     safety: { hideSameCompany: true, blockedNumbers: [], blockedProfiles: [] },
     tickets: 0, points: 0, verified: false, heightVerified: false,
     deck: [], lastPassed: null, passed: [], verifiedIds: [], heightVerifiedIds: [],
-    ticketLedger: [], endedChats: [], chatRead: {}, auditLog: [], meetings: {},
+    ticketLedger: [], endedChats: [], endedRemote: [], endedList: [], chatRead: {}, auditLog: [], meetings: {},
     showDemo: true,
     sent: [], received: [], matches: [], chats: {}, unread: {},
     verification: { status: 'none', method: null, company: '', email: '', docName: '', docPreview: '', submittedAt: null, decidedAt: null, reason: '' },
@@ -2738,7 +2781,7 @@ function applyData(d) {
   };
 
   state.sent = oneRowPerPartner(mine
-    .filter((l) => l.status !== 'passed')
+    .filter((l) => l.status !== 'passed' && l.status !== 'ended')
     .map((l) => ({
       id: l.to_user, at: l.created_at, matchId: l.id,
       status: l.status === 'expired_refunded' ? 'refunded' : (l.status === 'matched' ? 'matched' : 'pending')
@@ -2792,6 +2835,13 @@ function applyData(d) {
     }
   });
   state.matches = [...byPartner.values()].filter((m) => PROFILE_MAP[m.id]);
+  /* 상대가 나가기를 한 대화 (서버에 status='ended' 로 남은 줄) */
+  const endedRows = d.likes
+    .filter((l) => l.status === 'ended' && (l.from_user === meId || l.to_user === meId));
+  state.endedRemote = endedRows.map((l) => (l.from_user === meId ? l.to_user : l.from_user));
+  state.endedList = endedRows
+    .map((l) => ({ id: (l.from_user === meId ? l.to_user : l.from_user), at: l.matched_at || l.created_at }))
+    .filter((x) => PROFILE_MAP[x.id]);
 
   const passRows = mine.filter((l) => l.status === 'passed')
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -3490,22 +3540,38 @@ function renderMatches() {
       }).join('')
     : '<li class="list-empty">보낸 호감이 없어요.<br>990원짜리 용기 한 번, 어떨까요.</li>';
 
-  const matchHTML = state.matches.length
+  const endedRowsForList = (state.endedList || []).filter((x) => PROFILE_MAP[x.id] && !state.matches.some((m) => m.id === x.id));
+  const matchHTML = (state.matches.length || endedRowsForList.length)
     ? state.matches.slice().reverse().map((m) => {
         const p = PROFILE_MAP[m.id];
+        const ended = isChatEnded(m.id);
         const meet = meetingOf(m.id);
-        const meetLabel = meet.status === 'reviewed' ? ' · 후기 완료'
+        const meetLabel = ended ? ' · 대화 종료'
+          : meet.status === 'reviewed' ? ' · 후기 완료'
           : meet.status === 'met' ? ' · 만남 기록'
           : meet.status === 'planned' && meet.plannedAt ? ` · ${dateLabel(meet.plannedAt)} 약속`
           : '';
         return `
-          <li class="row" data-action="detail-profile" data-id="${p.id}" style="cursor:pointer">
+          <li class="row" data-action="${ended ? 'open-chat' : 'detail-profile'}" data-id="${p.id}" style="cursor:pointer">
             <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
             <div class="row__main">
               <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span>${verifyPillsHTML(p)}</p>
               <p class="row__sub">${m.via === 'accepted' ? '받은 호감 수락' : '서로 호감'} · ${relTime(m.at)}${meetLabel}</p>
             </div>
-            <button class="btn btn--sm btn--primary" data-action="open-chat" data-id="${p.id}">대화하기</button>
+            ${ended
+              ? '<span class="status-pill">종료됨</span>'
+              : `<button class="btn btn--sm btn--primary" data-action="open-chat" data-id="${p.id}">대화하기</button>`}
+          </li>`;
+      }).join('') + endedRowsForList.map((x) => {
+        const p = PROFILE_MAP[x.id];
+        return `
+          <li class="row row--ended" data-action="open-chat" data-id="${p.id}" style="cursor:pointer">
+            <div class="avatar" aria-hidden="true">${avatarSVG(p.id, p.name)}</div>
+            <div class="row__main">
+              <p class="row__name">${esc(p.name)} <span>${yearLabel(p.age, p.birthYear)}</span>${verifyPillsHTML(p)}</p>
+              <p class="row__sub">대화 종료 · ${relTime(x.at)}</p>
+            </div>
+            <span class="status-pill">종료됨</span>
           </li>`;
       }).join('')
     : '<li class="list-empty">이어진 인연이 아직 없어요.<br>서로 호감을 보내면 매칭이 성사돼요.</li>';
@@ -3565,7 +3631,7 @@ function renderChatList() {
     return;
   }
 
-  const rows = state.matches.filter(m=>safeProfile(m.id) && !state.endedChats.includes(m.id)).slice().sort((a, b) => {
+  const rows = state.matches.filter(m=>safeProfile(m.id) && !isChatEnded(m.id)).slice().sort((a, b) => {
     const la = lastMessage(a.id), lb = lastMessage(b.id);
     return new Date(lb ? lb.at : b.at) - new Date(la ? la.at : a.at);
   });
@@ -3600,7 +3666,9 @@ function renderChatList() {
 function renderThread() {
   if (!activeChatId) return;
   const p = PROFILE_MAP[activeChatId];
-  if (!p || !safeProfile(activeChatId) || state.endedChats.includes(activeChatId)) { closeThread(); return; }
+  if (!p || !safeProfile(activeChatId)) { closeThread(); return; }
+  const ended = isChatEnded(activeChatId);
+  syncThreadEnded(ended);
   const msgs = state.chats[activeChatId] || [];
   const match = state.matches.find((m) => m.id === activeChatId);
   const signature = activeChatId + '|' + msgs.length + '|' + typingChats.has(activeChatId) + '|' + JSON.stringify(state.chatRead[activeChatId]||null);
@@ -3614,7 +3682,10 @@ function renderThread() {
   if (tWho) tWho.dataset.id = activeChatId;
   $('#threadName').textContent = p.name;
   $('#threadSub').textContent = `${match ? relTime(match.at) + ' 매칭' : '매칭'} · ${p.job} · ${p.mbti}`;
-  $('#threadReportBtn').dataset.id = activeChatId;
+  const moreBtn = $('#threadMoreBtn');
+  if (moreBtn) moreBtn.dataset.id = activeChatId;
+  const endedProfileBtn = $('#threadEndedProfile');
+  if (endedProfileBtn) endedProfileBtn.dataset.id = activeChatId;
 
   const divider = msgs.length
     ? `<div class="day-divider">대화 시작 · ${relTime(msgs[0].at)}</div>`
@@ -3990,7 +4061,7 @@ function renderProfileChrome() {
   $('#meMeta').textContent = [u.job, u.company].filter(Boolean).join(' · ');
   const avatar = $('#meAvatar');
   if (u.photos && u.photos[0]) {
-    avatar.innerHTML = `<img src="${esc(u.photos[0])}" alt="내 사진" style="width:100%;height:100%;object-fit:cover">`;
+    avatar.innerHTML = `<img src="${esc(u.photos[0])}" alt="내 사진" draggable="false" style="width:100%;height:100%;object-fit:cover">`;
   } else {
     avatar.innerHTML = avatarSVG('me', u.nickname || '나');
   }
@@ -4550,11 +4621,20 @@ function demoPhotoMarkup(p) {
     </div>`;
 }
 
+/* 사진은 저장·드래그를 막고, 아주 옅은 워터마크를 올립니다 */
+function photoShieldMark() {
+  const who = (state.user && state.user.nickname ? state.user.nickname : '').trim();
+  return `990 인연${who ? ` · ${esc(who)}` : ''}`;
+}
+
 function photoMarkup(p, idx) {
   if (p && p.isDemo) return demoPhotoMarkup(p);
   const photo = photoAt(p, idx);
   if (photo && photo.src) {
-    return `<img src="${esc(photo.src)}" alt="${esc(p.name)} 사진" style="width:100%;height:100%;object-fit:cover">`;
+    return `<div class="photo-shield">
+        <img src="${esc(photo.src)}" alt="${esc(p.name)} 사진" draggable="false">
+        <span class="photo-shield__mark" aria-hidden="true">${photoShieldMark()}</span>
+      </div>`;
   }
   return plateSVG(artFor(p.id, idx));
 }
@@ -4703,7 +4783,7 @@ function renderChatList() {
     return;
   }
   const rows = state.matches
-    .filter((m) => safeProfile(m.id) && !state.endedChats.includes(m.id))
+    .filter((m) => safeProfile(m.id) && !isChatEnded(m.id))
     .slice()
     .sort((a, b) => {
       const la = lastMessage(a.id), lb = lastMessage(b.id);
@@ -4739,7 +4819,9 @@ function renderChatList() {
 function renderThread() {
   if (!activeChatId) return;
   const p = PROFILE_MAP[activeChatId];
-  if (!p || !safeProfile(activeChatId) || state.endedChats.includes(activeChatId)) { closeThread(); return; }
+  if (!p || !safeProfile(activeChatId)) { closeThread(); return; }
+  const ended = isChatEnded(activeChatId);
+  syncThreadEnded(ended);
   const msgs = state.chats[activeChatId] || [];
   const match = state.matches.find((m) => m.id === activeChatId);
   const signature = activeChatId + '|' + msgs.length + '|' + (state.chatRead[activeChatId] || '');
@@ -4753,7 +4835,10 @@ function renderThread() {
   if (tWho) tWho.dataset.id = activeChatId;
   $('#threadName').textContent = p.name;
   $('#threadSub').textContent = `${match ? relTime(match.at) + ' 매칭' : '매칭'} · ${p.job} · ${p.mbti}`;
-  $('#threadReportBtn').dataset.id = activeChatId;
+  const moreBtn = $('#threadMoreBtn');
+  if (moreBtn) moreBtn.dataset.id = activeChatId;
+  const endedProfileBtn = $('#threadEndedProfile');
+  if (endedProfileBtn) endedProfileBtn.dataset.id = activeChatId;
 
   const divider = msgs.length
     ? `<div class="day-divider">대화 시작 · ${relTime(msgs[0].at)}</div>`
@@ -5394,7 +5479,8 @@ async function declineLike(id, reasonKeys) {
 /* ---------- 대화 ---------- */
 function openChat(id) {
   const m = state.matches.find((x) => x.id === id);
-  if (!m || !safeProfile(id) || state.endedChats.includes(id)) { toast('종료·차단 또는 이용 제한된 대화입니다.'); return; }
+  if (isChatEnded(id)) { showChatEndedNotice(id); return; }
+  if (!m || !safeProfile(id)) { toast('차단했거나 이용이 제한된 대화예요.'); return; }
   activeChatId = id;
   threadSignature = '';
   $('#thread').hidden = false;
@@ -5420,12 +5506,76 @@ function closeThread() {
   renderChatList();
 }
 
+/* 종료된 대화인지 — 이 기기에서 끝냈거나(state.endedChats), 서버에 종료로 남았거나 */
+function isChatEnded(id) {
+  return state.endedChats.includes(id) || (state.endedRemote || []).includes(id);
+}
+
+/* 종료된 대화 — 입력창을 잠그고 안내를 띄웁니다 */
+function syncThreadEnded(ended) {
+  const box = $('#threadEnded');
+  const composerEl = $('#composer');
+  const chipEl = $('#chipArea');
+  const input = $('#msgInput');
+  const send = $('#sendBtn');
+  if (box) box.hidden = !ended;
+  if (composerEl) composerEl.hidden = ended;
+  if (chipEl) chipEl.hidden = ended;
+  if (input) { input.disabled = ended; if (ended) input.value = ''; }
+  if (send) send.disabled = ended || !(input && input.value.trim());
+}
+
+/* 종료된 대화를 열려고 할 때 — 이번 대화는 끝났다고 알려줍니다 */
+function showChatEndedNotice(id) {
+  const p = PROFILE_MAP[id] || { name: '상대' };
+  openSheet(`<div class="sheet__grabber"></div>
+    <div class="sheet__head"><h2>종료된 대화</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button></div>
+    <p class="sheet__sub"><b>${esc(p.name)}</b>님과의 대화는 종료되었어요.<br>상대방이 나가기를 해 더 이상 대화할 수 없어요.</p>
+    <p class="sheet__notice">메시지 보내기와 대화 이어가기가 모두 닫혔어요. 새 인연은 오늘의 인연에서 만날 수 있어요.</p>
+    <div class="sheet__actions">
+      <button class="btn btn--ghost" data-action="close-sheet">닫기</button>
+      <button class="btn btn--primary" data-action="detail-profile" data-id="${id}">프로필 보기</button>
+    </div>`);
+}
+
+/* 대화방 ··· 메뉴 — 대화 종료 · 신고 · 차단 · 상대 프로필 */
+function showChatMenu() {
+  const id = activeChatId, p = PROFILE_MAP[id];
+  if (!id || !p) return;
+  const m = meetingOf(id);
+  const meetLabel = m.status === 'reviewed' ? '만남 후기 보기'
+    : (m.status === 'met' ? '후기 남기기'
+      : (m.status === 'planned' ? '약속 확인 · 만남 기록' : '만남 기록하기'));
+  const meetAction = m.status === 'met' ? 'meet-review' : (m.status === 'planned' ? 'meet-done' : 'meet-done');
+  openSheet(`<div class="sheet__grabber"></div>
+    <div class="sheet__head"><h2>대화 메뉴</h2><button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button></div>
+    <p class="sheet__sub"><b>${esc(p.name)}</b>님과의 대화예요.</p>
+    <div class="menu-list">
+      <button class="menu-item" data-action="detail-profile" data-id="${id}">
+        <svg class="icon icon--sm"><use href="#i-user"/></svg><span>상대 프로필 보기</span><span class="menu-item__chev">›</span>
+      </button>
+      <button class="menu-item" data-action="${meetAction}" data-id="${id}">
+        <svg class="icon icon--sm"><use href="#i-heart"/></svg><span>${meetLabel}</span><span class="menu-item__chev">›</span>
+      </button>
+      <button class="menu-item" data-action="end-chat" data-id="${id}">
+        <svg class="icon icon--sm"><use href="#i-x"/></svg><span>대화 종료</span><span class="menu-item__chev">›</span>
+      </button>
+      <button class="menu-item" data-action="report" data-id="${id}">
+        <svg class="icon icon--sm"><use href="#i-flag"/></svg><span>신고하기</span><span class="menu-item__chev">›</span>
+      </button>
+      <button class="menu-item menu-item--danger" data-action="block-chat" data-id="${id}">
+        <svg class="icon icon--sm"><use href="#i-shield"/></svg><span>상대 차단</span><span class="menu-item__chev">›</span>
+      </button>
+    </div>
+    <p class="demo-limits">대화 종료를 하면 이 대화는 양쪽 모두 더 이상 이어갈 수 없어요. 신고는 운영자 콘솔의 신고 내역에 바로 접수됩니다.</p>`);
+}
+
 async function sendMessage(text) {
   const id = activeChatId;
   const m = state.matches.find((x) => x.id === id);
   const body = String(text || '').trim();
   if (!id || !m || !body) return;
-  if (!safeProfile(id) || state.endedChats.includes(id)) { toast('메시지를 보낼 수 없는 대화입니다.'); return; }
+  if (!safeProfile(id) || isChatEnded(id)) { toast('종료된 대화예요. 더 이상 메시지를 보낼 수 없어요.'); return; }
 
   state.chats[id] = [...(state.chats[id] || []), { from: 'me', text: body, at: new Date().toISOString() }];
   threadSignature = '';
@@ -5450,13 +5600,26 @@ function showChatSafety() {
     <p class="demo-limits">신고는 운영자 콘솔의 신고 내역에 바로 접수됩니다.</p>`);
 }
 
-function endOrBlockChat(id, block) {
+async function endOrBlockChat(id, block) {
   if (!PROFILE_MAP[id]) return;
   if (!state.endedChats.includes(id)) state.endedChats.push(id);
   if (block) saveSafety({ blockedProfiles: [...new Set([...state.safety.blockedProfiles, id])] });
   if (activeChatId === id) closeThread();
   closeSheet(); deckSignature = ''; renderAll();
-  toast(block ? '상대를 차단했어요.' : '대화를 종료했어요.');
+  if (block) { toast('상대를 차단했어요.'); return; }
+  /* 서버에도 종료를 남겨 상대 화면에서도 대화가 닫히게 합니다.
+     (end_chat 함수가 아직 없는 DB에서는 이 기기에서만 종료됩니다) */
+  const m = (state.matches || []).find((x) => x.id === id);
+  let shared = false;
+  if (m) {
+    try { await rpc('end_chat', { p_match: m.matchId }); shared = true; }
+    catch (err) { console.warn('[end_chat]', errorText(err)); }
+  }
+  if (shared) await refreshAll();
+  renderAll();
+  toast(shared
+    ? '대화를 종료했어요. 상대방도 더 이상 메시지를 보낼 수 없어요.'
+    : '대화를 종료했어요. 이제 더 이상 메시지를 보낼 수 없어요.');
 }
 
 /* ---------- 만남 · 후기 ---------- */
@@ -6237,7 +6400,8 @@ document.addEventListener('click', (e) => {
     case 'open-chat': switchView('chat'); openChat(id); break;
     case 'close-thread': closeThread(); break;
     case 'send-chip': sendMessage(el.dataset.text); break;
-    case 'chat-safety': showChatSafety(); break;
+    case 'chat-safety': showChatMenu(); break;
+    case 'chat-menu': showChatMenu(); break;
     case 'end-chat': endOrBlockChat(id, false); break;
     case 'block-chat': endOrBlockChat(id, true); break;
     /* 충전 */
@@ -6371,6 +6535,14 @@ if (composer) {
     sendMessage(text);
   });
 }
+
+/* 사진 보호 — 길게 눌러 저장 · 드래그 · 우클릭 저장을 막습니다 */
+document.addEventListener('contextmenu', (e) => {
+  if (e.target.closest && e.target.closest('.photo-shield, .detail-gallery, .card-art, .avatar, .demo-photo, .doc-preview')) e.preventDefault();
+});
+document.addEventListener('dragstart', (e) => {
+  if (e.target && e.target.tagName === 'IMG') e.preventDefault();
+});
 
 /* ESC */
 document.addEventListener('keydown', (e) => {
