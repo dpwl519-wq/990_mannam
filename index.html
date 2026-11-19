@@ -1726,6 +1726,7 @@ async function afterLogin() {
   if (afterLoginDone) return;
   afterLoginDone = true;
   hideAuth();
+  switchMode('user');
   const banner = document.getElementById('setupBanner');
   if (banner) banner.hidden = true;
 
@@ -2013,10 +2014,13 @@ function applyData(d) {
   state.ticketLedger = led.sort((a, b) => new Date(b.at) - new Date(a.at));
 
   /* 오늘의 인연 (아직 아무것도 하지 않은 활성 프로필) */
-  const interacted = new Set(mine.map((l) => l.to_user));
+  const mineSet = new Set(mine.map((l) => l.to_user));
+  const matchedSet = new Set(matched.map((l) => (l.from_user === meId ? l.to_user : l.from_user)));
+  const passedMeSet = new Set(d.likes.filter((l) => l.from_user !== meId && l.status === 'passed').map((l) => l.from_user));
   const myGender = state.user.gender;
   state.deck = d.profiles
-    .filter((r) => r.id !== meId && r.status === 'active' && !interacted.has(r.id))
+    .filter((r) => r.id !== meId && r.status === 'active'
+      && !mineSet.has(r.id) && !matchedSet.has(r.id) && !passedMeSet.has(r.id))
     .filter((r) => !myGender || !r.gender || r.gender !== myGender)
     .filter((r) => uiPrefs.showDemo || !r.is_demo)
     .map((r) => r.id);
@@ -4580,6 +4584,7 @@ document.addEventListener('change', async (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Enter') return;
   if (e.target.id === 'blockPhone') { e.preventDefault(); addBlockedNumber(); }
+  if (e.target.id === 'adminPin') { e.preventDefault(); adminClaim(); }
 });
 
 /* 메시지 입력 */
