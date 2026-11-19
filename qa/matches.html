@@ -1261,8 +1261,11 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
 .row{padding:12px 14px;align-items:flex-start;gap:11px}
 .row > .avatar{width:48px;height:48px;flex:0 0 48px;margin-top:1px}
 .row > .status-pill,.row > .btn,.row > .row__actions{align-self:center}
+.row > .btn,.row__actions .btn{white-space:nowrap;flex:0 0 auto}
+.row > .btn{height:32px;padding:0 11px;font-size:11.5px}
+.row__actions{gap:4px}
 .row__main{padding-top:1px}
-.row__name .pill{font-size:10.5px;line-height:1.3;padding:2px 7px;margin-left:1px;flex:0 0 auto}
+.row__name .pill{font-size:10px;line-height:1.25;padding:2px 6px;margin-left:1px;flex:0 0 auto}
 .row__name .pill.pill--mint{color:var(--sage-ink)}
 .row__name .pill.pill--key{color:var(--butter-ink)}
 </style>
@@ -1370,10 +1373,13 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
           <div id="matchesBody"><section class="section"><div class="section__head"><h2 class="section__title">받은 호감</h2><span class="section__count">1건</span></div><ul class="list"><li class="row" data-action="detail-profile" data-id="a1" style="cursor:pointer">
   <div class="avatar" aria-hidden="true"><svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#F6E8DD"/><text x="50" y="53" text-anchor="middle" dominant-baseline="middle" font-family="Gowun Batang, serif" font-size="38" fill="#4A3B3E">준</text></svg></div>
   <div class="row__main">
-    <p class="row__name">이준호 <span>1992년(만34세)</span><span class="pill pill--mint">직장인증</span><span class="pill pill--key">키인증</span></p>
-    <p class="row__sub">받은 호감 수락 · 32분 전</p>
+    <p class="row__name">이준호 <span>1992년(만34세)</span><span class="pill pill--mint">직장인증</span></p>
+    <p class="row__sub">프로덕트 디자이너 · 서울시 마포구 · 3시간 전</p>
   </div>
-  <button class="btn btn--sm btn--primary" data-action="open-chat" data-id="a1">수락</button>
+  <div class="row__actions">
+    <button class="btn btn--sm btn--ghost" data-action="decline" data-id="a1">거절</button>
+    <button class="btn btn--sm btn--primary" data-action="accept" data-id="a1">수락</button>
+  </div>
 </li></ul></section><section class="section"><div class="section__head"><h2 class="section__title">이어진 인연</h2><span class="section__count">2쌍</span></div><ul class="list"><li class="row" data-action="detail-profile" data-id="a1" style="cursor:pointer">
   <div class="avatar" aria-hidden="true"><svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#F6E8DD"/><text x="50" y="53" text-anchor="middle" dominant-baseline="middle" font-family="Gowun Batang, serif" font-size="38" fill="#4A3B3E">준</text></svg></div>
   <div class="row__main">

@@ -1261,8 +1261,11 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
 .row{padding:12px 14px;align-items:flex-start;gap:11px}
 .row > .avatar{width:48px;height:48px;flex:0 0 48px;margin-top:1px}
 .row > .status-pill,.row > .btn,.row > .row__actions{align-self:center}
+.row > .btn,.row__actions .btn{white-space:nowrap;flex:0 0 auto}
+.row > .btn{height:32px;padding:0 11px;font-size:11.5px}
+.row__actions{gap:4px}
 .row__main{padding-top:1px}
-.row__name .pill{font-size:10.5px;line-height:1.3;padding:2px 7px;margin-left:1px;flex:0 0 auto}
+.row__name .pill{font-size:10px;line-height:1.25;padding:2px 6px;margin-left:1px;flex:0 0 auto}
 .row__name .pill.pill--mint{color:var(--sage-ink)}
 .row__name .pill.pill--key{color:var(--butter-ink)}
 </style>
@@ -4221,7 +4224,9 @@ function renderSafety() {
 /* ---------- 4-6. 탭 배지 ---------- */
 function renderNav() {
   const pending = state.received.filter((r) => r.status === 'pending' && !isHidden(PROFILE_MAP[r.id])).length;
-  const unread = Object.values(state.unread).reduce((a, b) => a + b, 0);
+  const unread = Object.keys(state.unread)
+    .filter((id) => !isChatEnded(id))
+    .reduce((a, id) => a + (state.unread[id] || 0), 0);
 
   const matchBadge = $('#matchBadge');
   matchBadge.hidden = pending === 0;
@@ -4857,7 +4862,9 @@ function renderThread() {
 
 function renderNav() {
   const pending = state.received.filter((r) => r.status === 'pending' && PROFILE_MAP[r.id] && !isHidden(PROFILE_MAP[r.id])).length;
-  const unread = Object.values(state.unread).reduce((a, b) => a + b, 0);
+  const unread = Object.keys(state.unread)
+    .filter((id) => !isChatEnded(id))
+    .reduce((a, id) => a + (state.unread[id] || 0), 0);
 
   const matchBadge = $('#matchBadge');
   if (matchBadge) { matchBadge.hidden = pending === 0; matchBadge.textContent = pending; }
