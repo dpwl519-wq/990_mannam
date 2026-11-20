@@ -954,6 +954,18 @@ body.mode-admin .toast{bottom:24px}
   flex:0 0 auto;padding:4px 9px;border-radius:999px;font-size:8px;background:rgba(230,217,200,.35);color:var(--butter-ink);
   max-width:44%;text-align:right;line-height:1.5;letter-spacing:.03em;
 }
+.method-badge--wait{background:rgba(217,155,132,.26);color:#8A5A48}
+.sub-card__avatar--photo{padding:0;cursor:zoom-in}
+.sub-card__avatar--photo img{width:100%;height:100%;object-fit:cover;display:block}
+.signup-detail{margin-top:10px;padding:10px 12px;border-radius:9px;background:rgba(46,40,37,.025);display:grid;gap:5px}
+.signup-detail__row{display:flex;align-items:flex-start;gap:8px;font-size:11px;line-height:1.7;letter-spacing:.01em}
+.signup-detail__row .k{flex:0 0 56px;color:var(--ink-3);font-size:10px;letter-spacing:.05em}
+.signup-detail__row .v{flex:1 1 auto;min-width:0;color:var(--ink-2);word-break:keep-all;overflow-wrap:anywhere}
+.signup-detail__row--bio .v{white-space:pre-wrap}
+.signup-flag{display:inline-block;margin-top:9px;padding:4px 9px;border-radius:999px;font-size:11px;line-height:1.6;letter-spacing:.02em;word-break:keep-all}
+.signup-flag--wait{background:rgba(217,155,132,.16);color:#8A5A48}
+.signup-flag--ok{background:rgba(201,214,201,.32);color:var(--sage-ink)}
+.signup-photo-full{width:100%;border-radius:12px;margin-top:10px;background:#FCF9F4}
 .sub-card__email{
   margin-top:11px;padding:9px 12px;border-radius:8px;background:rgba(46,40,37,.025);
   font-size:9px;color:var(--ink-2);word-break:break-all;line-height:1.7;letter-spacing:.01em;
@@ -1747,7 +1759,7 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
               </label>
             </div>
             <button type="submit" class="btn btn--primary btn--block" id="profileSaveBtn" style="margin-top:14px">프로필 저장</button>
-            <p class="footnote" style="margin-top:10px;text-align:center">사진 1장과 필수 항목을 채우면 다른 화면이 열려요<br>회사와 인증된 키는 인증 승인 후 자동으로 채워져요</p>
+            <p class="footnote" id="profileSaveFoot" style="margin-top:10px;text-align:center">사진 1장과 필수 항목을 채우면 다른 화면이 열려요<br>회사와 인증된 키는 인증 승인 후 자동으로 채워져요</p>
           </form>
 
           <div class="taste-zone">
@@ -1898,7 +1910,7 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
             <div>
               <p class="admin-col__title">가입 대기 <span id="signupPendingLabel">0명</span></p>
               <div id="adminSignupList"></div>
-              <p class="admin-tip"><b>승인</b> — 승인하면 그 회원은 바로 입장할 수 있어요. 반려하면 회원 화면에는 “가입 승인이 어려워요” 안내만 보입니다. 두 경우 모두 admin_logs 에 기록됩니다.</p>
+              <p class="admin-tip"><b>승인</b> — 카드에서 사진·자기소개·기본 정보를 확인하고 승인하세요. 승인하면 그 회원은 바로 입장할 수 있고, 반려하면 회원 화면에는 “가입 승인이 어려워요” 안내만 보입니다. <b>프로필 작성 중</b> 뱃지가 붙은 회원은 아직 프로필을 다 채우지 않은 상태예요. 두 경우 모두 admin_logs 에 기록됩니다.</p>
             </div>
             <div>
               <p class="admin-col__title">반려한 가입 <span id="signupRejectedLabel">0명</span></p>
@@ -2890,7 +2902,9 @@ async function afterLogin() {
       /* 가입 승인 전 — 앱 화면 대신 “가입 승인 대기/반려” 안내만 보입니다. */
     } else if (missingParts.length) {
       switchView('profile');
-      toast('프로필 등록을 먼저 마쳐 주세요. 사진 1장과 모든 항목이 필요해요.');
+      toast(gateStatus() === 'profile'
+        ? '프로필을 작성하면 운영자 확인 후 승인돼요. 사진 1장과 필수 항목을 채워 주세요.'
+        : '프로필 등록을 먼저 마쳐 주세요. 사진 1장과 모든 항목이 필요해요.');
     } else {
       switchView('today');
       toast(`안녕하세요, ${state.user.nickname || '예지'}님. 오늘의 인연을 준비했어요.`);
@@ -3334,6 +3348,7 @@ function startPolling() {
       renderNav();
       if (currentMode === 'user' && applySignupGate()) return;
       if (currentMode === 'user') {
+        refreshProfileLock();
         const active = document.querySelector('.view.is-active');
         if (active && active.dataset.view === 'chat') { renderChatList(); renderThread(); renderMeetBar(); }
         if (active && active.dataset.view === 'matches') renderMatches();
@@ -5099,19 +5114,26 @@ function toast(message, opts = {}) {
   toastTimer = setTimeout(() => { el.classList.remove('is-on'); toastAction = null; }, opts.label ? 6500 : 3200);
 }
 
-/* ---------- 가입 승인 게이트 (가입 대기 · 반려) ----------
-   status 가 'pending'/'rejected' 이면 오늘·매칭·대화·프로필 대신 안내 화면만 보입니다.
+/* ---------- 가입 승인 게이트 (프로필 작성 → 승인 대기 → 반려) ----------
+   새 가입자는 'pending' 으로 들어옵니다.
+   · 프로필 필수 항목을 아직 다 채우지 않았으면 'profile' — 프로필 등록 화면만 열어 줍니다.
+   · 다 채워 저장했으면 'pending' — "프로필 확인 및 가입 승인 대기" 화면만 보이고,
+     7초 주기 확인으로 운영자가 승인하면 그 자리에서 오늘의 인연으로 입장합니다.
+   · 반려는 'rejected' — 안내 화면만 보입니다.
    운영자(is_admin)는 게이트를 타지 않습니다.
    --------------------------------------------------------------------- */
 let gateWasOn = false;
 let gateSignature = '';
 
+/* 'active' 입장 가능 · 'profile' 프로필 작성 중 · 'pending' 승인 대기 · 'rejected' 반려 */
 function gateStatus() {
   if (isAdmin) return 'active';
   const s = String((state && state.accessStatus) || 'active');
-  return (s === 'pending' || s === 'rejected') ? s : 'active';
+  if (s === 'rejected') return 'rejected';
+  if (s === 'pending') return missingProfileParts().length ? 'profile' : 'pending';
+  return 'active';
 }
-function gateActive() { return gateStatus() !== 'active'; }
+function gateActive() { const s = gateStatus(); return s === 'pending' || s === 'rejected'; }
 
 function signupGateHTML(status) {
   const nick = esc(state.user.nickname || '회원');
@@ -5150,18 +5172,18 @@ function signupGateHTML(status) {
         </svg>
       </div>
       <p class="gate__eyebrow">990 인연</p>
-      <h1 class="gate__title">가입 승인을 기다리고 있어요</h1>
-      <p class="gate__sub">${nick}님, 신청이 잘 접수됐어요.<br>운영자가 가입 내용을 확인하고 있습니다.<br><b>1기 선발·승인 확인 후</b> 입장할 수 있어요.</p>
+      <h1 class="gate__title">프로필 확인 및<br>가입 승인 대기 중이에요</h1>
+      <p class="gate__sub">${nick}님, 프로필 작성이 끝났어요.<br>운영자가 프로필을 확인하고 <b>가입을 승인하면</b><br>바로 오늘의 인연을 볼 수 있어요.</p>
       <div class="gate__steps">
-        <p class="gate__step"><i>1</i><span>신청 접수 · 닉네임·성별·출생연도를 확인했어요</span></p>
-        <p class="gate__step"><i>2</i><span>운영자 확인 · 기수 인원과 성비를 맞춰 승인해요</span></p>
-        <p class="gate__step"><i>3</i><span>승인 완료 · 프로필 사진과 소개를 등록하면 시작!</span></p>
+        <p class="gate__step"><i>1</i><span>프로필 작성 완료 · 사진·소개·기본 정보 저장</span></p>
+        <p class="gate__step"><i>2</i><span>운영자 확인 · 프로필 내용을 보고 승인해요</span></p>
+        <p class="gate__step"><i>3</i><span>승인 완료 · 매칭과 대화를 바로 시작할 수 있어요</span></p>
       </div>
       <div class="gate__actions">
         <button class="btn btn--primary btn--block" data-action="check-approval">새로고침 (승인 확인)</button>
         <button class="btn btn--ghost btn--block" data-action="logout">로그아웃</button>
       </div>
-      <p class="gate__meta">승인되면 이 화면이 자동으로 바뀝니다.<br>잠시 후 다시 확인해 주세요.</p>
+      <p class="gate__meta">이 화면은 7초마다 자동으로 확인해요.<br>승인되면 이 화면이 바로 바뀝니다.</p>
       ${mail ? `<p class="gate__meta">신청 이메일 · <b>${mail}</b></p>` : ''}
       <div class="gate__foot">
         <button class="gate__link" data-action="gate-open-admin">운영자이신가요? 운영자 콘솔</button>
@@ -5175,14 +5197,15 @@ function applySignupGate(announce) {
   const tabbar = $('#tabbar');
   const gateView = document.querySelector('.view[data-view="pending"]');
 
-  if (status === 'active') {
+  if (!gateActive()) {
     const was = gateWasOn;
+    const approved = was && status === 'active';
     gateWasOn = false;
     gateSignature = '';
     if (tabbar) tabbar.hidden = false;
     if (gateView && gateView.classList.contains('is-active')) {
       switchView(profileLocked ? 'profile' : 'today');
-      if (was && announce !== false) toast('가입이 승인됐어요. 990 인연에 오신 걸 환영해요!');
+      if (approved && announce !== false) toast('가입이 승인됐어요. 990 인연에 오신 걸 환영해요!');
     }
     return false;
   }
@@ -5310,20 +5333,46 @@ function profileFilled() {
     photo: (u.photos || []).length > 0
   };
 }
-function missingProfileParts() {
-  const filled = profileFilled();
+/* 운영자 화면 — 같은 기준을 profiles 줄(raw)로 확인합니다 */
+function profileFilledFromRow(r) {
+  const row = r || {};
+  return {
+    nickname: Boolean(String(row.nickname || '').trim()),
+    age: Number(row.age) > 0 || Number(row.birth_year) > 0,
+    job: Boolean(String(row.job || '').trim()),
+    region: Boolean(String(row.region || '').trim()),
+    mbti: Boolean(String(row.mbti || '').trim()),
+    height: Number(row.height) > 0,
+    bio: Boolean(String(row.bio || '').trim()),
+    photo: parsePhotos(row.avatar_data).length > 0
+  };
+}
+function missingOfFilled(filled) {
   return PROFILE_REQUIRED_FIELDS.filter((f) => !filled[f.key]);
 }
+function missingProfileParts() { return missingOfFilled(profileFilled()); }
 function refreshProfileLock() {
   const missing = missingProfileParts();
   profileLocked = !isAdmin && missing.length > 0;
+  /* 가입 승인 대기 중인데 프로필이 아직이면 — 작성 후 운영자 확인을 거친다는 안내를 먼저 보여 줍니다 */
+  const signupWaiting = gateStatus() === 'profile';
   const banner = $('#profileLockBanner');
   if (banner) {
     banner.hidden = !profileLocked;
     if (profileLocked) {
-      banner.innerHTML = `<b>프로필 등록을 먼저 마쳐 주세요</b>
-        <span>사진 1장과 모든 항목을 채우면 다른 화면을 볼 수 있어요.<br>빠진 항목 · ${esc(missing.map((f) => f.label).join(', '))}</span>`;
+      const list = esc(missing.map((f) => f.label).join(', '));
+      banner.innerHTML = signupWaiting
+        ? `<b>프로필 작성을 완료하시면 운영자 확인 후 승인해 드려요</b>
+        <span>사진 1장과 필수 항목을 채워 저장하면 <b>승인 대기</b>로 넘어가요.<br>운영자 승인 후 매칭·대화를 시작할 수 있어요.<br>빠진 항목 · ${list}</span>`
+        : `<b>프로필 등록을 먼저 마쳐 주세요</b>
+        <span>사진 1장과 모든 항목을 채우면 다른 화면을 볼 수 있어요.<br>빠진 항목 · ${list}</span>`;
     }
+  }
+  const foot = $('#profileSaveFoot');
+  if (foot) {
+    foot.innerHTML = signupWaiting
+      ? '사진 1장과 필수 항목을 채워 저장하면 운영자 확인 후 승인돼요<br>회사와 인증된 키는 인증 승인 후 자동으로 채워져요'
+      : '사진 1장과 필수 항목을 채우면 다른 화면이 열려요<br>회사와 인증된 키는 인증 승인 후 자동으로 채워져요';
   }
   $$('.tab').forEach((t) => {
     const locked = profileLocked && t.dataset.view !== 'profile';
@@ -6006,7 +6055,10 @@ async function saveProfile() {
     withViewportStable(() => { fillProfileForm(); renderAll(); });
     const stillMissing = refreshProfileLock();
     if (stillMissing.length) {
-      toast('프로필을 저장했어요.');
+      toast('프로필을 저장했어요. 남은 항목을 채우면 승인 대기로 넘어가요.');
+    } else if (applySignupGate(false)) {
+      /* 가입 승인 대기 — 저장이 끝나면 바로 '프로필 확인 및 승인 대기' 화면으로 바뀝니다. */
+      toast('프로필 작성 완료! 운영자 확인 후 승인되면 바로 입장할 수 있어요.');
     } else {
       toast('프로필 등록을 마쳤어요. 이제 오늘의 인연을 볼 수 있어요.');
       switchView('today');
@@ -6818,23 +6870,70 @@ const signupRejectDrafts = {};
 const openSignupRejects = new Set();
 const SIGNUP_GUIDE_URL = 'https://github.com/dpwl519-wq/990_mannam/blob/main/supabase_signup_approval.sql';
 
+/* 가입 승인 카드에 보여 줄 프로필 내용 — 운영자는 승인 전에 사진·소개·기본 정보를 모두 봅니다.
+   가입 대기 목록 RPC(admin_signup_list)는 이메일만 따로 주므로, 나머지는 profiles 줄에서 그대로 읽습니다. */
+function signupProfileBits(id) {
+  const row = (PROFILES || []).find((p) => p.id === id) || null;
+  if (!row) {
+    return { row: null, photos: [], complete: false, missing: PROFILE_REQUIRED_FIELDS, areas: [] };
+  }
+  let prefs = row.priorities;
+  if (typeof prefs === 'string') { try { prefs = JSON.parse(prefs); } catch (e) { prefs = {}; } }
+  prefs = prefs && typeof prefs === 'object' ? prefs : {};
+  const missing = missingOfFilled(profileFilledFromRow(row));
+  return {
+    row,
+    photos: parsePhotos(row.avatar_data),
+    complete: missing.length === 0,
+    missing,
+    areas: (Array.isArray(prefs.areas) ? prefs.areas : []).filter(Boolean)
+  };
+}
+
 function signupCardHTML(s, isPending) {
   const name = s.nickname || (s.email ? String(s.email).split('@')[0] : '회원');
-  const gender = s.gender === 'male' ? '남성' : (s.gender === 'female' ? '여성' : '성별 미입력');
-  const year = s.birth_year ? `${s.birth_year}년생` : (s.age ? `만 ${s.age}세` : '출생연도 미입력');
-  const extra = [s.region].filter(Boolean).map((v) => esc(v)).join(' · ');
+  const bits = signupProfileBits(s.id);
+  const row = bits.row || {};
+  const genderRaw = s.gender || row.gender;
+  const gender = genderRaw === 'male' ? '남성' : (genderRaw === 'female' ? '여성' : '성별 미입력');
+  const birthYear = s.birth_year || row.birth_year;
+  const age = s.age || row.age;
+  const ageText = birthYear
+    ? `${birthYear}년생${age ? `(만 ${age}세)` : ''}`
+    : (age ? `만 ${age}세` : '출생연도 미입력');
+  const waitingProfile = isPending && !bits.complete;
+  const heightMbti = [row.height ? `${row.height}cm` : '', row.mbti || ''].filter(Boolean).join(' · ');
+  const jobText = [row.job || '미입력', row.company || '', row.verified ? '직장인 인증' : '직장인 미인증']
+    .filter(Boolean).join(' · ');
+  const avatarHTML = bits.photos.length
+    ? `<span class="sub-card__avatar sub-card__avatar--photo" data-action="zoom-signup-photo" data-id="${s.id}" role="button" tabindex="0" aria-label="${esc(name)}님 프로필 사진 크게 보기"><img src="${esc(bits.photos[0])}" alt="${esc(name)} 프로필 사진"></span>`
+    : `<span class="sub-card__avatar">${avatarSVG(s.id, name)}</span>`;
   return `
     <article class="sub-card${isPending ? '' : ' is-done'}" data-signup="${s.id}">
       <div class="sub-card__top">
         <div class="sub-card__who">
-          <span class="sub-card__avatar">${avatarSVG(s.id, name)}</span>
+          ${avatarHTML}
           <div>
-            <p class="sub-card__name">${esc(name)}</p>
-            <p class="sub-card__company">${gender} · ${year}${extra ? ' · ' + extra : ''}</p>
+            <p class="sub-card__name">${esc(name)}${row.height_verified ? '<span class="mini-badge">키인증</span>' : ''}</p>
+            <p class="sub-card__company">${gender} · ${ageText}</p>
           </div>
         </div>
-        <span class="method-badge">${isPending ? '가입 대기' : '반려'}</span>
+        <span class="method-badge${waitingProfile ? ' method-badge--wait' : ''}">${isPending ? (waitingProfile ? '프로필 작성 중' : '가입 대기') : '반려'}</span>
       </div>
+      <div class="signup-detail">
+        <p class="signup-detail__row"><span class="k">거주 지역</span><span class="v">${esc(row.region || '미입력')}</span></p>
+        <p class="signup-detail__row"><span class="k">선호 지역</span><span class="v">${bits.areas.length ? esc(bits.areas.join(', ')) : '선택 안 함 (지역 무관)'}</span></p>
+        <p class="signup-detail__row"><span class="k">키 · MBTI</span><span class="v">${esc(heightMbti || '미입력')}</span></p>
+        <p class="signup-detail__row"><span class="k">직장</span><span class="v">${esc(jobText)}</span></p>
+        <p class="signup-detail__row signup-detail__row--bio"><span class="k">자기소개</span><span class="v">${row.bio ? esc(row.bio) : '미입력'}</span></p>
+      </div>
+      <p class="signup-flag ${isPending && bits.complete ? 'signup-flag--ok' : 'signup-flag--wait'}">${
+        !isPending
+          ? '반려한 가입 · 승인으로 바꾸면 바로 입장할 수 있어요'
+          : bits.complete
+            ? '프로필 입력 완료 · 승인하면 바로 입장할 수 있어요'
+            : `프로필 작성 중 · ${bits.missing.length}개 항목 남음`
+      }</p>
       <p class="sub-card__email">${esc(s.email || '이메일 없음')}</p>
       <p class="sub-card__time">${s.created_at ? relTime(s.created_at) + ' 신청' : '신청 시각 없음'}</p>
       <div class="sub-card__actions">
@@ -7043,6 +7142,21 @@ async function adminClaim() {
 }
 
 /* ---------- 가입 승인 · 반려 (운영자) ---------- */
+function openSignupPhotoSheet(id) {
+  const bits = signupProfileBits(id);
+  const s = (state.signups || []).find((x) => x.id === id) || {};
+  const name = s.nickname || '회원';
+  if (!bits.photos.length) { toast('등록된 프로필 사진이 없어요.'); return; }
+  openSheet(`
+    <div class="sheet__grabber"></div>
+    <div class="sheet__head">
+      <h2>${esc(name)}님 프로필 사진</h2>
+      <button class="icon-btn" data-action="close-sheet" aria-label="닫기"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    ${bits.photos.map((p, i) => `<img class="signup-photo-full" src="${esc(p)}" alt="${esc(name)} 프로필 사진 ${i + 1}">`).join('')}
+    <div class="sheet__actions"><button class="btn btn--ghost" data-action="close-sheet">닫기</button></div>`);
+}
+
 async function approveSignup(id) {
   if (!id) return;
   const s = (state.signups || []).find((x) => x.id === id) || {};
@@ -7509,7 +7623,11 @@ document.addEventListener('click', (e) => {
     /* 화면 */
     case 'mode': switchMode(el.dataset.mode); break;
     case 'tab':
-      if (profileLocked && el.dataset.view !== 'profile') toast('프로필 등록을 완료해야 다른 화면을 볼 수 있어요.');
+      if (profileLocked && el.dataset.view !== 'profile') {
+        toast(gateStatus() === 'profile'
+          ? '프로필 작성을 마치면 운영자 확인 후 승인돼요. 사진 1장과 필수 항목을 채워 주세요.'
+          : '프로필 등록을 완료해야 다른 화면을 볼 수 있어요.');
+      }
       switchView(el.dataset.view);
       break;
     case 'close-sheet': closeSheet(); break;
@@ -7631,6 +7749,7 @@ document.addEventListener('click', (e) => {
     case 'admin-tab': switchAdminTab(el.dataset.tab); break;
     case 'admin-claim': adminClaim(); break;
     case 'approve-signup': approveSignup(id); break;
+    case 'zoom-signup-photo': openSignupPhotoSheet(id); break;
     case 'toggle-signup-reject': toggleSignupReject(id); break;
     case 'reject-signup': rejectSignup(id); break;
     case 'signup-reject-chip': {
