@@ -1720,7 +1720,7 @@ alter table public.daily_matches enable row level security;
 
 drop policy if exists daily_matches_select on public.daily_matches;
 create policy daily_matches_select on public.daily_matches for select to authenticated
-  using (user_id = auth.uid() or target_id = auth.uid() or public.is_admin());
+  using (user_id = auth.uid() or public.is_admin());
 
 revoke all on public.daily_matches from anon, authenticated;
 grant select (user_id, match_date, slot, target_id, assigned_by, outcome, outcome_at, created_at)
