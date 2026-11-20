@@ -30,6 +30,7 @@ create extension if not exists pgcrypto;
 -- 1. 신규 가입 기본 매칭권 3장 → 2장
 --    (handle_new_user 트리거는 match_tickets 를 적지 않으므로 기본값이 그대로 들어갑니다)
 -- ============================================================================
+alter table public.profiles add column if not exists height_verified boolean not null default false;
 alter table public.profiles alter column match_tickets set default 2;
 
 -- 데모(예시) 프로필은 운영자 화면에서만 보이는 샘플이라 3장이던 값을 2장으로 맞춥니다.
