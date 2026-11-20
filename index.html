@@ -226,17 +226,25 @@ img{display:block;max-width:100%}
 }
 .promo__arrow{margin-left:auto;font-size:13px;color:rgba(138,116,82,.7)}
 
-/* 카드가 들어갈 자리 — 높이를 '고정'합니다.
+/* 카드가 들어갈 자리 — 높이의 '바닥값'을 정합니다.
    카드마다 소개 길이가 달라도 모든 카드가 같은 크기로 보이도록, 덱 높이를 한 값으로 정하고
    카드는 그 안에 꽉 채웁니다(--deck-h). 내용이 넘치면 카드 안에서 잘릴 뿐,
    카드 밖(아래의 '직전 건너뛰기 취소' 줄)으로 삐져나오지 않습니다.
-   iOS Safari는 100dvh가 작게 계산되므로 화면 높이에 맞춰 늘였다 줄이지 않고 값으로 고정합니다. */
+   iOS Safari는 100dvh가 작게 계산되므로 화면 높이에 맞춰 늘였다 줄이지 않고 값으로 고정합니다.
+   다만 화면이 커서 남는 자리가 생기면(아이폰 세이프에어리어·Safari 툴바 등) 그 자리가
+   버튼 아래에 빈 여백으로 남지 않도록, 덱이 그만큼 늘어나 탭바 바로 위까지 채웁니다.
+   덱은 줄지 않고(최소 --deck-h) 늘어나기만 하므로, 작은 화면에서 '직전 건너뛰기 취소' 줄이
+   떠도 버튼이 탭바에 가리지 않습니다. */
 :root{--deck-h:calc(350px - env(safe-area-inset-bottom, 0px))}
 @media(max-height:840px){:root{--deck-h:calc(318px - env(safe-area-inset-bottom, 0px))}}
 @media(max-height:780px){:root{--deck-h:calc(316px - env(safe-area-inset-bottom, 0px))}}
 @media(max-height:720px){:root{--deck-h:calc(288px - env(safe-area-inset-bottom, 0px))}}
 @media(max-height:660px){:root{--deck-h:calc(262px - env(safe-area-inset-bottom, 0px))}}
-.deck{position:relative;flex:0 0 auto;display:block;height:var(--deck-h);touch-action:pan-y}
+.deck{position:relative;flex:3 1 auto;display:block;height:var(--deck-h);min-height:var(--deck-h);touch-action:pan-y}
+/* 남는 화면 높이를 카드와 '카드 위 여백'이 3:2로 나눠 갖습니다.
+   (카드만 늘리면 카드만 길쭉해지고, 여백만 늘리면 아래 빈자리가 그대로 남기 때문입니다.)
+   빈 덱·마감 안내처럼 버튼이 없는 화면에서는 이 여백을 숨겨 안내가 화면 가운데에 옵니다. */
+.deck-air{flex:2 1 0;min-height:0}
 .card{
   position:absolute;inset:0;display:flex;flex-direction:column;background:var(--card);
   border-radius:20px;
@@ -1741,6 +1749,7 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
             <span id="deckStatusNote">매일 10:00~20:00</span>
           </div>
 
+          <div class="deck-air" id="deckAir" aria-hidden="true"></div>
           <div class="deck" id="deck"></div>
 
           <div class="undo-row"><button class="btn btn--ghost" id="undoPassBtn" data-action="undo-pass" disabled>↶ 직전 건너뛰기 취소</button><span>가장 최근 1건만 복구</span></div>
@@ -4167,10 +4176,12 @@ function renderDeckClosed() {
   const actions = $('#deckActions');
   const note = $('#deckNote');
   const safety = $('#safetyNote');
+  const air = $('#deckAir');
   if (!deck) return;
   if (actions) actions.hidden = true;
   if (note) note.hidden = true;
   if (safety) safety.hidden = true;
+  if (air) air.hidden = true;
   const undoBtn = $('#undoPassBtn');
   const undoRow = undoBtn && undoBtn.closest('.undo-row');
   if (undoRow) undoRow.hidden = true;
@@ -4197,6 +4208,7 @@ function renderDeck() {
   const actions = $('#deckActions');
   const note = $('#deckNote');
   const safety = $('#safetyNote');
+  const air = $('#deckAir');
   if (!deck) return;
   renderDeckStatus();
   /* 10:00 이전 · 20:00 이후 — 카드는 그리지 않고 마감 안내만 (이미 성사된 매칭·대화는 그대로) */
@@ -4237,6 +4249,7 @@ function renderDeck() {
   /* 안전 설정으로 오늘 볼 사람이 모두 가려진 경우 */
   if (state.deck.length > 0 && visible.length === 0) {
     actions.hidden = true; note.hidden = true;
+    if (air) air.hidden = true;
     deck.innerHTML = `
       <div class="empty">
         ${emptyArt('letter')}
@@ -4249,6 +4262,7 @@ function renderDeck() {
 
   if (!queue.length) {
     actions.hidden = true; note.hidden = true;
+    if (air) air.hidden = true;
     if (rec.ids.length) {
       /* 오늘의 두 장을 모두 확인한 경우 — 세 번째 카드는 보여 주지 않습니다 */
       deck.innerHTML = `
@@ -4273,6 +4287,7 @@ function renderDeck() {
   }
 
   actions.hidden = false; note.hidden = false;
+  if (air) air.hidden = false;
   const cards = queue.slice(0, 2).map((p, i) => cardHTML(p, i)).reverse();
   deck.innerHTML = cards.join('');
   fitCardName();
