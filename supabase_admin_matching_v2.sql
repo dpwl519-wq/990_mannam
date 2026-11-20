@@ -31,6 +31,12 @@ create extension if not exists pgcrypto;
 --    (handle_new_user 트리거는 match_tickets 를 적지 않으므로 기본값이 그대로 들어갑니다)
 -- ============================================================================
 alter table public.profiles add column if not exists height_verified boolean not null default false;
+-- 생활 정보(종교·문신·주량·흡연) — supabase_lifestyle_and_history.sql 과 같은 열입니다.
+-- (이 파일만 먼저 실행해도 회원 상세 함수가 동작하도록 여기서도 만들어 둡니다.)
+alter table public.profiles add column if not exists religion text;
+alter table public.profiles add column if not exists tattoo   text;
+alter table public.profiles add column if not exists drinking text;
+alter table public.profiles add column if not exists smoking  text;
 alter table public.profiles alter column match_tickets set default 2;
 
 -- 데모(예시) 프로필은 운영자 화면에서만 보이는 샘플이라 3장이던 값을 2장으로 맞춥니다.
@@ -670,6 +676,11 @@ begin
     'bio',             p.bio,
     'hobbies',         coalesce(p.hobbies, '[]'::jsonb),
     'values_list',     coalesce(p.values_list, '[]'::jsonb),
+    'religion',        p.religion,
+    'tattoo',          p.tattoo,
+    'drinking',        p.drinking,
+    'smoking',         coalesce(nullif(btrim(coalesce(p.smoking, '')), ''),
+                                case when coalesce(p.nonsmoker, false) then '비흡연' end),
     'verified',        coalesce(p.verified, false),
     'height_verified', coalesce(p.height_verified, false),
     'status',          p.status,
@@ -696,7 +707,68 @@ begin
          where lm.to_user = p.id and lm.status = 'liked'), 0),
     'matches',         coalesce((
         select count(*) from public.likes_matches lm
-         where lm.status = 'matched' and (lm.from_user = p.id or lm.to_user = p.id)), 0)
+         where lm.status = 'matched' and (lm.from_user = p.id or lm.to_user = p.id)), 0),
+
+    /* 과거 오늘의 인연 전체 — 최신 날짜순.
+       ① daily_matches : 20:30 자동 배정 + 운영자 수기 교체 + 결과·사유
+       ② seen_targets  : 예전 today_deck 기록(배정 표가 생기기 전 날짜) 중 위에 없는 것
+       ③ likes_matches : 수락(호감) · 매칭 · 거절(건너뛰기) · 무응답 · 대화 종료 상태  */
+    'history', coalesce((
+      with base as (
+        select dm.match_date, dm.slot::int as slot, dm.target_id, dm.outcome, dm.reason, dm.outcome_at
+          from public.daily_matches dm
+         where dm.user_id = p.id
+        union all
+        select st.served_on, null::int, st.target_id, null::text, null::text, null::timestamptz
+          from public.seen_targets st
+         where st.user_id = p.id
+           and st.served_on is not null
+           and not exists (
+             select 1 from public.daily_matches dm2
+              where dm2.user_id = st.user_id
+                and dm2.target_id = st.target_id
+                and dm2.match_date = st.served_on)
+      ), paired as (
+        select m.*, lm.status as like_status
+          from base m
+          left join lateral (
+            select l.status
+              from public.likes_matches l
+             where (l.from_user = p.id and l.to_user = m.target_id)
+                or (l.from_user = m.target_id and l.to_user = p.id)
+             order by (l.status = 'matched') desc,
+                      (l.from_user = p.id) desc,
+                      (l.status in ('liked', 'matched')) desc,
+                      l.created_at desc
+             limit 1
+          ) lm on true
+      ), resolved as (
+        select pr.*,
+               case
+                 when pr.like_status = 'matched' then 'matched'
+                 when pr.outcome = 'declined' or pr.like_status = 'passed' then 'declined'
+                 when pr.like_status = 'expired_refunded' then 'expired'
+                 when pr.like_status = 'ended' then 'ended'
+                 when pr.outcome = 'accepted' or pr.like_status = 'liked' then 'accepted'
+                 else 'pending'
+               end as final_outcome
+          from paired pr
+      )
+      select jsonb_agg(jsonb_build_object(
+               'date',       to_char(r.match_date, 'YYYY-MM-DD'),
+               'slot',       r.slot,
+               'target_id',  r.target_id,
+               'nickname',   t.nickname,
+               'birth_year', t.birth_year,
+               'age',        t.age,
+               'job',        t.job,
+               'outcome',    r.final_outcome,
+               'outcome_at', r.outcome_at,
+               'reason',     nullif(btrim(coalesce(r.reason, '')), '')
+             ) order by r.match_date desc, coalesce(r.slot, 0) asc)
+        from resolved r
+        left join public.profiles t on t.id = r.target_id
+    ), '[]'::jsonb)
   );
 end $$;
 grant execute on function public.admin_member_detail(uuid) to authenticated;

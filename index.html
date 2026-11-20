@@ -1547,6 +1547,31 @@ body{font-size:14px;line-height:1.5}
   box-shadow:0 0 0 1px rgba(217,155,132,.18);
 }
 
+/* 생활 정보 — 종교 · 문신 · 주량 · 흡연 (모바일 2열) */
+.field-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px 10px;
+  padding:14px 0 2px;border-top:1px solid var(--line);
+}
+.field-grid .field{display:block;padding:0;border-bottom:0;min-width:0}
+.field-grid .field > span{display:block;margin-bottom:6px;font-size:11px;letter-spacing:.03em;color:var(--ink-2)}
+.field-grid .field__select{width:100%;min-width:0;font-size:12.5px;padding:8px 24px 8px 10px;text-overflow:ellipsis}
+.field-grid .field.is-disabled{opacity:.45}
+.field-note{margin:0;padding:0 0 12px;font-size:10.5px;line-height:1.65;color:var(--ink-3);letter-spacing:.01em}
+
+/* 운영자 — 회원 상세의 오늘의 인연 히스토리 */
+.member-history{margin-top:14px}
+.member-history__title{margin:0 0 8px;font-size:11px;letter-spacing:.06em;color:var(--ink-2)}
+.member-history__title span{font-size:10px;color:var(--ink-3)}
+.member-history__list{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.hm-item{padding:9px 11px;border-radius:9px;background:rgba(46,40,37,.025)}
+.hm-item__top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hm-item__top b{font-size:11px;font-weight:500;letter-spacing:.03em;color:var(--ink)}
+.hm-outcome{flex:0 0 auto;padding:2px 8px;border-radius:999px;background:rgba(46,40,37,.06);font-size:9.5px;color:var(--ink-3)}
+.hm-outcome--accepted{background:rgba(217,155,132,.3);color:#4A362C}
+.hm-outcome--matched{background:rgba(90,110,88,.22);color:var(--sage-ink)}
+.hm-item__who{margin-top:3px;font-size:11px;line-height:1.6;color:var(--ink-2);word-break:keep-all;overflow-wrap:anywhere}
+.hm-item__reason{margin-top:2px;font-size:10px;line-height:1.6;color:var(--ink-3);word-break:keep-all}
+
 /* 취향 · 선호 — 세이지 구역 */
 .taste-zone{
   margin:18px 0 20px;padding:13px 12px 2px;border-radius:18px;
@@ -1959,6 +1984,44 @@ button.thread-head__text{display:block;text-align:left;min-width:0;flex:1 1 auto
                 <textarea id="fBio" rows="2" maxlength="36" placeholder="어떤 사람인지 두 줄까지 소개해 주세요"></textarea>
                 <p class="field__hint" id="bioFieldHint">최대 2줄 · 36자 이내 (줄바꿈 1번까지) · 0/36자</p>
               </label>
+              <div class="field-grid" id="lifestyleGrid">
+                <label class="field"><span>종교</span>
+                  <select id="fReligion" class="field__select" aria-label="종교">
+                    <option value="">선택 안 함</option>
+                    <option value="무교">무교</option>
+                    <option value="기독교">기독교</option>
+                    <option value="천주교">천주교</option>
+                    <option value="불교">불교</option>
+                    <option value="기타">기타</option>
+                  </select>
+                </label>
+                <label class="field"><span>문신</span>
+                  <select id="fTattoo" class="field__select" aria-label="문신">
+                    <option value="">선택 안 함</option>
+                    <option value="없음">없음</option>
+                    <option value="작은 타투 있음">작은 타투 있음</option>
+                    <option value="있음">있음</option>
+                  </select>
+                </label>
+                <label class="field"><span>주량</span>
+                  <select id="fDrinking" class="field__select" aria-label="주량">
+                    <option value="">선택 안 함</option>
+                    <option value="비음주">비음주</option>
+                    <option value="가끔(1~2잔)">가끔(1~2잔)</option>
+                    <option value="적당히(1병 내외)">적당히(1병 내외)</option>
+                    <option value="즐기는 편">즐기는 편</option>
+                  </select>
+                </label>
+                <label class="field"><span>흡연</span>
+                  <select id="fSmoking" class="field__select" aria-label="흡연">
+                    <option value="">선택 안 함</option>
+                    <option value="비흡연">비흡연</option>
+                    <option value="전자담배">전자담배</option>
+                    <option value="흡연">흡연</option>
+                  </select>
+                </label>
+              </div>
+              <p class="field-note" id="lifestyleNote">생활 정보는 선택 입력이에요 · 상대 프로필과 운영자 화면에도 함께 보여요</p>
             </div>
             <button type="submit" class="btn btn--primary btn--block" id="profileSaveBtn" style="margin-top:14px">프로필 저장</button>
             <p class="footnote" id="profileSaveFoot" style="margin-top:10px;text-align:center">사진 1장과 필수 항목을 채우면 다른 화면이 열려요<br>회사와 인증된 키는 인증 승인 후 자동으로 채워져요</p>
@@ -2502,6 +2565,12 @@ const PRIORITY_OPTIONS = [
 ];
 const PRIORITY_LABEL = Object.fromEntries(PRIORITY_OPTIONS.map((o) => [o.key, o.label]));
 
+/* 오늘의 인연 결과 표기 — 운영자 회원 상세 히스토리 */
+const DAILY_OUTCOME_LABEL = {
+  pending: '대기', accepted: '수락', declined: '거절',
+  matched: '매칭 성사', expired: '무응답', ended: '대화 종료'
+};
+
 /* ── 취향 순위 학습 ──────────────────────────────────────────────────────
    저장 위치: profiles.priorities (jsonb) — 이미 쓰던 선호 조건 객체 안에 taste 만 더합니다.
    {
@@ -2562,7 +2631,7 @@ function emptyState() {
     version: 4,
     user: {
       nickname: '', age: null, job: '', company: '', bio: '', mbti: '', height: null,
-      region: '', gender: null, birthYear: null, photos: [],
+      region: '', gender: null, birthYear: null, photos: [], lifestyle: {},
       prefs: { ageMin: 30, ageMax: 40, mbti: [], priorities: [], areas: ['서울시 전체'], values: [] }
     },
     safety: { hideSameCompany: true, blockedNumbers: [], blockedProfiles: [] },
@@ -2758,6 +2827,7 @@ function toProfile(r) {
     hobbyMatch: Math.min(3, hobbies.length),
     valueMatch: Math.min(3, valueHit),
     nonsmoker: r.nonsmoker === true,
+    lifestyle: lifestyleFromRow(r),
     height: r.height || null,
     bio: r.bio || '',
     hobbies: hobbies.length ? hobbies : ['일상'],
@@ -3208,21 +3278,80 @@ async function ensureProfile(user) {
 /* ==========================================================================
    3. 데이터 새로고침
    ========================================================================== */
-/* height_verified 는 키 인증 전용 열입니다. 스키마가 아직 예전 버전이면(SQL 미실행)
-   열이 없어 profiles 조회가 실패하므로, 실패하면 height_verified 없이 한 번 더 읽습니다. */
+/* ==========================================================================
+   생활 정보 — 종교 · 문신 · 주량 · 흡연
+   저장 위치: profiles.religion · tattoo · drinking · smoking (text, 비어 있으면 null)
+   supabase_lifestyle_and_history.sql 을 실행하기 전에는 열이 없어 조회가 실패하므로
+   selectProfiles 가 없는 열을 빼고 한 번 더 읽고, 그때는 입력칸을 잠가 둡니다.
+   ========================================================================== */
+const LIFESTYLE_FIELDS = [
+  { key: 'religion', label: '종교', sel: '#fReligion', options: ['무교', '기독교', '천주교', '불교', '기타'] },
+  { key: 'tattoo',   label: '문신', sel: '#fTattoo',   options: ['없음', '작은 타투 있음', '있음'] },
+  { key: 'drinking', label: '주량', sel: '#fDrinking', options: ['비음주', '가끔(1~2잔)', '적당히(1병 내외)', '즐기는 편'] },
+  { key: 'smoking',  label: '흡연', sel: '#fSmoking',  options: ['비흡연', '전자담배', '흡연'] }
+];
+const LIFESTYLE_COLS = 'religion,tattoo,drinking,smoking';
+let lifestyleColsAvailable = true;
+
+function lifestyleFromRow(row) {
+  const r = row || {};
+  const out = {};
+  LIFESTYLE_FIELDS.forEach((f) => { out[f.key] = String(r[f.key] == null ? '' : r[f.key]).trim(); });
+  /* 예전 회원은 흡연 정보가 boolean(nonsmoker)뿐이라 '비흡연'으로 살려 보여 줍니다 */
+  if (!out.smoking && r.nonsmoker === true) out.smoking = '비흡연';
+  return out;
+}
+
+/* 상세 시트·운영자 화면에 쓰는 [라벨, 값] 쌍 — 빈 값은 '미입력' */
+function lifestylePairs(row) {
+  const v = lifestyleFromRow(row);
+  return LIFESTYLE_FIELDS.map((f) => [f.label, v[f.key] || '미입력']);
+}
+
+/* 한 줄 요약 — 운영자 카드용 */
+function lifestyleLineHTML(row) {
+  const v = lifestyleFromRow(row);
+  return `종교 ${esc(v.religion || '미입력')} · 문신 ${esc(v.tattoo || '미입력')}<br>`
+    + `주량 ${esc(v.drinking || '미입력')} · 흡연 ${esc(v.smoking || '미입력')}`;
+}
+
+/* height_verified · 생활 정보 열은 나중에 추가된 열입니다. 스키마가 아직 예전 버전이면(SQL 미실행)
+   열이 없어 profiles 조회가 실패하므로, 실패하면 없는 열을 빼고 한 번 더 읽습니다. */
 const PROFILE_COLS_BASE = 'id,nickname,gender,birth_year,age,job,company,region,mbti,height,bio,priorities,verified,status,avatar_data,hobbies,values_list,photo_captions,dist_km,job_stable,nonsmoker,is_demo,created_at';
-const PROFILE_COLS = `${PROFILE_COLS_BASE},height_verified`;
 let heightVerifiedColAvailable = true;
 
+function profileCols() {
+  return PROFILE_COLS_BASE
+    + (heightVerifiedColAvailable ? ',height_verified' : '')
+    + (lifestyleColsAvailable ? `,${LIFESTYLE_COLS}` : '');
+}
+
 async function selectProfiles() {
-  let r = await sb.from('profiles').select(heightVerifiedColAvailable ? PROFILE_COLS : PROFILE_COLS_BASE);
-  if (r.error && heightVerifiedColAvailable) {
-    const retry = await sb.from('profiles').select(PROFILE_COLS_BASE);
+  const r = await sb.from('profiles').select(profileCols());
+  if (!r.error) return r;
+  if (heightVerifiedColAvailable) {
+    const retry = await sb.from('profiles').select(profileCols().replace(',height_verified', ''));
     if (!retry.error) {
       heightVerifiedColAvailable = false;
       console.warn('[load] height_verified 열이 없어 키 인증 배지를 잠시 숨깁니다. supabase_schema.sql 을 실행해 주세요.');
-      return retry;
+      return selectProfiles();
     }
+  }
+  if (lifestyleColsAvailable) {
+    const retry = await sb.from('profiles').select(profileCols().replace(`,${LIFESTYLE_COLS}`, ''));
+    if (!retry.error) {
+      lifestyleColsAvailable = false;
+      console.warn('[load] 종교·문신·주량·흡연 열이 없어 입력칸을 잠가 둡니다. supabase_lifestyle_and_history.sql 을 실행해 주세요.');
+      return selectProfiles();
+    }
+  }
+  /* 아주 예전 스키마 — 두 벌의 열이 모두 없을 때는 기본 열만 읽습니다 */
+  const base = await sb.from('profiles').select(PROFILE_COLS_BASE);
+  if (!base.error) {
+    heightVerifiedColAvailable = false;
+    lifestyleColsAvailable = false;
+    console.warn('[load] 선택 열이 없어 기본 열만 읽습니다. supabase_schema.sql 을 실행해 주세요.');
+    return base;
   }
   return r;
 }
@@ -3328,6 +3457,7 @@ function applyData(d) {
     gender: meRow.gender || null,
     birthYear: meRow.birth_year || null,
     photos: parsePhotos(meRow.avatar_data),
+    lifestyle: lifestyleFromRow(meRow),
     prefs: normalizePrefs(meRow.priorities)
   };
   state.tickets = Number(wallet.match_tickets ?? meRow.match_tickets ?? 0);
@@ -6044,7 +6174,6 @@ function openProfileDetail(id) {
   const head = [y ? `${y}년생` : '', Number.isFinite(age) && age > 0 ? `만 ${age}세` : ''].filter(Boolean).map(esc).join(' · ') || '나이 미기재';
   const info = [];
   if (p.height) info.push(['키', `${p.height}cm`]);
-  info.push(['흡연', p.nonsmoker ? '비흡연' : '미기재']);
   if (p.company) info.push(['직장', p.company]);
   const front = dailyQueue()[0];
   const noPrefs = !hasMatchConditions(state.user.prefs);
@@ -6062,6 +6191,7 @@ function openProfileDetail(id) {
       : `<div class="detail-gallery--locked"><figure>${lockedPhotoCard(p)}</figure></div>`}
     <div class="detail-sec"><h3>소개</h3><p class="detail-bio">${esc((p.bio || '').trim() || '아직 소개가 없어요.')}</p></div>
     <div class="detail-sec"><h3>기본 정보</h3><dl class="detail-info">${info.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>
+    <div class="detail-sec"><h3>생활 정보</h3><dl class="detail-info">${lifestylePairs(p.lifestyle).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>
     <div class="detail-sec"><h3>취미 · 가치관</h3>
       <div class="tag-row">${p.hobbies.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>
       <div class="tag-row">${p.values.map((t) => `<span class="tag tag--value">${esc(t)}</span>`).join('')}</div>
@@ -6415,6 +6545,11 @@ function fillProfileForm() {
   set('#fMbti', u.mbti || '');
   set('#fHeight', u.height);
   fillRegionSelects($('#fProvince'), $('#fDistrict'), u.region);
+  LIFESTYLE_FIELDS.forEach((f) => {
+    const el = $(f.sel);
+    if (el) el.value = (u.lifestyle && u.lifestyle[f.key]) || '';
+  });
+  syncLifestyleInputs();
   set('#fAgeMin', u.prefs.ageMin);
   set('#fAgeMax', u.prefs.ageMax);
   renderPrefChips();
@@ -6422,6 +6557,23 @@ function fillProfileForm() {
   renderAccountSection();
   syncVerifiedFieldLocks();
   updateBioCounter();
+}
+
+/* 생활 정보 입력칸 — SQL(열 추가) 전이면 잠그고 이유를 적어 둡니다 */
+function syncLifestyleInputs() {
+  const ready = lifestyleColsAvailable;
+  LIFESTYLE_FIELDS.forEach((f) => {
+    const el = $(f.sel);
+    if (!el) return;
+    el.disabled = !ready;
+    if (el.parentElement) el.parentElement.classList.toggle('is-disabled', !ready);
+  });
+  const note = $('#lifestyleNote');
+  if (note) {
+    note.textContent = ready
+      ? '생활 정보는 선택 입력이에요 · 상대 프로필과 운영자 화면에도 함께 보여요'
+      : '지금은 저장할 수 없어요 · supabase_lifestyle_and_history.sql 을 실행하면 열려요';
+  }
 }
 
 /* ---------- 자기소개 입력 제한 — 최대 2줄 · 36자 ----------
@@ -6552,6 +6704,16 @@ async function saveProfile() {
     mbti: mbti || null,
     region: region || null, priorities: prefs
   };
+  /* 생활 정보 — 열이 준비된 뒤에만 같이 보냅니다.
+     비흡연 여부(nonsmoker)는 기존 취향·궁합 계산이 쓰는 열이라 흡연 값과 맞춰 둡니다. */
+  if (lifestyleColsAvailable) {
+    LIFESTYLE_FIELDS.forEach((f) => {
+      const el = $(f.sel);
+      const v = el ? String(el.value || '').trim() : '';
+      patch[f.key] = v && f.options.includes(v) ? v : null;
+    });
+    patch.nonsmoker = patch.smoking === '비흡연' ? true : (patch.smoking ? false : null);
+  }
   if (!myHeightVerified()) patch.height = Number.isFinite(height) ? height : null;
   try {
     const { error } = await sb.from('profiles').update(patch).eq('id', meId).select('id');
@@ -7433,6 +7595,7 @@ function signupCardHTML(s, isPending) {
         <p class="signup-detail__row"><span class="k">선호 지역</span><span class="v">${bits.areas.length ? esc(bits.areas.join(', ')) : '선택 안 함 (지역 무관)'}</span></p>
         <p class="signup-detail__row"><span class="k">키 · MBTI</span><span class="v">${esc(heightMbti || '미입력')}</span></p>
         <p class="signup-detail__row"><span class="k">직장</span><span class="v">${esc(jobText)}</span></p>
+        <p class="signup-detail__row"><span class="k">생활</span><span class="v">${lifestyleLineHTML(row)}</span></p>
         <p class="signup-detail__row signup-detail__row--bio"><span class="k">자기소개</span><span class="v">${row.bio ? esc(row.bio) : '미입력'}</span></p>
       </div>
       <p class="signup-flag ${isPending && bits.complete ? 'signup-flag--ok' : 'signup-flag--wait'}">${
@@ -7631,6 +7794,36 @@ function renderAdminMembers() {
 }
 
 /* ---------- 회원 상세(사진 클릭 확대) ---------- */
+/* ---------- 오늘의 인연 히스토리 — 운영자 회원 상세 ----------
+   admin_member_detail 의 history 배열: 날짜·상대·결과·사유 (최신 날짜순, SQL 이 정렬해 줍니다) */
+function memberHistoryHTML(list) {
+  const rows = Array.isArray(list) ? list : [];
+  if (!rows.length) {
+    return `<div class="member-history">
+      <p class="member-history__title">오늘의 인연 히스토리</p>
+      <p class="sheet-hint">아직 배정된 오늘의 인연이 없어요.</p>
+    </div>`;
+  }
+  const items = rows.map((h) => {
+    const outcome = String(h.outcome || 'pending');
+    const label = DAILY_OUTCOME_LABEL[outcome] || '대기';
+    const who = [h.nickname || '(삭제된 회원)',
+      h.birth_year ? `${h.birth_year}년생` : (h.age ? `만 ${h.age}세` : ''),
+      h.job || ''].filter(Boolean).join(' · ');
+    const slot = Number(h.slot) > 0 ? ` · ${Number(h.slot)}번째` : '';
+    return `<li class="hm-item">
+      <div class="hm-item__top"><b>${esc(h.date || '-')}</b><span class="hm-outcome hm-outcome--${esc(outcome)}">${esc(label)}</span></div>
+      <p class="hm-item__who">${esc(who)}${esc(slot)}</p>
+      ${h.reason ? `<p class="hm-item__reason">사유 · ${esc(h.reason)}</p>` : ''}
+    </li>`;
+  }).join('');
+  return `<div class="member-history">
+    <p class="member-history__title">오늘의 인연 히스토리 <span>${rows.length}건</span></p>
+    <ul class="member-history__list">${items}</ul>
+    <p class="sheet-hint">최신 날짜부터 · 배정·수락·매칭·거절·건너뛰기 기록을 한꺼번에 모았어요</p>
+  </div>`;
+}
+
 function memberSheetHTML(d) {
   const name = memberName(d);
   const photos = Array.isArray(d.photos) ? d.photos.filter(Boolean) : [];
@@ -7670,15 +7863,19 @@ function memberSheetHTML(d) {
       <p class="member-field__row"><span class="k">선호 지역</span><span class="v">${esc(memberAreaText(d))}${ageRange ? ` · 나이 ${esc(ageRange)}세` : ''}</span></p>
       <p class="member-field__row"><span class="k">키·MBTI</span><span class="v">${d.height ? `${d.height}cm` : '키 미입력'} · ${esc(d.mbti || 'MBTI 미입력')}</span></p>
       <p class="member-field__row"><span class="k">직장</span><span class="v">${esc(d.job || '미입력')}${d.company ? ` · ${esc(d.company)}` : ''} · ${d.verified ? '직장인 인증' : '직장인 미인증'}${d.height_verified ? ' · 키 인증' : ''}</span></p>
+      <p class="member-field__row"><span class="k">생활</span><span class="v">${lifestyleLineHTML(d)}</span></p>
       <p class="member-field__row member-field__row--bio"><span class="k">자기소개</span><span class="v">${esc(d.bio || '미입력')}</span></p>
       ${hobbies ? `<p class="member-field__row"><span class="k">취미</span><span class="v">${esc(hobbies)}</span></p>` : ''}
       ${valuesList ? `<p class="member-field__row"><span class="k">가치관</span><span class="v">${esc(valuesList)}</span></p>` : ''}
       <p class="member-field__row"><span class="k">우선순위</span><span class="v">${esc(orderText)}<br>학습된 취향 · ${esc(tasteText)}</span></p>
       <p class="member-field__row"><span class="k">이메일</span><span class="v">${esc(d.email || '이메일 없음')}</span></p>
       <p class="member-field__row"><span class="k">가입</span><span class="v">${d.created_at ? esc(new Date(d.created_at).toLocaleString('ko-KR')) : '-'}</span></p>
-      <p class="member-field__row"><span class="k">오늘 인연</span><span class="v">${todayList.length ? todayList.map((s) => `${s.slot}번 ${esc(s.nickname || '삭제됨')} (${s.outcome === 'accepted' ? '수락' : s.outcome === 'declined' ? '거절' : '대기'})`).join(' · ') : '아직 배정 없음'}</span></p>
+      ${Array.isArray(d.history) ? '' : `<p class="member-field__row"><span class="k">오늘 인연</span><span class="v">${todayList.length ? todayList.map((s) => `${s.slot}번 ${esc(s.nickname || '삭제됨')} (${s.outcome === 'accepted' ? '수락' : s.outcome === 'declined' ? '거절' : '대기'})`).join(' · ') : '아직 배정 없음'}</span></p>`}
       <p class="member-field__row"><span class="k">받은 호감</span><span class="v">대기 ${Number(d.received_pending) || 0}건 · 매칭 ${Number(d.matches) || 0}건</span></p>
     </div>
+    ${Array.isArray(d.history)
+      ? memberHistoryHTML(d.history)
+      : '<p class="sheet-hint" style="margin-top:12px">오늘의 인연 히스토리는 supabase_lifestyle_and_history.sql 을 실행하면 표시돼요.</p>'}
     <div class="sheet__actions"><button class="btn btn--ghost" data-action="close-sheet">닫기</button></div>`;
 }
 

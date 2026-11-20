@@ -84,6 +84,10 @@ create table if not exists public.profiles (
   dist_km         numeric,
   job_stable      boolean not null default false,
   nonsmoker       boolean,
+  religion        text,                                  -- 종교 (무교·기독교·천주교·불교·기타, 선택 입력)
+  tattoo          text,                                  -- 문신 (없음·작은 타투 있음·있음)
+  drinking        text,                                  -- 주량 (비음주·가끔·적당히·줄기는 편)
+  smoking         text,                                  -- 흡연 (비흡연·전자담배·흡연) — nonsmoker 열과 함께 갱신
   blocked_phones  jsonb not null default '[]'::jsonb,     -- [{hash, masked, at}] 번호 원본은 저장하지 않음
   blocked_profiles jsonb not null default '[]'::jsonb,
   is_demo         boolean not null default false,
@@ -104,6 +108,7 @@ begin
       ('values_list','jsonb not null default ''[]''::jsonb'),
       ('photo_captions','jsonb not null default ''[]''::jsonb'),
       ('dist_km','numeric'), ('job_stable','boolean not null default false'), ('nonsmoker','boolean'),
+      ('religion','text'), ('tattoo','text'), ('drinking','text'), ('smoking','text'),
       ('blocked_phones','jsonb not null default ''[]''::jsonb'),
       ('blocked_profiles','jsonb not null default ''[]''::jsonb'),
       ('is_demo','boolean not null default false'), ('is_admin','boolean not null default false'),
@@ -1895,6 +1900,11 @@ begin
     'bio',             p.bio,
     'hobbies',         coalesce(p.hobbies, '[]'::jsonb),
     'values_list',     coalesce(p.values_list, '[]'::jsonb),
+    'religion',        p.religion,
+    'tattoo',          p.tattoo,
+    'drinking',        p.drinking,
+    'smoking',         coalesce(nullif(btrim(coalesce(p.smoking, '')), ''),
+                                case when coalesce(p.nonsmoker, false) then '비흡연' end),
     'verified',        coalesce(p.verified, false),
     'height_verified', coalesce(p.height_verified, false),
     'status',          p.status,
@@ -1921,7 +1931,68 @@ begin
          where lm.to_user = p.id and lm.status = 'liked'), 0),
     'matches',         coalesce((
         select count(*) from public.likes_matches lm
-         where lm.status = 'matched' and (lm.from_user = p.id or lm.to_user = p.id)), 0)
+         where lm.status = 'matched' and (lm.from_user = p.id or lm.to_user = p.id)), 0),
+
+    /* 과거 오늘의 인연 전체 — 최신 날짜순.
+       ① daily_matches : 20:30 자동 배정 + 운영자 수기 교체 + 결과·사유
+       ② seen_targets  : 예전 today_deck 기록(배정 표가 생기기 전 날짜) 중 위에 없는 것
+       ③ likes_matches : 수락(호감) · 매칭 · 거절(건너뛰기) · 무응답 · 대화 종료 상태  */
+    'history', coalesce((
+      with base as (
+        select dm.match_date, dm.slot::int as slot, dm.target_id, dm.outcome, dm.reason, dm.outcome_at
+          from public.daily_matches dm
+         where dm.user_id = p.id
+        union all
+        select st.served_on, null::int, st.target_id, null::text, null::text, null::timestamptz
+          from public.seen_targets st
+         where st.user_id = p.id
+           and st.served_on is not null
+           and not exists (
+             select 1 from public.daily_matches dm2
+              where dm2.user_id = st.user_id
+                and dm2.target_id = st.target_id
+                and dm2.match_date = st.served_on)
+      ), paired as (
+        select m.*, lm.status as like_status
+          from base m
+          left join lateral (
+            select l.status
+              from public.likes_matches l
+             where (l.from_user = p.id and l.to_user = m.target_id)
+                or (l.from_user = m.target_id and l.to_user = p.id)
+             order by (l.status = 'matched') desc,
+                      (l.from_user = p.id) desc,
+                      (l.status in ('liked', 'matched')) desc,
+                      l.created_at desc
+             limit 1
+          ) lm on true
+      ), resolved as (
+        select pr.*,
+               case
+                 when pr.like_status = 'matched' then 'matched'
+                 when pr.outcome = 'declined' or pr.like_status = 'passed' then 'declined'
+                 when pr.like_status = 'expired_refunded' then 'expired'
+                 when pr.like_status = 'ended' then 'ended'
+                 when pr.outcome = 'accepted' or pr.like_status = 'liked' then 'accepted'
+                 else 'pending'
+               end as final_outcome
+          from paired pr
+      )
+      select jsonb_agg(jsonb_build_object(
+               'date',       to_char(r.match_date, 'YYYY-MM-DD'),
+               'slot',       r.slot,
+               'target_id',  r.target_id,
+               'nickname',   t.nickname,
+               'birth_year', t.birth_year,
+               'age',        t.age,
+               'job',        t.job,
+               'outcome',    r.final_outcome,
+               'outcome_at', r.outcome_at,
+               'reason',     nullif(btrim(coalesce(r.reason, '')), '')
+             ) order by r.match_date desc, coalesce(r.slot, 0) asc)
+        from resolved r
+        left join public.profiles t on t.id = r.target_id
+    ), '[]'::jsonb)
   );
 end $$;
 grant execute on function public.admin_member_detail(uuid) to authenticated;
@@ -2379,6 +2450,35 @@ values
    20.5, true, true, true,
    '{"priorities":["job","personality","style"],"mbti":[],"ageMin":30,"ageMax":40,"areas":["서울시 전체","경기도 전체"],"values":[]}'::jsonb)
 on conflict (id) do nothing;
+
+-- 데모 프로필의 생활 정보 — 화면 확인용 값 (이미 채워져 있으면 건드리지 않습니다)
+update public.profiles p
+   set religion = v.religion,
+       tattoo   = v.tattoo,
+       drinking = v.drinking,
+       smoking  = v.smoking,
+       nonsmoker = (v.smoking = '비흡연')
+  from (values
+    ('a0000000-0000-4000-8000-000000000001'::uuid, '무교',   '없음',           '가끔(1~2잔)',      '비흡연'),
+    ('a0000000-0000-4000-8000-000000000002'::uuid, '기독교', '없음',           '적당히(1병 내외)', '비흡연'),
+    ('a0000000-0000-4000-8000-000000000003'::uuid, '무교',   '없음',           '비음주',           '비흡연'),
+    ('a0000000-0000-4000-8000-000000000004'::uuid, '불교',   '작은 타투 있음', '즐기는 편',        '전자담배'),
+    ('a0000000-0000-4000-8000-000000000005'::uuid, '천주교', '없음',           '가끔(1~2잔)',      '비흡연'),
+    ('a0000000-0000-4000-8000-000000000006'::uuid, '무교',   '없음',           '가끔(1~2잔)',      '비흡연'),
+    ('a0000000-0000-4000-8000-000000000007'::uuid, '무교',   '없음',           '적당히(1병 내외)', '비흡연'),
+    ('a0000000-0000-4000-8000-000000000008'::uuid, '기독교', '없음',           '즐기는 편',        '비흡연'),
+    ('a0000000-0000-4000-8000-000000000009'::uuid, '무교',   '있음',           '가끔(1~2잔)',      '전자담배'),
+    ('a0000000-0000-4000-8000-000000000010'::uuid, '무교',   '없음',           '비음주',           '비흡연'),
+    ('a0000000-0000-4000-8000-000000000011'::uuid, '무교',   '작은 타투 있음', '가끔(1~2잔)',      '비흡연'),
+    ('a0000000-0000-4000-8000-000000000012'::uuid, '천주교', '없음',           '적당히(1병 내외)', '비흡연'),
+    ('a0000000-0000-4000-8000-000000000013'::uuid, '불교',   '없음',           '비음주',           '비흡연'),
+    ('a0000000-0000-4000-8000-000000000014'::uuid, '무교',   '없음',           '즐기는 편',        '비흡연')
+  ) as v(id, religion, tattoo, drinking, smoking)
+ where p.id = v.id
+   and p.religion is null
+   and p.tattoo   is null
+   and p.drinking is null
+   and p.smoking  is null;
 
 -- ============================================================================
 -- 15. 첫 로그인 때 데모 상호작용 채우기 (받은 호감 2 · 매칭 대화 1 · 심사 대기 2 등)
