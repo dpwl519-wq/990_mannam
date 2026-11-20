@@ -4227,12 +4227,32 @@ function renderDeck() {
   actions.hidden = false; note.hidden = false;
   const cards = queue.slice(0, 2).map((p, i) => cardHTML(p, i)).reverse();
   deck.innerHTML = cards.join('');
+  fitCardName();
   fitBioClamp();
 }
 
-/* 소개가 4줄을 넘으면 줄 경계에서만 끊고 '…' + '소개 더보기'를 붙입니다.
-   CSS 말줌만 쓰면 iOS Safari에서 5번째 줄이 반쯤 비치는 경우가 있어,
-   실제 카드에서 '4줄에 들어가는 가장 긴 앞부분'을 찾아 글자를 한 번만 확정합니다. */
+/* 이름이 길어(닉네임 최대 12자) 카드에서 두 줄로 넘어가면 카드 높이를 밀어내므로,
+   한 줄에 들어갈 때까지 글자를 조금씩 줄입니다 — 잘리거나 카드 밖으로 넘치지 않게. */
+function fitCardName(root) {
+  const scope = root || $('#deck');
+  if (!scope || !scope.querySelectorAll) return;
+  scope.querySelectorAll('.card-ed__name').forEach((el) => {
+    el.style.fontSize = '';
+    const fits = () => {
+      const lh = parseFloat(getComputedStyle(el).lineHeight) || 38;
+      return el.getBoundingClientRect().height <= lh * 1.35;
+    };
+    let size = 31;
+    while (!fits() && size > 19) {
+      size -= 2;
+      el.style.fontSize = `${size}px`;
+    }
+  });
+}
+
+/* 소개가 2줄을 넘으면 줄 경계에서만 끊고 '…' 를 붙입니다.
+   CSS 말줌(-webkit-line-clamp)만 쓰면 iOS Safari에서 다음 줄이 반쯤 비치는 경우가 있어,
+   실제 카드에서 '2줄에 들어가는 가장 긴 앞부분'을 찾아 글자를 한 번만 확정합니다. */
 function fitBioClamp(root) {
   const scope = root || $('#deck');
   if (!scope || !scope.querySelectorAll) return;
@@ -8813,7 +8833,7 @@ if (deckEl) {
   deckEl.addEventListener('pointercancel', endDrag);
 
   /* 긴 소개 줄 수는 폰트가 늦게 준비되거나 화면 폭이 바뀌면 다시 쟀습니다 */
-  const refit = () => fitBioClamp();
+  const refit = () => { fitCardName(); fitBioClamp(); };
   new MutationObserver(refit).observe(deckEl, { childList: true });
   window.addEventListener('resize', refit);
   window.addEventListener('orientationchange', () => setTimeout(refit, 150));
